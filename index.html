@@ -1,109 +1,1829 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
-<title>CommonGround — 33 Cottage St</title>
-<meta name="theme-color" content="#0D1117"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="CommonGround"/>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;900&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#0D1117;font-family:'DM Sans',sans-serif;color:#E8ECF4;overflow-x:hidden}
-::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#2A3F30;border-radius:2px}
-input::placeholder,textarea::placeholder{color:#6A8070}
-input,textarea,button{font-family:'DM Sans',sans-serif!important}
-#root{min-height:100vh}
-canvas{touch-action:none}
-@keyframes pulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.1)}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@keyframes popIn{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
-@media print{.no-print{display:none!important}.receipt-print{display:block!important}}
-</style>
-</head>
+  <meta charset="UTF-8" >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" >
+  <title data-id="th-modified">CommonGround — 33 Cottage St</title>
+  <meta name="description" content="Tenant portal for 33 Cottage St" data-id="th-modified">
+  <meta name="theme-color" content="#0D1117" >
+  <meta name="apple-mobile-web-app-capable" content="yes" >
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" >
+  <meta name="apple-mobile-web-app-title" content="CommonGround" >
+  <link rel="preconnect" href="https://fonts.googleapis.com" >
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;900&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" >
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0D1117; font-family: 'DM Sans', sans-serif; color: #E8ECF4; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2A3F30; border-radius: 2px; }
+    input::placeholder, textarea::placeholder { color: #6A8070; }
+    input, textarea, button { font-family: 'DM Sans', sans-serif !important; }
+    #root { min-height: 100vh; }
+  </style>
+<meta property="og:title" content="CommonGround — 33 Cottage St" data-id="th-modified"><meta property="og:description" content="Tenant portal for 33 Cottage St" data-id="th-modified"><meta property="og:image" content="https://tiiny.host/assets/logo-purple-bg.png" data-id="th-modified"><meta property="og:url" content="https://commongroundlive.tiiny.site/" data-id="th-modified"><meta property="og:type" content="website" data-id="th-modified"><script defer data-domain="commongroundlive.tiiny.site" src="https://analytics.tiiny.site/js/plausible.js"></script></head>
 <body>
-<div id="root"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-<script type="text/babel" id="main-app">
-const {useState,useEffect,useRef}=React;
-const T={bg:"#0D1117",surface:"#111A14",card:"#162019",border:"#1E3024",green:"#3EC98E",greenGlow:"#3EC98E28",greenDim:"#3EC98E15",gold:"#F5C542",red:"#F76F6F",text:"#E8ECF4",muted:"#6A8070",faint:"#2A3F30",font:"'DM Sans',sans-serif",serif:"'Fraunces',serif"};
-const MANAGER={name:"Michael",email:"Mszloch809@gmail.com",company:"Upside Real Estate Development",password:"Upsde33!"};
-const UNIT_PINS={"101":"0101","102":"0102","201":"0201","202":"0202","301":"0301","302":"0302","303":"0303"};
-const UNITS=["101","102","201","202","301","302","303"];
-const FLOOR_LABELS={"1":"1st Floor","2":"2nd Floor","3":"3rd Floor"};
-const UNIT_CONFIG={"101":{type:"3 Bedroom",rent:1590},"102":{type:"3 Bedroom",rent:1590},"201":{type:"3 Bedroom",rent:1590},"202":{type:"3 Bedroom",rent:1590},"301":{type:"1 Bedroom",rent:1100},"302":{type:"1 Bedroom",rent:1100},"303":{type:"1 Bedroom",rent:1100}};
-const getRent=(u)=>UNIT_CONFIG[u]?.rent||1100;
-const getType=(u)=>UNIT_CONFIG[u]?.type||"Unit";
-const load=(k,fb)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb;}catch{return fb;}};
-const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}};
-const initials=(n)=>n?n.split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2):"?";
-const Badge=({color,children})=><span style={{background:color+"22",color,fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:20}}>{children}</span>;
-const Card=({children,style:s={},onClick})=><div onClick={onClick} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:20,cursor:onClick?"pointer":"default",...s}}>{children}</div>;
-const Input=({value,onChange,placeholder,multiline,type="text",style:s={}})=>multiline?<textarea value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} rows={3} style={{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 14px",color:T.text,fontSize:14,resize:"none",outline:"none",boxSizing:"border-box",...s}}/>:<input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} style={{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 14px",color:T.text,fontSize:14,outline:"none",boxSizing:"border-box",...s}}/>;
-const Btn=({children,onClick,variant="primary",small,icon,disabled,full})=>{const base={display:"inline-flex",alignItems:"center",justifyContent:"center",gap:6,border:"none",borderRadius:10,fontWeight:700,cursor:disabled?"not-allowed":"pointer",transition:"all 0.18s",fontSize:small?13:14,padding:small?"7px 14px":"11px 22px",opacity:disabled?0.45:1,width:full?"100%":"auto"};const variants={primary:{background:`linear-gradient(135deg,${T.green},#2aaa72)`,color:"#071a0e",boxShadow:`0 4px 20px ${T.greenGlow}`},ghost:{background:"transparent",color:T.muted,border:`1px solid ${T.border}`},green:{background:T.greenDim,color:T.green,border:`1px solid ${T.green}44`},danger:{background:"#F76F6F15",color:T.red,border:`1px solid ${T.red}33`},gold:{background:"#F5C54215",color:T.gold,border:`1px solid ${T.gold}44`}};return <button onClick={onClick} disabled={disabled} style={{...base,...variants[variant]}}>{icon&&icon}{children}</button>;};
-const IC={home:"M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10",pay:"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z",msg:"M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z",forum:"M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 7a4 4 0 100 8 4 4 0 000-8z M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75",send:"M22 2L11 13 M22 2L15 22 8.5 13.5 2 9z",check:"M20 6L9 17l-5-5",alert:"M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z M12 9v4M12 17h.01",back:"M19 12H5M12 5l-7 7 7 7",link:"M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71 M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71",person:"M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 3a4 4 0 100 8 4 4 0 000-8z",lock:"M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z M17 11V7a5 5 0 00-10 0v4",doc:"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8",search:"M11 17a6 6 0 100-12 6 6 0 000 12z M21 21l-4.35-4.35",receipt:"M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 5a2 2 0 002 2h2a2 2 0 002-2 M9 5a2 2 0 012-2h2a2 2 0 012 2 M9 12h6 M9 16h4",print:"M6 9V2h12v7 M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2 M6 14h12v8H6z",upload:"M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M17 8l-5-5-5 5 M12 3v12",sign:"M12 20h9 M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z",dash:"M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z",announce:"M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5 M17 3a2.828 2.828 0 114 4L12 15l-4 1 1-4 8-9z"};
-const Icon=({d,size=20,color="currentColor",stroke=1.8})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round"><path d={d}/></svg>;
-const CGMark=({size=36})=>(<svg width={size} height={size} viewBox="0 0 80 80" fill="none"><rect x="10" y="56" width="60" height="4" rx="2" fill={T.green} opacity="0.35"/><rect x="12" y="28" width="18" height="28" rx="3" stroke={T.green} strokeWidth="1.8" fill="none" opacity="0.55"/><rect x="31" y="14" width="18" height="42" rx="3" fill={T.green} opacity="0.15"/><rect x="31" y="14" width="18" height="42" rx="3" stroke={T.green} strokeWidth="2.2" fill="none"/><rect x="50" y="34" width="18" height="22" rx="3" stroke={T.green} strokeWidth="1.8" fill="none" opacity="0.55"/><rect x="37" y="44" width="6" height="12" rx="1.5" fill={T.green} opacity="0.9"/><rect x="16" y="33" width="4" height="4" rx="1" fill={T.green} opacity="0.5"/><rect x="22" y="33" width="4" height="4" rx="1" fill={T.green} opacity="0.5"/><rect x="36" y="20" width="4" height="5" rx="1" fill={T.green} opacity="0.7"/><rect x="44" y="20" width="4" height="5" rx="1" fill={T.green} opacity="0.7"/><rect x="54" y="39" width="4" height="4" rx="1" fill={T.green} opacity="0.5"/><rect x="60" y="39" width="4" height="4" rx="1" fill={T.green} opacity="0.5"/><path d="M21 27 Q40 10 59 33" stroke={T.green} strokeWidth="1.5" fill="none" strokeDasharray="3 3" opacity="0.5"/><circle cx="21" cy="27" r="2.5" fill={T.green} opacity="0.8"/><circle cx="40" cy="13" r="2.8" fill={T.green}/><circle cx="59" cy="33" r="2.5" fill={T.green} opacity="0.8"/></svg>);
-const CGWordmark=({size=20})=>(<span style={{fontFamily:T.serif,fontSize:size,fontWeight:900,letterSpacing:"-0.5px",lineHeight:1}}><span style={{color:T.text}}>Common</span><span style={{color:T.green}}>Ground</span></span>);
+  <div id="root"></div>
 
-function Splash({onDone}){const [p,setP]=useState(0);useEffect(()=>{const t1=setTimeout(()=>setP(1),300),t2=setTimeout(()=>setP(2),900),t3=setTimeout(()=>setP(3),1600),t4=setTimeout(()=>onDone(),2600);return()=>[t1,t2,t3,t4].forEach(clearTimeout);},[]);return(<div style={{position:"fixed",inset:0,zIndex:999,background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:20}}><div style={{position:"absolute",width:300,height:300,borderRadius:"50%",background:T.greenGlow,filter:"blur(80px)",top:"30%",left:"50%",transform:"translate(-50%,-50%)",opacity:p>=1?1:0,transition:"opacity 1s ease"}}/><div style={{opacity:p>=1?1:0,transform:p>=1?"scale(1)":"scale(0.7)",transition:"all 0.6s cubic-bezier(0.34,1.56,0.64,1)"}}><CGMark size={88}/></div><div style={{opacity:p>=2?1:0,transform:p>=2?"translateY(0)":"translateY(12px)",transition:"all 0.5s ease",textAlign:"center"}}><CGWordmark size={32}/><div style={{fontSize:11,color:T.muted,letterSpacing:"0.18em",textTransform:"uppercase",marginTop:6}}>Connected Living</div></div><div style={{display:"flex",gap:6,marginTop:12,opacity:p>=3?1:0,transition:"opacity 0.4s ease"}}>{[0,1,2].map(i=><div key={i} style={{width:6,height:6,borderRadius:"50%",background:T.green,animation:"pulse 1s ease-in-out infinite",animationDelay:`${i*0.2}s`}}/>)}</div></div>);}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>(function(){emailjs.init({publicKey:"i708vxgQnEmgE5uSa"});})();</script>
+  <script>
+    // Firebase Realtime Database REST — works everywhere, no SDK needed
+    // You need to create a Realtime Database in Firebase Console
+    const RTDB = "https://commonground-71e64-default-rtdb.firebaseio.com";
+    window.__fb_ready = false;
+    window.db = {
+      _write: async (key, val) => {
+        try {
+          const res = await fetch(`${RTDB}/cg/${key}.json`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({v: JSON.stringify(val), t: Date.now()})
+          });
+          return res.ok;
+        } catch(e) { return false; }
+      },
+      _read: async (key) => {
+        try {
+          const res = await fetch(`${RTDB}/cg/${key}.json`);
+          if(!res.ok) return null;
+          const data = await res.json();
+          return data;
+        } catch(e) { return null; }
+      }
+    };
+    // Test connection
+    fetch(`${RTDB}/cg/__ping__.json`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({t: Date.now()})
+    }).then(r => {
+      window.__fb_ready = r.ok;
+      console.log('RTDB:', r.ok ? 'Connected!' : 'Failed - '+r.status);
+    }).catch(e => console.error('RTDB error:', e.message));
+  </script>
 
-function PinScreen({unit,onSuccess,onBack}){const [pin,setPin]=useState("");const [error,setError]=useState(false);const [shake,setShake]=useState(false);const correct=UNIT_PINS[unit];const tap=(d)=>{if(pin.length>=4)return;const next=pin+d;setPin(next);if(next.length===4){if(next===correct){onSuccess();}else{setError(true);setShake(true);setTimeout(()=>{setPin("");setError(false);setShake(false);},600);}}};const del=()=>setPin(p=>p.slice(0,-1));return(<div style={{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}><div style={{marginBottom:24,textAlign:"center"}}><CGMark size={48}/><div style={{marginTop:12}}><CGWordmark size={22}/></div><div style={{fontSize:13,color:T.muted,marginTop:6}}>Unit {unit} · Enter PIN</div></div><div style={{display:"flex",gap:14,marginBottom:32,transform:shake?"translateX(8px)":"none",transition:"transform 0.1s"}}>{[0,1,2,3].map(i=><div key={i} style={{width:18,height:18,borderRadius:"50%",border:`2px solid ${error?T.red:T.green}`,background:i<pin.length?(error?T.red:T.green):"transparent",transition:"all 0.2s"}}/>)}</div><div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,width:"100%",maxWidth:260}}>{[1,2,3,4,5,6,7,8,9,"",0,"⌫"].map((k,i)=><button key={i} onClick={()=>k==="⌫"?del():k!==""?tap(String(k)):null} style={{padding:"18px 0",borderRadius:14,border:`1px solid ${T.border}`,background:k===""?T.bg:T.card,color:T.text,fontSize:22,fontWeight:700,cursor:k===""?"default":"pointer",opacity:k===""?0:1,fontFamily:T.serif}}>{k}</button>)}</div><button onClick={onBack} style={{marginTop:24,background:"none",border:"none",color:T.muted,fontSize:13,cursor:"pointer"}}>← Back to units</button>{error&&<div style={{marginTop:12,color:T.red,fontSize:13,fontWeight:600}}>Incorrect PIN. Try again.</div>}</div>);}
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
 
-function ManagerLogin({onSuccess,onBack}){const [pw,setPw]=useState("");const [error,setError]=useState(false);const check=()=>{if(pw===MANAGER.password)onSuccess();else{setError(true);setTimeout(()=>setError(false),2000);}};return(<div style={{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}><CGMark size={48}/><div style={{margin:"12px 0 4px"}}><CGWordmark size={22}/></div><div style={{fontSize:13,color:T.muted,marginBottom:32}}>Manager Access</div><Card style={{width:"100%",maxWidth:360}}><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>ENTER MANAGER PASSWORD</div><Input type="password" value={pw} onChange={setPw} placeholder="Password"/>{error&&<div style={{color:T.red,fontSize:12,marginTop:8}}>Incorrect password.</div>}<div style={{marginTop:14,display:"flex",gap:8}}><Btn onClick={onBack} variant="ghost">Cancel</Btn><Btn onClick={check} disabled={!pw} full>Access Dashboard</Btn></div></Card></div>);}
+    const T = {
+      bg:"#0D1117",surface:"#111A14",card:"#162019",border:"#1E3024",
+      green:"#3EC98E",greenGlow:"#3EC98E28",greenDim:"#3EC98E15",
+      gold:"#F5C542",red:"#F76F6F",blue:"#5B9CF6",text:"#E8ECF4",muted:"#6A8070",faint:"#2A3F30",
+      font:"'DM Sans', sans-serif",serif:"'Fraunces', serif",
+    };
 
-function UnitSelect({tenantProfiles,onSelect,onManagerTap}){const [taps,setTaps]=useState(0);const [showMgr,setShowMgr]=useState(false);const handleLogo=()=>{const n=taps+1;setTaps(n);if(n>=5)setShowMgr(true);};return(<div style={{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",padding:"40px 20px 60px"}}><div style={{position:"fixed",width:280,height:280,borderRadius:"50%",background:T.greenGlow,filter:"blur(70px)",top:"15%",left:"50%",transform:"translateX(-50%)",pointerEvents:"none"}}/><div style={{animation:"fadeUp 0.5s ease both",textAlign:"center",marginBottom:32}} onClick={handleLogo}><CGMark size={56}/><div style={{marginTop:12}}><CGWordmark size={26}/></div><div style={{fontSize:13,color:T.muted,marginTop:6}}>33 Cottage St</div></div>{showMgr&&<div style={{marginBottom:16}}><Btn onClick={onManagerTap} variant="gold" small>Manager Dashboard</Btn></div>}<div style={{animation:"fadeUp 0.5s 0.1s ease both",width:"100%",maxWidth:400}}><div style={{fontSize:12,color:T.muted,fontWeight:700,letterSpacing:"0.14em",textAlign:"center",marginBottom:24}}>TAP YOUR UNIT NUMBER TO GET STARTED</div>{["1","2","3"].map(floor=>(<div key={floor} style={{marginBottom:24}}><div style={{fontSize:11,color:T.green,fontWeight:700,letterSpacing:"0.12em",marginBottom:10}}>{FLOOR_LABELS[floor]}</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>{UNITS.filter(u=>u.startsWith(floor)).map(unit=>{const profile=tenantProfiles[unit];const has=profile&&profile.firstName;return(<div key={unit} onClick={()=>onSelect(unit)} style={{background:has?T.greenDim:T.card,border:`1.5px solid ${has?T.green+"55":T.border}`,borderRadius:16,padding:"16px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:12,transition:"all 0.18s"}}><div style={{width:46,height:46,borderRadius:13,flexShrink:0,background:has?`linear-gradient(135deg,${T.green},#2aaa72)`:T.faint,display:"flex",alignItems:"center",justifyContent:"center",fontSize:has?14:17,fontWeight:900,color:has?"#071a0e":T.muted,fontFamily:T.serif}}>{has?initials(`${profile.firstName} ${profile.lastName}`):unit}</div><div><div style={{fontSize:15,fontWeight:800,color:T.text,fontFamily:T.serif,lineHeight:1.2}}>Unit {unit}</div><div style={{fontSize:11,color:T.muted,marginTop:1}}>{getType(unit)}</div>{has?<div style={{fontSize:12,color:T.green,fontWeight:600,marginTop:2}}>{profile.firstName} {profile.lastName}</div>:<div style={{fontSize:11,color:T.muted,marginTop:2}}>Tap to set up</div>}</div></div>);})}</div></div>))}<div style={{textAlign:"center",fontSize:12,color:T.muted,lineHeight:1.7}}>Select your unit to create your tenant profile.<br/>Your info is only shared with your property manager.</div></div></div>);}
+    const CGMark = ({ size=36 }) => (
+      <svg width={size} height={size} viewBox="0 0 80 80" fill="none">
+        <rect x="10" y="56" width="60" height="4" rx="2" fill={T.green} opacity="0.35"/>
+        <rect x="12" y="28" width="18" height="28" rx="3" stroke={T.green} strokeWidth="1.8" fill="none" opacity="0.55"/>
+        <rect x="31" y="14" width="18" height="42" rx="3" fill={T.green} opacity="0.15"/>
+        <rect x="31" y="14" width="18" height="42" rx="3" stroke={T.green} strokeWidth="2.2" fill="none"/>
+        <rect x="50" y="34" width="18" height="22" rx="3" stroke={T.green} strokeWidth="1.8" fill="none" opacity="0.55"/>
+        <rect x="37" y="44" width="6" height="12" rx="1.5" fill={T.green} opacity="0.9"/>
+        <rect x="16" y="33" width="4" height="4" rx="1" fill={T.green} opacity="0.5"/>
+        <rect x="22" y="33" width="4" height="4" rx="1" fill={T.green} opacity="0.5"/>
+        <rect x="36" y="20" width="4" height="5" rx="1" fill={T.green} opacity="0.7"/>
+        <rect x="44" y="20" width="4" height="5" rx="1" fill={T.green} opacity="0.7"/>
+        <rect x="54" y="39" width="4" height="4" rx="1" fill={T.green} opacity="0.5"/>
+        <rect x="60" y="39" width="4" height="4" rx="1" fill={T.green} opacity="0.5"/>
+        <path d="M21 27 Q40 10 59 33" stroke={T.green} strokeWidth="1.5" fill="none" strokeDasharray="3 3" opacity="0.5"/>
+        <circle cx="21" cy="27" r="2.5" fill={T.green} opacity="0.8"/>
+        <circle cx="40" cy="13" r="2.8" fill={T.green}/>
+        <circle cx="59" cy="33" r="2.5" fill={T.green} opacity="0.8"/>
+      </svg>
+    );
 
-function TenantSetup({unit,existing,onSave,onBack}){const [firstName,setFirstName]=useState(existing?.firstName||"");const [lastName,setLastName]=useState(existing?.lastName||"");const [phone,setPhone]=useState(existing?.phone||"");const [email,setEmail]=useState(existing?.email||"");const [moveIn,setMoveIn]=useState(existing?.moveIn||"");const [leaseEnd,setLeaseEnd]=useState(existing?.leaseEnd||"");const [emergency,setEmergency]=useState(existing?.emergency||"");const [saved,setSaved]=useState(false);const isNew=!existing?.firstName;const handleSave=()=>{if(!firstName.trim()||!lastName.trim())return;onSave({firstName:firstName.trim(),lastName:lastName.trim(),phone,email,moveIn,leaseEnd,emergency});setSaved(true);setTimeout(()=>setSaved(false),1800);};return(<div style={{minHeight:"100vh",background:T.bg,paddingBottom:40}}><div style={{position:"sticky",top:0,zIndex:10,background:T.bg+"f0",backdropFilter:"blur(14px)",borderBottom:`1px solid ${T.border}`,padding:"14px 18px",display:"flex",alignItems:"center",gap:12}}><button onClick={onBack} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Icon d={IC.back} size={22} color={T.green}/></button><div style={{flex:1}}><div style={{fontFamily:T.serif,fontSize:18,fontWeight:900,color:T.text}}>Unit {unit}</div><div style={{fontSize:11,color:T.muted}}>33 Cottage St · {getType(unit)} · {isNew?"Create Profile":"Edit Profile"}</div></div><CGMark size={28}/></div><div style={{maxWidth:480,margin:"0 auto",padding:"24px 16px",display:"flex",flexDirection:"column",gap:18}}><div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,paddingBottom:4}}><div style={{width:76,height:76,borderRadius:"50%",background:firstName?`linear-gradient(135deg,${T.green},#2aaa72)`:T.faint,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,fontWeight:900,color:firstName?"#071a0e":T.muted,fontFamily:T.serif,border:`3px solid ${firstName?T.green+"55":T.border}`}}>{firstName?initials(`${firstName} ${lastName}`):unit}</div><div style={{fontSize:13,color:firstName?T.text:T.muted,fontWeight:firstName?700:400}}>{firstName?`${firstName} ${lastName}`.trim():"Your name appears here"}</div></div><Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>YOUR NAME *</div><div style={{display:"flex",flexDirection:"column",gap:10}}><div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>First Name</div><Input value={firstName} onChange={setFirstName} placeholder="e.g. Jamie"/></div><div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Last Name</div><Input value={lastName} onChange={setLastName} placeholder="e.g. Rivera"/></div></div></Card><Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>CONTACT INFO</div><div style={{display:"flex",flexDirection:"column",gap:12}}><div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Phone Number</div><Input value={phone} onChange={setPhone} placeholder="(555) 000-0000" type="tel"/></div><div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Email Address</div><Input value={email} onChange={setEmail} placeholder="you@email.com" type="email"/></div></div></Card><Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>LEASE DETAILS</div><div style={{display:"flex",flexDirection:"column",gap:12}}><div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Move-In Date</div><Input value={moveIn} onChange={setMoveIn} placeholder="MM/DD/YYYY"/></div><div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Lease End Date</div><Input value={leaseEnd} onChange={setLeaseEnd} placeholder="MM/DD/YYYY"/></div></div></Card><Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>EMERGENCY CONTACT</div><Input value={emergency} onChange={setEmergency} placeholder="e.g. Mom – (555) 111-2222"/></Card><Btn onClick={handleSave} disabled={!firstName.trim()||!lastName.trim()} icon={<Icon d={saved?IC.check:IC.person} size={16} color="#071a0e" stroke={saved?2.5:1.8}/>} full>{saved?"Profile Saved! ✓":isNew?"Create My Profile":"Save Changes"}</Btn><div style={{fontSize:11,color:T.muted,textAlign:"center",lineHeight:1.7}}>Your information is only shared with your property manager at 33 Cottage St.</div></div></div>);}
+    const CGWordmark = ({ size=20 }) => (
+      <span style={{fontFamily:T.serif,fontSize:size,fontWeight:900,letterSpacing:"-0.5px",lineHeight:1}}>
+        <span style={{color:T.text}}>Common</span><span style={{color:T.green}}>Ground</span>
+      </span>
+    );
 
-function Dashboard({setTab,tenant,unit}){const amount=getRent(unit);const unitType=getType(unit);const payments=load(`cg_payments_${unit}`,[]);return(<div style={{display:"flex",flexDirection:"column",gap:18}}><div style={{background:"linear-gradient(145deg,#0D2518 0%,#071A10 100%)",borderRadius:22,padding:24,position:"relative",overflow:"hidden",border:`1px solid ${T.green}33`}}><div style={{position:"absolute",top:-40,right:-40,width:180,height:180,borderRadius:"50%",background:T.greenGlow,filter:"blur(30px)"}}/><div style={{fontSize:11,color:T.green,fontWeight:700,letterSpacing:"0.14em",marginBottom:8}}>NEXT PAYMENT DUE</div><div style={{fontSize:42,fontWeight:900,color:"#fff",fontFamily:T.serif,letterSpacing:"-1.5px",lineHeight:1}}>${amount.toLocaleString()}</div><div style={{color:T.muted,fontSize:13,marginTop:6}}>Due 1st of each month &nbsp;·&nbsp;<span style={{color:T.gold,fontWeight:600}}>Unit {unit}</span></div><div style={{marginTop:18}}><Btn onClick={()=>setTab("pay")} icon={<Icon d={IC.send} size={15} color="#071a0e"/>}>Pay Rent Now</Btn></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>{[{label:"Unit",value:unit,sub:unitType+" · 33 Cottage St"},{label:"Lease Ends",value:tenant.leaseEnd||"—",sub:tenant.leaseEnd?"":"Not set yet"},{label:"Payments Made",value:payments.length,sub:"This lease"},{label:"Total Paid",value:"$"+payments.reduce((s,p)=>s+p.total,0).toLocaleString(),sub:"All time"}].map(s=>(<Card key={s.label} style={{padding:16}}><div style={{fontSize:10,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:6}}>{s.label.toUpperCase()}</div><div style={{fontSize:22,fontWeight:900,color:T.text,fontFamily:T.serif}}>{s.value}</div><div style={{fontSize:12,color:T.muted}}>{s.sub}</div></Card>))}</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>{[{label:"Send Message",tab:"messages",icon:IC.msg,color:T.green},{label:"Building Forum",tab:"forum",icon:IC.forum,color:"#7BCFB8"},{label:"Pay Rent",tab:"pay",icon:IC.pay,color:T.gold},{label:"My Lease",tab:"lease",icon:IC.doc,color:"#A8D5B5"}].map(n=>(<Card key={n.tab} onClick={()=>setTab(n.tab)} style={{padding:16,cursor:"pointer"}}><div style={{width:42,height:42,borderRadius:13,background:n.color+"22",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10}}><Icon d={n.icon} size={18} color={n.color}/></div><div style={{fontSize:13,fontWeight:700,color:T.text}}>{n.label}</div></Card>))}</div><Card><div style={{fontSize:12,fontWeight:700,color:T.muted,letterSpacing:"0.1em",marginBottom:14}}>PAYMENT HISTORY</div>{payments.length===0?<div style={{textAlign:"center",padding:"20px 0",color:T.muted,fontSize:13}}>No payments yet. Your history appears here after your first payment.</div>:payments.slice().reverse().map((p,i)=>(<div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"11px 0",borderBottom:`1px solid ${T.border}`}}><div><div style={{fontSize:13,fontWeight:600,color:T.text}}>{p.desc}</div><div style={{fontSize:11,color:T.muted}}>{p.date} · {p.method}</div></div><div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:14,fontWeight:800,color:T.green,fontFamily:T.serif}}>${p.total.toLocaleString()}</span><Badge color={T.green}>Paid</Badge></div></div>))}</Card></div>);}
+    function Splash({ onDone }) {
+      const [phase,setPhase]=useState(0);
+      useEffect(()=>{
+        const t1=setTimeout(()=>setPhase(1),300);
+        const t2=setTimeout(()=>setPhase(2),900);
+        const t3=setTimeout(()=>setPhase(3),1600);
+        const t4=setTimeout(()=>onDone(),2600);
+        return()=>[t1,t2,t3,t4].forEach(clearTimeout);
+      },[]);
+      return(
+        <div style={{position:"fixed",inset:0,zIndex:999,background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:20}}>
+          <style>{`@keyframes pulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.1)}}`}</style>
+          <div style={{position:"absolute",width:300,height:300,borderRadius:"50%",background:T.greenGlow,filter:"blur(80px)",top:"30%",left:"50%",transform:"translate(-50%,-50%)",opacity:phase>=1?1:0,transition:"opacity 1s ease"}}/>
+          <div style={{opacity:phase>=1?1:0,transform:phase>=1?"scale(1)":"scale(0.7)",transition:"all 0.6s cubic-bezier(0.34,1.56,0.64,1)"}}><CGMark size={88}/></div>
+          <div style={{opacity:phase>=2?1:0,transform:phase>=2?"translateY(0)":"translateY(12px)",transition:"all 0.5s ease",textAlign:"center"}}>
+            <CGWordmark size={32}/>
+            <div style={{fontSize:11,color:T.muted,letterSpacing:"0.18em",textTransform:"uppercase",marginTop:6}}>Connected Living</div>
+          </div>
+          <div style={{display:"flex",gap:6,marginTop:12,opacity:phase>=3?1:0,transition:"opacity 0.4s ease"}}>
+            {[0,1,2].map(i=><div key={i} style={{width:6,height:6,borderRadius:"50%",background:T.green,animation:"pulse 1s ease-in-out infinite",animationDelay:`${i*0.2}s`}}/>)}
+          </div>
+        </div>
+      );
+    }
 
-const CHARGE_DEFS=[{id:"rent",label:"Monthly Rent",required:true,color:"#3EC98E"},{id:"parking",label:"Parking Fee",required:false,color:"#7BCFB8",defaultAmt:75},{id:"pet",label:"Pet Fee",required:false,color:"#F5A442",defaultAmt:50},{id:"fine",label:"Fine / Fee",required:false,color:"#F76F6F",defaultAmt:0}];
+    const UNITS=["101","102","201","202","301","302","303"];
+    const FLOOR_LABELS={"1":"1st Floor","2":"2nd Floor","3":"3rd Floor"};
 
-function PayRent({unit,tenant}){const unitRent=getRent(unit);const unitType=getType(unit);const [charges,setCharges]=useState(CHARGE_DEFS.reduce((acc,c)=>({...acc,[c.id]:{enabled:c.required,amount:c.id==="rent"?unitRent:(c.defaultAmt||0)}}),{}));const [method,setMethod]=useState(null);const [note,setNote]=useState("");const [sent,setSent]=useState(false);const [loading,setLoading]=useState(false);const [receipt,setReceipt]=useState(null);const toggle=(id)=>{if(CHARGE_DEFS.find(c=>c.id===id).required)return;setCharges(p=>({...p,[id]:{...p[id],enabled:!p[id].enabled}}));};const updateAmt=(id,val)=>setCharges(p=>({...p,[id]:{...p[id],amount:parseFloat(val)||0}}));const total=CHARGE_DEFS.reduce((s,c)=>charges[c.id].enabled?s+(charges[c.id].amount||0):s,0);const now=new Date();const dateStr=now.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});const monthStr=now.toLocaleDateString("en-US",{month:"long",year:"numeric"});const handlePay=()=>{setLoading(true);setTimeout(()=>{const r={id:"RCP-"+Date.now(),date:dateStr,month:monthStr,unit,unitType,tenant:tenant?`${tenant.firstName} ${tenant.lastName}`:"Tenant",method:method==="wire"?"Wire Transfer":"ACH Bank Transfer",charges:CHARGE_DEFS.filter(c=>charges[c.id].enabled).map(c=>({label:c.label,amount:charges[c.id].amount})),total,desc:`Rent – ${monthStr}`};const existing=load(`cg_payments_${unit}`,[]);save(`cg_payments_${unit}`,[...existing,{date:dateStr,desc:`Rent – ${monthStr}`,total,method:r.method}]);setReceipt(r);setLoading(false);setSent(true);},1800);};
-if(sent&&receipt)return(<div style={{display:"flex",flexDirection:"column",gap:16}}><div style={{textAlign:"center",paddingBottom:8}}><div style={{width:72,height:72,borderRadius:"50%",background:T.greenDim,border:`2px solid ${T.green}44`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto",animation:"popIn 0.4s cubic-bezier(0.34,1.56,0.64,1)"}}><Icon d={IC.check} size={32} color={T.green} stroke={2.5}/></div><div style={{fontFamily:T.serif,fontSize:26,fontWeight:900,color:T.text,marginTop:12}}>Payment Confirmed!</div><div style={{color:T.muted,fontSize:13,marginTop:4}}>Receipt #{receipt.id}</div></div><Card style={{borderColor:T.green+"44"}}><div style={{textAlign:"center",marginBottom:16,paddingBottom:16,borderBottom:`1px solid ${T.border}`}}><CGMark size={32}/><div style={{fontFamily:T.serif,fontSize:16,fontWeight:900,color:T.text,marginTop:6}}>CommonGround</div><div style={{fontSize:11,color:T.muted}}>{MANAGER.company}</div><div style={{fontSize:11,color:T.muted}}>33 Cottage St</div></div><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>PAYMENT RECEIPT</div>{[{label:"Receipt #",val:receipt.id},{label:"Date",val:receipt.date},{label:"Tenant",val:receipt.tenant},{label:"Unit",val:`Unit ${receipt.unit} · ${receipt.unitType}`},{label:"Period",val:receipt.month},{label:"Method",val:receipt.method}].map(r=>(<div key={r.label} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:`1px solid ${T.border}`}}><span style={{fontSize:12,color:T.muted}}>{r.label}</span><span style={{fontSize:12,fontWeight:700,color:T.text}}>{r.val}</span></div>))}<div style={{marginTop:12,paddingTop:4}}><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:8}}>CHARGES</div>{receipt.charges.map((c,i)=>(<div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 0"}}><span style={{fontSize:13,color:T.text}}>{c.label}</span><span style={{fontSize:13,fontWeight:600,color:T.text}}>${c.amount.toLocaleString()}</span></div>))}<div style={{display:"flex",justifyContent:"space-between",padding:"12px 0 0",borderTop:`2px solid ${T.green}44`,marginTop:8}}><span style={{fontSize:15,fontWeight:800,color:T.text}}>Total Paid</span><span style={{fontSize:15,fontWeight:900,color:T.green,fontFamily:T.serif}}>${receipt.total.toLocaleString()}</span></div></div><div style={{marginTop:14,padding:10,borderRadius:10,background:T.greenDim,textAlign:"center"}}><div style={{fontSize:11,color:T.green,fontWeight:700}}>✓ Payment Processed Successfully</div><div style={{fontSize:11,color:T.muted,marginTop:2}}>Keep this receipt for your records</div></div></Card><Btn onClick={()=>window.print()} variant="green" icon={<Icon d={IC.print} size={15} color={T.green}/>} full>Print / Save Receipt</Btn><Btn onClick={()=>{setSent(false);setReceipt(null);setMethod(null);setNote("");setCharges(CHARGE_DEFS.reduce((acc,c)=>({...acc,[c.id]:{enabled:c.required,amount:c.id==="rent"?unitRent:(c.defaultAmt||0)}}),{}));}} variant="ghost" full>Make Another Payment</Btn></div>);
-return(<div style={{display:"flex",flexDirection:"column",gap:18}}><div style={{fontFamily:T.serif,fontSize:24,fontWeight:900,color:T.text}}>Pay Rent</div><Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:4}}>CHARGES DUE</div><div style={{fontSize:12,color:T.green,fontWeight:600,marginBottom:14}}>Unit {unit} · {unitType}</div>{CHARGE_DEFS.map(c=>{const active=charges[c.id].enabled;return(<div key={c.id} style={{marginBottom:12}}><div onClick={()=>toggle(c.id)} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",borderRadius:12,border:`1.5px solid ${active?c.color+"55":T.border}`,background:active?c.color+"0D":T.surface,cursor:c.required?"default":"pointer",transition:"all 0.18s",marginBottom:active?8:0}}><div style={{width:22,height:22,borderRadius:"50%",border:`2px solid ${active?c.color:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{active&&<div style={{width:10,height:10,borderRadius:"50%",background:c.color}}/>}</div><div style={{flex:1}}><div style={{fontSize:14,fontWeight:700,color:active?T.text:T.muted}}>{c.label}</div>{!active&&!c.required&&<div style={{fontSize:11,color:T.muted}}>Tap to add</div>}{c.required&&<div style={{fontSize:11,color:T.muted}}>Required</div>}</div>{active&&<div style={{fontFamily:T.serif,fontSize:16,fontWeight:900,color:c.color}}>${(charges[c.id].amount||0).toLocaleString()}</div>}</div>{active&&(<div style={{display:"flex",alignItems:"center",gap:10,padding:"0 4px"}}><div style={{fontSize:12,color:T.muted,whiteSpace:"nowrap"}}>Amount ($)</div><div style={{position:"relative",flex:1}}><span style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",color:c.color,fontWeight:800}}>$</span><input value={charges[c.id].amount} onChange={e=>updateAmt(c.id,e.target.value)} disabled={c.id==="rent"} style={{width:"100%",background:T.surface,border:`1px solid ${c.color}44`,borderRadius:10,padding:"9px 12px 9px 26px",color:T.text,fontSize:16,fontFamily:T.serif,fontWeight:800,outline:"none",boxSizing:"border-box",opacity:c.id==="rent"?0.7:1}}/></div></div>)}</div>);})}<div style={{borderTop:`1px solid ${T.border}`,marginTop:8,paddingTop:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em"}}>TOTAL DUE</div><div style={{fontSize:11,color:T.muted,marginTop:2}}>{CHARGE_DEFS.filter(c=>charges[c.id].enabled).length} charges</div></div><div style={{fontFamily:T.serif,fontSize:32,fontWeight:900,color:T.green}}>${total.toLocaleString()}</div></div></Card><Input value={note} onChange={setNote} placeholder="Note to manager (optional)"/><Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>PAYMENT METHOD</div>{[{id:"ach",label:"ACH Bank Transfer",sub:"Free · 2–3 business days",color:T.green},{id:"wire",label:"Wire Transfer",sub:"$15 fee · Same business day",color:T.gold}].map(m=>(<div key={m.id} onClick={()=>setMethod(m.id)} style={{display:"flex",alignItems:"center",gap:14,padding:"14px 16px",borderRadius:12,border:`2px solid ${method===m.id?m.color:T.border}`,background:method===m.id?m.color+"10":T.surface,cursor:"pointer",transition:"all 0.18s",marginBottom:10}}><div style={{width:22,height:22,borderRadius:"50%",border:`2px solid ${method===m.id?m.color:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{method===m.id&&<div style={{width:10,height:10,borderRadius:"50%",background:m.color}}/>}</div><div><div style={{fontSize:14,fontWeight:700,color:T.text}}>{m.label}</div><div style={{fontSize:12,color:T.muted}}>{m.sub}</div></div></div>))}</Card><Btn onClick={handlePay} disabled={!method||loading||total===0} icon={<Icon d={IC.send} size={15} color="#071a0e"/>} full>{loading?"Processing…":`Send $${total.toLocaleString()}`}</Btn><div style={{textAlign:"center",fontSize:12,color:T.muted}}>🔒 256-bit bank-level encryption</div></div>);}
+    // ── UPDATE RENT HERE EACH YEAR ────────────────
+    const UNIT_CONFIG={
+      "101":{type:"3 Bedroom",rent:1590},
+      "102":{type:"3 Bedroom",rent:1590},
+      "201":{type:"3 Bedroom",rent:1590},
+      "202":{type:"3 Bedroom",rent:1590},
+      "301":{type:"1 Bedroom",rent:1100},
+      "302":{type:"1 Bedroom",rent:1100},
+      "303":{type:"1 Bedroom",rent:1100},
+    };
+    const getRent=(unit)=>UNIT_CONFIG[unit]?.rent||1100;
+    const getType=(unit)=>UNIT_CONFIG[unit]?.type||"Unit";
 
-function Messages({tenant,unit}){const INIT=[{id:1,from:"manager",text:`Welcome to CommonGround! I'm ${MANAGER.name}, your property manager. Message me anytime.`,time:"Today",read:true}];const [msgs,setMsgs]=useState(()=>load(`cg_msgs_${unit}`,INIT));const [input,setInput]=useState("");const [category,setCategory]=useState("general");const bottomRef=useRef();useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});},[msgs]);useEffect(()=>{save(`cg_msgs_${unit}`,msgs);},[msgs]);const send=()=>{if(!input.trim())return;const m={id:Date.now(),from:"tenant",text:input,time:"Just now",read:true,category};setMsgs(ms=>[...ms,m]);setInput("");setTimeout(()=>{setMsgs(ms=>[...ms,{id:Date.now()+1,from:"manager",text:`Thanks for your message — I'll follow up shortly. — ${MANAGER.name}`,time:"Just now",read:true}]);},1200);};return(<div style={{display:"flex",flexDirection:"column",gap:0,height:"calc(100vh - 180px)",maxHeight:620}}><div style={{fontFamily:T.serif,fontSize:24,fontWeight:900,color:T.text,marginBottom:14}}>Messages</div><div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>{["general","maintenance","billing","noise"].map(c=><button key={c} onClick={()=>setCategory(c)} style={{padding:"5px 14px",borderRadius:20,border:`1px solid ${category===c?T.green:T.border}`,background:category===c?T.greenDim:"transparent",color:category===c?T.green:T.muted,fontSize:12,fontWeight:600,cursor:"pointer",textTransform:"capitalize",transition:"all 0.18s"}}>{c}</button>)}</div><div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:10,paddingBottom:8}}>{msgs.map(m=>(<div key={m.id} style={{display:"flex",justifyContent:m.from==="tenant"?"flex-end":"flex-start"}}><div style={{maxWidth:"78%",background:m.from==="tenant"?`linear-gradient(135deg,${T.green},#2aaa72)`:T.card,borderRadius:m.from==="tenant"?"16px 16px 4px 16px":"16px 16px 16px 4px",padding:"10px 14px",border:`1px solid ${m.from==="tenant"?T.green+"44":T.border}`}}>{m.from==="manager"&&<div style={{fontSize:10,color:T.green,fontWeight:700,letterSpacing:"0.1em",marginBottom:4}}>MICHAEL · PROPERTY MANAGER</div>}<div style={{fontSize:14,color:m.from==="tenant"?"#071a0e":T.text,lineHeight:1.55,fontWeight:m.from==="tenant"?600:400}}>{m.text}</div><div style={{fontSize:11,color:m.from==="tenant"?"rgba(7,26,14,0.6)":T.muted,marginTop:4}}>{m.time}</div></div></div>))}<div ref={bottomRef}/></div><div style={{display:"flex",gap:10,paddingTop:12,borderTop:`1px solid ${T.border}`}}><Input value={input} onChange={setInput} placeholder={`${category} message…`} style={{flex:1}}/><Btn onClick={send} disabled={!input.trim()} icon={<Icon d={IC.send} size={14} color="#071a0e"/>}>Send</Btn></div></div>);}
+    // ── MANAGER CONFIG ────────────────────────────────────────────────────
+    const MANAGER={name:"Michael",email:"Mszloch809@gmail.com",company:"Upside Real Estate Development",password:"Upsde33!"};
+    const UNIT_PINS={"101":"0101","102":"0102","201":"0201","202":"0202","301":"0301","302":"0302","303":"0303"};
 
-function Forum({tenant,unit}){const INIT=[{id:1,author:"Marcus T.",unit:"201",time:"2h ago",title:"Laundry room schedule",body:"Hey neighbors, can we coordinate laundry times? I suggest floors 1 & 2 mornings, floor 3 evenings.",replies:[{author:"Priya K.",unit:"301",text:"Works for me!",time:"1h ago"}],likes:4},{id:2,author:"Sandra L.",unit:"102",time:"1d ago",title:"Package room access",body:"The package room code was changed. New code from the manager is 4821.",replies:[],likes:2}];const [forums,setForums]=useState(()=>load("cg_forum",INIT));const [view,setView]=useState(null);const [showNew,setShowNew]=useState(false);const [newTitle,setNewTitle]=useState("");const [newBody,setNewBody]=useState("");const [reply,setReply]=useState("");useEffect(()=>{save("cg_forum",forums);},[forums]);const post=forums.find(p=>p.id===view);const addPost=()=>{if(!newTitle.trim()||!newBody.trim())return;const a=`${tenant.firstName} ${tenant.lastName[0]}.`;setForums(f=>[{id:Date.now(),author:a,unit,time:"Just now",title:newTitle,body:newBody,replies:[],likes:0},...f]);setNewTitle("");setNewBody("");setShowNew(false);};const addReply=()=>{if(!reply.trim())return;const a=`${tenant.firstName} ${tenant.lastName[0]}.`;setForums(f=>f.map(p=>p.id===view?{...p,replies:[...p.replies,{author:a,unit,text:reply,time:"Just now"}]}:p));setReply("");};if(post)return(<div style={{display:"flex",flexDirection:"column",gap:14}}><button onClick={()=>setView(null)} style={{display:"flex",alignItems:"center",gap:6,background:"none",border:"none",color:T.green,cursor:"pointer",fontSize:13,fontWeight:700,padding:0}}><Icon d={IC.back} size={16} color={T.green}/> Back to Forum</button><Card><div style={{fontFamily:T.serif,fontSize:20,fontWeight:900,color:T.text,marginBottom:8}}>{post.title}</div><div style={{fontSize:12,color:T.muted,marginBottom:14}}>{post.author} · Unit {post.unit} · {post.time}</div><div style={{fontSize:14,color:T.text,lineHeight:1.75}}>{post.body}</div></Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em"}}>REPLIES ({post.replies.length})</div>{post.replies.map((r,i)=><Card key={i} style={{padding:14}}><div style={{fontSize:11,color:T.green,fontWeight:700,marginBottom:4}}>{r.author} · Unit {r.unit} · {r.time}</div><div style={{fontSize:14,color:T.text}}>{r.text}</div></Card>)}<div style={{display:"flex",gap:10}}><Input value={reply} onChange={setReply} placeholder="Write a reply…" style={{flex:1}}/><Btn onClick={addReply} disabled={!reply.trim()} small icon={<Icon d={IC.send} size={13} color="#071a0e"/>}>Reply</Btn></div></div>);return(<div style={{display:"flex",flexDirection:"column",gap:14}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{fontFamily:T.serif,fontSize:24,fontWeight:900,color:T.text}}>Forum</div><Btn onClick={()=>setShowNew(!showNew)} small variant="green">New Post</Btn></div><Card style={{padding:"12px 16px"}}><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:8}}>33 COTTAGE ST — ALL UNITS</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{UNITS.map(u=><span key={u} style={{padding:"4px 12px",borderRadius:20,background:u===unit?T.green:T.greenDim,border:`1px solid ${T.green}33`,fontSize:12,fontWeight:700,color:u===unit?"#071a0e":T.green}}>{u===unit?`${u} (You)`:u}</span>)}</div></Card>{showNew&&<Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>NEW POST — Unit {unit}</div><div style={{display:"flex",flexDirection:"column",gap:10}}><Input value={newTitle} onChange={setNewTitle} placeholder="Post title"/><Input value={newBody} onChange={setNewBody} placeholder="What's on your mind?" multiline/><div style={{display:"flex",gap:8}}><Btn onClick={addPost} disabled={!newTitle.trim()||!newBody.trim()} small>Post</Btn><Btn onClick={()=>setShowNew(false)} small variant="ghost">Cancel</Btn></div></div></Card>}{forums.map(p=><Card key={p.id} onClick={()=>setView(p.id)} style={{cursor:"pointer"}}><div style={{fontFamily:T.serif,fontSize:16,fontWeight:700,color:T.text,marginBottom:6}}>{p.title}</div><div style={{fontSize:13,color:T.muted,marginBottom:12,lineHeight:1.6}}>{p.body.slice(0,90)}…</div><div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{fontSize:11,color:T.muted}}>{p.author} · Unit {p.unit} · {p.time}</div><div style={{display:"flex",gap:12,fontSize:12,color:T.muted}}><span>💬 {p.replies.length}</span><span>🌱 {p.likes}</span></div></div></Card>)}</div>);}
+    const INIT_FORUMS=[
+      {id:1,author:"Marcus T.",unit:"201",time:"2h ago",title:"Laundry room schedule",body:"Hey neighbors, can we coordinate laundry times? I suggest floors 1 & 2 mornings, floor 3 evenings.",replies:[{author:"Priya K.",unit:"301",text:"Works for me!",time:"1h ago"}],likes:4},
+      {id:2,author:"Sandra L.",unit:"102",time:"1d ago",title:"Package room access",body:"The package room code was changed. New code from the manager is 4821.",replies:[],likes:2},
+      {id:3,author:"Diego M.",unit:"303",time:"5h ago",title:"Parking spot question",body:"Does anyone know if we can request a specific parking spot? Mine is far from the entrance.",replies:[],likes:1},
+    ];
+    const INIT_MESSAGES=[
+      {id:1,from:"tenant",text:"The kitchen faucet has been dripping for 3 days. Please send maintenance.",time:"Mon 9:14 AM",read:true},
+      {id:2,from:"manager",text:"Thanks for reporting! I'll have someone there Tuesday between 10-12. Works for you?",time:"Mon 11:02 AM",read:true},
+      {id:3,from:"tenant",text:"Tuesday works, thanks!",time:"Mon 11:20 AM",read:true},
+    ];
+    const TRANSACTIONS=[
+      {id:1,date:"Mar 1, 2025",desc:"Rent – March",status:"paid"},
+      {id:2,date:"Feb 1, 2025",desc:"Rent – February",status:"paid"},
+      {id:3,date:"Jan 1, 2025",desc:"Rent – January",status:"paid"},
+    ];
 
-function LeaseScreen({unit,tenant}){const [leaseData,setLeaseData]=useState(()=>load(`cg_lease_${unit}`,null));const [signing,setSigning]=useState(false);const [signed,setSigned]=useState(()=>load(`cg_lease_signed_${unit}`,false));const [hasDrawn,setHasDrawn]=useState(false);const canvasRef=useRef();const drawing=useRef(false);const startDraw=(e)=>{drawing.current=true;const canvas=canvasRef.current;const ctx=canvas.getContext("2d");const rect=canvas.getBoundingClientRect();const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;const y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;ctx.beginPath();ctx.moveTo(x,y);};const draw=(e)=>{if(!drawing.current)return;e.preventDefault();const canvas=canvasRef.current;const ctx=canvas.getContext("2d");const rect=canvas.getBoundingClientRect();const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;const y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;ctx.lineTo(x,y);ctx.strokeStyle=T.green;ctx.lineWidth=2.5;ctx.lineCap="round";ctx.stroke();setHasDrawn(true);};const stopDraw=()=>{drawing.current=false;};const clearSig=()=>{canvasRef.current.getContext("2d").clearRect(0,0,canvasRef.current.width,canvasRef.current.height);setHasDrawn(false);};const confirmSign=()=>{save(`cg_lease_signed_${unit}`,true);setSigned(true);setSigning(false);const now=new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});const updated={...leaseData,signedDate:now,tenantName:`${tenant.firstName} ${tenant.lastName}`};setLeaseData(updated);save(`cg_lease_${unit}`,updated);};
-if(signing)return(<div style={{display:"flex",flexDirection:"column",gap:16}}><div style={{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}}>Sign Lease</div><Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:8}}>YOUR SIGNATURE</div><div style={{fontSize:13,color:T.muted,marginBottom:12}}>Sign with your finger in the box below</div><canvas ref={canvasRef} width={320} height={140} style={{width:"100%",height:140,background:T.surface,borderRadius:10,border:`1px solid ${T.border}`,cursor:"crosshair",display:"block"}} onMouseDown={startDraw} onMouseMove={draw} onMouseUp={stopDraw} onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={stopDraw}/><div style={{display:"flex",gap:8,marginTop:12}}><Btn onClick={clearSig} variant="ghost" small>Clear</Btn><Btn onClick={confirmSign} disabled={!hasDrawn} icon={<Icon d={IC.check} size={14} color="#071a0e"/>}>Confirm Signature</Btn><Btn onClick={()=>setSigning(false)} variant="ghost" small>Cancel</Btn></div></Card></div>);
-if(!leaseData)return(<div style={{display:"flex",flexDirection:"column",gap:16}}><div style={{fontFamily:T.serif,fontSize:24,fontWeight:900,color:T.text}}>My Lease</div><Card style={{textAlign:"center",padding:40}}><Icon d={IC.doc} size={40} color={T.muted}/><div style={{fontFamily:T.serif,fontSize:18,fontWeight:700,color:T.text,marginTop:16,marginBottom:8}}>No Lease Uploaded Yet</div><div style={{fontSize:13,color:T.muted,lineHeight:1.7,marginBottom:20}}>Your property manager will upload your lease agreement here. You can review and sign it digitally.</div><div style={{padding:14,borderRadius:10,background:T.greenDim,border:`1px solid ${T.green}33`}}><div style={{fontSize:12,color:T.green,fontWeight:600}}>Contact {MANAGER.name}</div><div style={{fontSize:12,color:T.muted,marginTop:4}}>{MANAGER.email}</div></div></Card></div>);
-return(<div style={{display:"flex",flexDirection:"column",gap:16}}><div style={{fontFamily:T.serif,fontSize:24,fontWeight:900,color:T.text}}>My Lease</div><Card style={{border:`1px solid ${signed?T.green+"44":T.gold+"44"`}}><div style={{display:"flex",gap:12,alignItems:"center",marginBottom:16}}><div style={{width:48,height:48,borderRadius:14,background:signed?T.greenDim:T.gold+"15",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon d={IC.doc} size={24} color={signed?T.green:T.gold}/></div><div><div style={{fontSize:15,fontWeight:700,color:T.text}}>{leaseData.name||"Lease Agreement"}</div><div style={{fontSize:12,color:T.muted}}>Unit {unit} · 33 Cottage St</div></div></div>{[{label:"Tenant",val:tenant?`${tenant.firstName} ${tenant.lastName}`:"—"},{label:"Unit",val:`Unit ${unit} · ${getType(unit)}`},{label:"Monthly Rent",val:`$${getRent(unit).toLocaleString()}`},{label:"Lease Start",val:leaseData.startDate||tenant?.moveIn||"—"},{label:"Lease End",val:leaseData.endDate||tenant?.leaseEnd||"—"},{label:"Status",val:signed?"✓ Signed":"Awaiting Signature"}].map(r=>(<div key={r.label} style={{display:"flex",justifyContent:"space-between",padding:"9px 0",borderBottom:`1px solid ${T.border}`}}><span style={{fontSize:13,color:T.muted}}>{r.label}</span><span style={{fontSize:13,fontWeight:700,color:r.label==="Status"?(signed?T.green:T.gold):T.text}}>{r.val}</span></div>))}{signed&&leaseData.signedDate&&<div style={{marginTop:12,padding:10,borderRadius:10,background:T.greenDim,textAlign:"center"}}><div style={{fontSize:11,color:T.green,fontWeight:700}}>✓ Signed on {leaseData.signedDate}</div></div>}</Card>{!signed&&<Btn onClick={()=>setSigning(true)} icon={<Icon d={IC.sign} size={15} color="#071a0e"/>} full>Review & Sign Lease</Btn>}<Btn onClick={()=>window.print()} variant="green" icon={<Icon d={IC.print} size={15} color={T.green}/>} full>Print Hard Copy</Btn></div>);}
+    const Icon=({d,size=20,color="currentColor",stroke=1.8})=>(
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round"><path d={d}/></svg>
+    );
+    const icons={
+      home:"M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10",
+      pay:"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z",
+      msg:"M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z",
+      forum:"M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 7a4 4 0 100 8 4 4 0 000-8z M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75",
+      send:"M22 2L11 13 M22 2L15 22 8.5 13.5 2 9z",
+      plus:"M12 5v14M5 12h14",
+      check:"M20 6L9 17l-5-5",
+      alert:"M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z M12 9v4M12 17h.01",
+      back:"M19 12H5M12 5l-7 7 7 7",
+      link:"M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71 M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71",
+      person:"M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 3a4 4 0 100 8 4 4 0 000-8z",
+      phone:"M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z",
+      mail:"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6",
+    };
 
-function ManagerDashboard({tenantProfiles,onClose}){const [activeTab,setActiveTab]=useState("overview");const [announcement,setAnnouncement]=useState("");const [announcements,setAnnouncements]=useState(()=>load("cg_announcements",[]));const [selectedUnit,setSelectedUnit]=useState(null);const [leaseUpload,setLeaseUpload]=useState({name:"",startDate:"",endDate:""});const totalExpected=UNITS.reduce((s,u)=>s+getRent(u),0);const allPayments=UNITS.map(u=>({unit:u,payments:load(`cg_payments_${u}`,[]),profile:tenantProfiles[u]||null}));const totalCollected=allPayments.reduce((s,u)=>s+u.payments.reduce((ps,p)=>ps+p.total,0),0);const postAnnouncement=()=>{if(!announcement.trim())return;const a={id:Date.now(),text:announcement,date:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),author:MANAGER.name};const updated=[a,...announcements];setAnnouncements(updated);save("cg_announcements",updated);setAnnouncement("");};const uploadLease=()=>{if(!selectedUnit||!leaseUpload.name)return;save(`cg_lease_${selectedUnit}`,{...leaseUpload,uploadedDate:new Date().toLocaleDateString()});save(`cg_lease_signed_${selectedUnit}`,false);alert(`Lease uploaded for Unit ${selectedUnit}. Tenant can now review and sign.`);setLeaseUpload({name:"",startDate:"",endDate:""});};
-const mgTabs=[{id:"overview",label:"Overview",icon:IC.dash},{id:"units",label:"Units",icon:IC.home},{id:"leases",label:"Leases",icon:IC.doc},{id:"screening",label:"Screening",icon:IC.search},{id:"announce",label:"Post",icon:IC.announce}];
-return(<div style={{minHeight:"100vh",background:T.bg}}><div style={{position:"sticky",top:0,zIndex:10,background:T.bg+"f0",backdropFilter:"blur(14px)",borderBottom:`1px solid ${T.border}`,padding:"14px 18px",display:"flex",alignItems:"center",gap:12}}><CGMark size={32}/><div style={{flex:1}}><div style={{fontFamily:T.serif,fontSize:17,fontWeight:900,color:T.text}}>Manager Dashboard</div><div style={{fontSize:10,color:T.muted}}>{MANAGER.company} · 33 Cottage St</div></div><Btn onClick={onClose} variant="ghost" small>Exit</Btn></div>
-<div style={{maxWidth:480,margin:"0 auto",padding:"16px 16px 90px"}}>
-{activeTab==="overview"&&<div style={{display:"flex",flexDirection:"column",gap:16}}><div style={{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}}>Overview</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>{[{label:"Total Units",value:"7",sub:"33 Cottage St"},{label:"Occupied",value:Object.keys(tenantProfiles).filter(u=>tenantProfiles[u]?.firstName).length,sub:"with profiles"},{label:"Monthly Expected",value:"$"+totalExpected.toLocaleString(),sub:"all units"},{label:"Total Collected",value:"$"+totalCollected.toLocaleString(),sub:"all time"}].map(s=><Card key={s.label} style={{padding:16}}><div style={{fontSize:10,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:6}}>{s.label.toUpperCase()}</div><div style={{fontSize:20,fontWeight:900,color:T.text,fontFamily:T.serif}}>{s.value}</div><div style={{fontSize:12,color:T.muted}}>{s.sub}</div></Card>)}</div><Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>ALL UNITS AT A GLANCE</div>{UNITS.map(u=>{const profile=tenantProfiles[u];const payments=load(`cg_payments_${u}`,[]);const has=profile&&profile.firstName;const lease=load(`cg_lease_${u}`,null);const signed=load(`cg_lease_signed_${u}`,false);return(<div key={u} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 0",borderBottom:`1px solid ${T.border}`}}><div style={{width:40,height:40,borderRadius:12,background:has?T.greenDim:T.faint,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:900,color:has?T.green:T.muted,fontFamily:T.serif,flexShrink:0}}>{u}</div><div style={{flex:1}}><div style={{fontSize:13,fontWeight:700,color:T.text}}>{has?`${profile.firstName} ${profile.lastName}`:"Vacant"}</div><div style={{fontSize:11,color:T.muted}}>{getType(u)} · ${getRent(u).toLocaleString()}/mo</div></div><div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3}}><Badge color={payments.length>0?T.green:T.muted}>{payments.length>0?"Paid":"No payments"}</Badge>{lease&&<Badge color={signed?T.green:T.gold}>{signed?"Signed":"Unsigned"}</Badge>}</div></div>);})}</Card></div>}
-{activeTab==="units"&&<div style={{display:"flex",flexDirection:"column",gap:16}}><div style={{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}}>Unit Details</div>{UNITS.map(u=>{const profile=tenantProfiles[u];const payments=load(`cg_payments_${u}`,[]);const has=profile&&profile.firstName;return(<Card key={u}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}><div style={{fontFamily:T.serif,fontSize:18,fontWeight:900,color:T.text}}>Unit {u}</div><Badge color={has?T.green:T.muted}>{has?"Active":"Vacant"}</Badge></div><div style={{fontSize:12,color:T.green,marginBottom:10}}>{getType(u)} · ${getRent(u).toLocaleString()}/month</div>{has?(<>{[{label:"Tenant",val:`${profile.firstName} ${profile.lastName}`},{label:"Phone",val:profile.phone||"—"},{label:"Email",val:profile.email||"—"},{label:"Move-In",val:profile.moveIn||"—"},{label:"Lease End",val:profile.leaseEnd||"—"},{label:"Emergency",val:profile.emergency||"—"},{label:"Payments",val:`${payments.length} recorded · $${payments.reduce((s,p)=>s+p.total,0).toLocaleString()} total`}].map(r=><div key={r.label} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:`1px solid ${T.border}`}}><span style={{fontSize:12,color:T.muted}}>{r.label}</span><span style={{fontSize:12,fontWeight:600,color:T.text,textAlign:"right",maxWidth:"60%"}}>{r.val}</span></div>)}{payments.length>0&&<div style={{marginTop:12}}><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:8}}>PAYMENT HISTORY</div>{payments.slice().reverse().map((p,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:`1px solid ${T.border}`}}><div><div style={{fontSize:12,color:T.text}}>{p.desc}</div><div style={{fontSize:11,color:T.muted}}>{p.date}</div></div><span style={{fontSize:12,fontWeight:700,color:T.green}}>${p.total.toLocaleString()}</span></div>)}</div>}</>):<div style={{textAlign:"center",padding:"12px 0",color:T.muted,fontSize:13}}>No tenant profile set up yet</div>}</Card>);})}</div>}
-{activeTab==="leases"&&<div style={{display:"flex",flexDirection:"column",gap:16}}><div style={{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}}>Lease Management</div><Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>UPLOAD LEASE FOR UNIT</div><div style={{marginBottom:12}}><div style={{fontSize:12,color:T.muted,marginBottom:6}}>Select Unit</div><div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>{UNITS.map(u=><button key={u} onClick={()=>setSelectedUnit(u)} style={{padding:"10px 0",borderRadius:10,border:`1px solid ${selectedUnit===u?T.green:T.border}`,background:selectedUnit===u?T.greenDim:"transparent",color:selectedUnit===u?T.green:T.muted,fontSize:13,fontWeight:700,cursor:"pointer"}}>{u}</button>)}</div></div>{selectedUnit&&<div style={{display:"flex",flexDirection:"column",gap:10}}><div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Lease Document Name</div><Input value={leaseUpload.name} onChange={v=>setLeaseUpload(p=>({...p,name:v}))} placeholder="e.g. Lease Agreement 2025"/></div><div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Lease Start Date</div><Input value={leaseUpload.startDate} onChange={v=>setLeaseUpload(p=>({...p,startDate:v}))} placeholder="MM/DD/YYYY"/></div><div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Lease End Date</div><Input value={leaseUpload.endDate} onChange={v=>setLeaseUpload(p=>({...p,endDate:v}))} placeholder="MM/DD/YYYY"/></div><Btn onClick={uploadLease} disabled={!leaseUpload.name} icon={<Icon d={IC.upload} size={15} color="#071a0e"/>} full>Upload Lease for Unit {selectedUnit}</Btn></div>}</Card><Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>LEASE STATUS BY UNIT</div>{UNITS.map(u=>{const lease=load(`cg_lease_${u}`,null);const signed=load(`cg_lease_signed_${u}`,false);return(<div key={u} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"11px 0",borderBottom:`1px solid ${T.border}`}}><div><div style={{fontSize:13,fontWeight:700,color:T.text}}>Unit {u}</div><div style={{fontSize:11,color:T.muted}}>{lease?lease.name:"No lease uploaded"}</div></div><Badge color={!lease?T.muted:signed?T.green:T.gold}>{!lease?"None":signed?"Signed":"Needs Signature"}</Badge></div>);})}</Card></div>}
-{activeTab==="screening"&&<div style={{display:"flex",flexDirection:"column",gap:16}}><div style={{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}}>Tenant Screening</div><Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>NEW SCREENING REQUEST</div><ScreeningForm/></Card><Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>WHAT IS INCLUDED</div>{["Credit check & score","Criminal background check","Eviction history","Employment verification","Identity verification"].map(item=><div key={item} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:`1px solid ${T.border}`}}><Icon d={IC.check} size={16} color={T.green} stroke={2.5}/><span style={{fontSize:13,color:T.text}}>{item}</span></div>)}<div style={{marginTop:12,padding:10,borderRadius:10,background:T.greenDim}}><div style={{fontSize:12,color:T.green,fontWeight:700}}>Cost: $45 per applicant</div><div style={{fontSize:11,color:T.muted,marginTop:2}}>Charged to applicant · Results in 24-48 hours</div></div></Card></div>}
-{activeTab==="announce"&&<div style={{display:"flex",flexDirection:"column",gap:16}}><div style={{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}}>Post Announcement</div><Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>NEW ANNOUNCEMENT — ALL TENANTS</div><Input value={announcement} onChange={setAnnouncement} placeholder="e.g. Water shut off Tuesday 10am-2pm for repairs." multiline/><div style={{marginTop:12}}><Btn onClick={postAnnouncement} disabled={!announcement.trim()} icon={<Icon d={IC.announce} size={15} color="#071a0e"/>} full>Post to All Tenants</Btn></div></Card>{announcements.length>0&&<Card><div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>PAST ANNOUNCEMENTS</div>{announcements.map(a=><div key={a.id} style={{padding:"12px 0",borderBottom:`1px solid ${T.border}`}}><div style={{fontSize:13,color:T.text,lineHeight:1.6}}>{a.text}</div><div style={{fontSize:11,color:T.muted,marginTop:4}}>Posted {a.date} by {a.author}</div></div>)}</Card>}</div>}
-</div>
-<div style={{position:"fixed",bottom:0,left:0,right:0,background:T.surface+"f8",backdropFilter:"blur(18px)",borderTop:`1px solid ${T.border}`,display:"flex",justifyContent:"space-around",padding:"10px 0 max(10px,env(safe-area-inset-bottom))",zIndex:20}}>{mgTabs.map(t=>{const active=activeTab===t.id;return(<button key={t.id} onClick={()=>setActiveTab(t.id)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"none",border:"none",cursor:"pointer",padding:"4px 8px",color:active?T.green:T.muted,position:"relative"}}>{active&&<div style={{position:"absolute",top:-10,left:"50%",transform:"translateX(-50%)",width:28,height:2,borderRadius:2,background:T.green}}/>}<Icon d={t.icon} size={18} color={active?T.green:T.muted}/><span style={{fontSize:9,fontWeight:700}}>{t.label}</span></button>);})}</div>
-</div>);}
+    const initials=(name)=>name?name.split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2):"?";
+    const Badge=({color,children})=><span style={{background:color+"22",color,fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:20,letterSpacing:"0.05em"}}>{children}</span>;
+    const Card=({children,style:s={},onClick})=><div onClick={onClick} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:20,cursor:onClick?"pointer":"default",transition:"border-color 0.2s",...s}}>{children}</div>;
+    const Input=({value,onChange,placeholder,multiline,type="text",style:s={}})=>multiline?
+      <textarea value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} rows={3} style={{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 14px",color:T.text,fontSize:14,resize:"none",outline:"none",boxSizing:"border-box",...s}}/>:
+      <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} style={{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 14px",color:T.text,fontSize:14,outline:"none",boxSizing:"border-box",...s}}/>;
+    const Btn=({children,onClick,variant="primary",small,icon,disabled})=>{
+      const base={display:"inline-flex",alignItems:"center",gap:6,border:"none",borderRadius:10,fontWeight:700,cursor:disabled?"not-allowed":"pointer",transition:"all 0.18s",fontSize:small?13:14,padding:small?"7px 14px":"11px 22px",opacity:disabled?0.45:1};
+      const variants={primary:{background:`linear-gradient(135deg,${T.green},#2aaa72)`,color:"#071a0e",boxShadow:`0 4px 20px ${T.greenGlow}`},ghost:{background:"transparent",color:T.muted,border:`1px solid ${T.border}`},green:{background:T.greenDim,color:T.green,border:`1px solid ${T.green}44`},danger:{background:"#F76F6F15",color:T.red,border:`1px solid ${T.red}33`}};
+      return <button onClick={onClick} disabled={disabled} style={{...base,...variants[variant]}}>{icon&&icon}{children}</button>;
+    };
 
-function ScreeningForm(){const [form,setForm]=useState({name:"",email:"",phone:"",unit:"",moveIn:""});const [sent,setSent]=useState(false);const update=(k,v)=>setForm(p=>({...p,[k]:v}));if(sent)return(<div style={{textAlign:"center",padding:"20px 0"}}><Icon d={IC.check} size={32} color={T.green} stroke={2.5}/><div style={{fontSize:14,color:T.green,fontWeight:700,marginTop:8}}>Screening Request Sent!</div><div style={{fontSize:12,color:T.muted,marginTop:4}}>Results arrive in 24-48 hours.</div><button onClick={()=>setSent(false)} style={{marginTop:12,background:"none",border:"none",color:T.muted,cursor:"pointer",fontSize:12}}>Submit another</button></div>);return(<div style={{display:"flex",flexDirection:"column",gap:10}}>{[{k:"name",label:"Applicant Name",ph:"Full name"},{k:"email",label:"Email",ph:"email@example.com"},{k:"phone",label:"Phone",ph:"(555) 000-0000"},{k:"unit",label:"Unit Applying For",ph:"e.g. 101"},{k:"moveIn",label:"Desired Move-In",ph:"MM/DD/YYYY"}].map(f=><div key={f.k}><div style={{fontSize:12,color:T.muted,marginBottom:4}}>{f.label}</div><Input value={form[f.k]} onChange={v=>update(f.k,v)} placeholder={f.ph}/></div>)}<Btn onClick={()=>setSent(true)} disabled={!form.name||!form.email} icon={<Icon d={IC.search} size={15} color="#071a0e"/>} full>Send Screening Request</Btn></div>);}
+    function UnitSelect({tenantProfiles,onSelect,onBack=()=>{}}){
+      return(
+        <div style={{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",padding:"40px 20px 60px"}}>
+          <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}`}</style>
+          <div style={{position:"fixed",width:280,height:280,borderRadius:"50%",background:T.greenGlow,filter:"blur(70px)",top:"15%",left:"50%",transform:"translateX(-50%)",pointerEvents:"none"}}/>
+          <div style={{animation:"fadeUp 0.5s ease both",textAlign:"center",marginBottom:32}}>
+            <CGMark size={56}/>
+            <div style={{marginTop:12}}><CGWordmark size={26}/></div>
+            <div style={{fontSize:13,color:T.muted,marginTop:6}}>33 Cottage St</div>
+          </div>
+          <div style={{animation:"fadeUp 0.5s 0.1s ease both",width:"100%",maxWidth:400}}>
+            <div style={{fontSize:12,color:T.muted,fontWeight:700,letterSpacing:"0.14em",textAlign:"center",marginBottom:24}}>TAP YOUR UNIT NUMBER TO GET STARTED</div>
+            {["1","2","3"].map(floor=>(
+              <div key={floor} style={{marginBottom:24}}>
+                <div style={{fontSize:11,color:T.green,fontWeight:700,letterSpacing:"0.12em",marginBottom:10,paddingLeft:2}}>{FLOOR_LABELS[floor]}</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  {UNITS.filter(u=>u.startsWith(floor)).map(unit=>{
+                    const profile=tenantProfiles[unit];
+                    const has=profile&&profile.firstName;
+                    return(
+                      <div key={unit} onClick={()=>onSelect(unit)} style={{background:has?T.greenDim:T.card,border:`1.5px solid ${has?T.green+"55":T.border}`,borderRadius:16,padding:"16px 14px",cursor:"pointer",transition:"all 0.18s",display:"flex",alignItems:"center",gap:12}}>
+                        <div style={{width:46,height:46,borderRadius:13,flexShrink:0,background:has?`linear-gradient(135deg,${T.green},#2aaa72)`:T.faint,display:"flex",alignItems:"center",justifyContent:"center",fontSize:has?14:17,fontWeight:900,color:has?"#071a0e":T.muted,fontFamily:T.serif}}>
+                          {has?initials(`${profile.firstName} ${profile.lastName}`):unit}
+                        </div>
+                        <div>
+                          <div style={{fontSize:15,fontWeight:800,color:T.text,fontFamily:T.serif,lineHeight:1.2}}>Unit {unit}</div>
+                          <div style={{fontSize:11,color:T.muted,marginTop:1}}>{getType(unit)}</div>
+                          {has?<div style={{fontSize:12,color:T.green,fontWeight:600,marginTop:2}}>{profile.firstName} {profile.lastName}</div>:<div style={{fontSize:11,color:T.muted,marginTop:2}}>Tap to set up</div>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+            <button onClick={onBack} style={{width:"100%",marginTop:16,padding:"12px",borderRadius:12,border:"1px solid #1E3024",background:"transparent",color:"#6A8070",fontSize:13,fontWeight:700,cursor:"pointer"}}>← Back to Home</button>
+          </div>
+        </div>
+      );
+    }
 
-function App(){const [splashDone,setSplashDone]=useState(false);const [selectedUnit,setSelectedUnit]=useState(()=>load("cg_unit",null));const [showSetup,setShowSetup]=useState(false);const [tenantProfiles,setTenantProfiles]=useState(()=>load("cg_profiles",{}));const [tab,setTab]=useState(()=>load("cg_tab","home"));const [pinVerified,setPinVerified]=useState(false);const [showManagerLogin,setShowManagerLogin]=useState(false);const [showManager,setShowManager]=useState(false);
-useEffect(()=>{save("cg_unit",selectedUnit);},[selectedUnit]);useEffect(()=>{save("cg_profiles",tenantProfiles);},[tenantProfiles]);useEffect(()=>{save("cg_tab",tab);},[tab]);
-const handleUnitSelect=(unit)=>{setSelectedUnit(unit);setPinVerified(false);};const handlePinSuccess=()=>{setPinVerified(true);if(!tenantProfiles[selectedUnit]?.firstName)setShowSetup(true);};const handleProfileSave=(profile)=>{const u={...tenantProfiles,[selectedUnit]:profile};setTenantProfiles(u);save("cg_profiles",u);setShowSetup(false);setTab("home");};const handleBack=()=>{if(showSetup){setShowSetup(false);if(!tenantProfiles[selectedUnit]?.firstName){setPinVerified(false);setSelectedUnit(null);}}else{setPinVerified(false);setSelectedUnit(null);}};const handleSwitchUnit=()=>{setSelectedUnit(null);setPinVerified(false);setShowSetup(false);setTab("home");};
-const tenant=tenantProfiles[selectedUnit]||{};const isInApp=selectedUnit&&pinVerified&&!showSetup&&tenant.firstName;
-if(showManager)return <ManagerDashboard tenantProfiles={tenantProfiles} onClose={()=>setShowManager(false)}/>;
-if(showManagerLogin)return <ManagerLogin onSuccess={()=>{setShowManagerLogin(false);setShowManager(true);}} onBack={()=>setShowManagerLogin(false)}/>;
-const tabs=[{id:"home",label:"Home",icon:IC.home},{id:"pay",label:"Pay",icon:IC.pay},{id:"messages",label:"Messages",icon:IC.msg},{id:"forum",label:"Forum",icon:IC.forum},{id:"lease",label:"Lease",icon:IC.doc}];
-const screens={home:<Dashboard setTab={setTab} tenant={tenant} unit={selectedUnit}/>,pay:<PayRent unit={selectedUnit} tenant={tenant}/>,messages:<Messages tenant={tenant} unit={selectedUnit}/>,forum:<Forum tenant={tenant} unit={selectedUnit}/>,lease:<LeaseScreen unit={selectedUnit} tenant={tenant}/>};
-return(<div style={{minHeight:"100vh",background:T.bg,color:T.text}}>{!splashDone&&<Splash onDone={()=>setSplashDone(true)}/>}{splashDone&&!selectedUnit&&<UnitSelect tenantProfiles={tenantProfiles} onSelect={handleUnitSelect} onManagerTap={()=>setShowManagerLogin(true)}/>}{splashDone&&selectedUnit&&!pinVerified&&<PinScreen unit={selectedUnit} onSuccess={handlePinSuccess} onBack={()=>setSelectedUnit(null)}/>}{splashDone&&selectedUnit&&pinVerified&&showSetup&&<TenantSetup unit={selectedUnit} existing={tenantProfiles[selectedUnit]} onSave={handleProfileSave} onBack={handleBack}/>}{splashDone&&isInApp&&(<><div style={{position:"sticky",top:0,zIndex:10,background:T.bg+"f0",backdropFilter:"blur(14px)",borderBottom:`1px solid ${T.border}`,padding:"12px 18px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{display:"flex",alignItems:"center",gap:10}}><CGMark size={32}/><div><CGWordmark size={17}/><div style={{fontSize:10,color:T.muted,letterSpacing:"0.06em"}}>33 Cottage St · Unit {selectedUnit}</div></div></div><div style={{display:"flex",alignItems:"center",gap:8}}><button onClick={()=>setShowSetup(true)} style={{background:"none",border:"none",cursor:"pointer",padding:0}}><div style={{width:38,height:38,borderRadius:"50%",background:`linear-gradient(135deg,${T.green},#2aaa72)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:"#071a0e",fontFamily:T.serif}}>{initials(`${tenant.firstName} ${tenant.lastName}`)}</div></button><button onClick={handleSwitchUnit} style={{background:T.faint,border:`1px solid ${T.border}`,borderRadius:8,padding:"5px 9px",cursor:"pointer",fontSize:10,fontWeight:700,color:T.muted}}>Switch</button></div></div><div style={{maxWidth:480,margin:"0 auto",padding:"20px 16px 90px"}}>{screens[tab]}</div><div style={{position:"fixed",bottom:0,left:0,right:0,background:T.surface+"f8",backdropFilter:"blur(18px)",borderTop:`1px solid ${T.border}`,display:"flex",justifyContent:"space-around",padding:"10px 0 max(10px,env(safe-area-inset-bottom))",zIndex:20}}>{tabs.map(t=>{const active=tab===t.id;return(<button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,background:"none",border:"none",cursor:"pointer",padding:"4px 12px",color:active?T.green:T.muted,transition:"color 0.18s",position:"relative"}}>{active&&<div style={{position:"absolute",top:-10,left:"50%",transform:"translateX(-50%)",width:32,height:2,borderRadius:2,background:T.green}}/>}<Icon d={t.icon} size={20} color={active?T.green:T.muted}/><span style={{fontSize:10,fontWeight:700}}>{t.label}</span></button>);})}</div></>)}</div>);}
+    function TenantSetup({unit,existing,onSave,onBack}){
+      const [firstName,setFirstName]=useState(existing?.firstName||"");
+      const [lastName,setLastName]=useState(existing?.lastName||"");
+      const [phone,setPhone]=useState(existing?.phone||"");
+      const [email,setEmail]=useState(existing?.email||"");
+      const [moveIn,setMoveIn]=useState(existing?.moveIn||"");
+      const [leaseEnd,setLeaseEnd]=useState(existing?.leaseEnd||"");
+      const [emergency,setEmergency]=useState(existing?.emergency||"");
+      const [vehicles,setVehicles]=useState(existing?.vehicles||[]);
+      const [saved,setSaved]=useState(false);
+      const isNew=!existing?.firstName;
+      const addVehicle=()=>setVehicles(v=>[...v,{make:"",model:"",year:"",plate:""}]);
+      const updV=(i,k)=>e=>setVehicles(vs=>vs.map((x,j)=>j===i?{...x,[k]:e.target.value}:x));
+      const delVehicle=i=>setVehicles(vs=>vs.filter((_,j)=>j!==i));
+      const vi={width:"100%",background:T.bg,border:"1px solid "+T.border,borderRadius:9,padding:"8px 11px",color:T.text,fontSize:13,outline:"none",boxSizing:"border-box"};
+      const handleSave=()=>{
+        if(!firstName.trim()||!lastName.trim())return;
+        const profile={firstName:firstName.trim(),lastName:lastName.trim(),phone,email,moveIn,leaseEnd,emergency,vehicles};
+        try{localStorage.setItem("cg_profile_"+unit,JSON.stringify(profile));}catch(e){}
+        if(window.db){
+          window.db._write("cg_profile_"+unit,profile);
+          const existing=loadData("cg_profiles",{});
+          const updated={...existing,[unit]:profile};
+          window.db._write("cg_profiles",updated);
+        }
+        onSave(profile);
+        setSaved(true);
+      };
+      return(
+        <div style={{minHeight:"100vh",background:T.bg,paddingBottom:40}}>
+          <div style={{position:"sticky",top:0,zIndex:10,background:T.bg+"f0",backdropFilter:"blur(14px)",borderBottom:`1px solid ${T.border}`,padding:"14px 18px",display:"flex",alignItems:"center",gap:12}}>
+            <button onClick={onBack} style={{background:"none",border:"none",cursor:"pointer",padding:4,display:"flex",alignItems:"center"}}><Icon d={icons.back} size={22} color={T.green}/></button>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:T.serif,fontSize:18,fontWeight:900,color:T.text}}>Unit {unit}</div>
+              <div style={{fontSize:11,color:T.muted}}>33 Cottage St · {getType(unit)} · {isNew?"Create Profile":"Edit Profile"}</div>
+            </div>
+            <CGMark size={28}/>
+          </div>
+          <div style={{maxWidth:480,margin:"0 auto",padding:"24px 16px",display:"flex",flexDirection:"column",gap:18}}>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,paddingBottom:4}}>
+              <div style={{width:76,height:76,borderRadius:"50%",background:firstName?`linear-gradient(135deg,${T.green},#2aaa72)`:T.faint,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,fontWeight:900,color:firstName?"#071a0e":T.muted,fontFamily:T.serif,transition:"all 0.3s",border:`3px solid ${firstName?T.green+"55":T.border}`}}>
+                {firstName?initials(`${firstName} ${lastName}`):unit}
+              </div>
+              <div style={{fontSize:13,color:firstName?T.text:T.muted,fontWeight:firstName?700:400}}>{firstName?`${firstName} ${lastName}`.trim():"Your name appears here"}</div>
+            </div>
+            <Card>
+              <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>YOUR NAME *</div>
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                <div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>First Name</div><Input value={firstName} onChange={setFirstName} placeholder="e.g. Jamie" autoComplete="given-name"/></div>
+                <div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Last Name</div><Input value={lastName} onChange={setLastName} placeholder="e.g. Rivera" autoComplete="family-name"/></div>
+              </div>
+            </Card>
+            <Card>
+              <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>CONTACT INFO</div>
+              <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                <div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Phone Number</div><Input value={phone} onChange={setPhone} placeholder="(555) 000-0000" type="tel" autoComplete="tel"/></div>
+                <div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Email Address</div><Input value={email} onChange={setEmail} placeholder="you@email.com" type="email" autoComplete="email"/></div>
+              </div>
+            </Card>
+            <Card>
+              <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>LEASE DETAILS</div>
+              <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                <div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Move-In Date</div><Input value={moveIn} onChange={setMoveIn} placeholder="MM/DD/YYYY" autoComplete="off"/></div>
+                <div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Lease End Date</div><Input value={leaseEnd} onChange={setLeaseEnd} placeholder="MM/DD/YYYY" autoComplete="off"/></div>
+              </div>
+            </Card>
+            <Card>
+              <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>EMERGENCY CONTACT</div>
+              <Input value={emergency} onChange={setEmergency} placeholder="e.g. Mom – (555) 111-2222" autoComplete="off"/>
+            </Card>
+            <Card>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:vehicles.length>0?14:0}}>
+                <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em"}}>VEHICLES {vehicles.length>0?`(${vehicles.length})`:""}</div>
+                <button type="button" onClick={addVehicle} style={{background:T.greenDim,border:"1px solid "+T.green+"44",borderRadius:8,padding:"5px 12px",color:T.green,fontSize:12,fontWeight:700,cursor:"pointer"}}>+ Add Vehicle</button>
+              </div>
+              {vehicles.length===0&&<div style={{textAlign:"center",fontSize:12,color:T.muted,paddingTop:10}}>No vehicles registered.</div>}
+              {vehicles.map((v,i)=>(
+                <div key={i} style={{background:T.surface,borderRadius:12,padding:12,marginBottom:i<vehicles.length-1?10:0,border:"1px solid "+T.border}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                    <div style={{fontSize:12,color:T.green,fontWeight:700}}>Vehicle {i+1}</div>
+                    <button type="button" onClick={()=>delVehicle(i)} style={{background:"none",border:"none",color:T.red,cursor:"pointer",fontSize:18,lineHeight:1}}>×</button>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+                    <div><div style={{fontSize:11,color:T.muted,marginBottom:3}}>Make</div><input value={v.make} onChange={updV(i,"make")} placeholder="Toyota" style={vi}/></div>
+                    <div><div style={{fontSize:11,color:T.muted,marginBottom:3}}>Model</div><input value={v.model} onChange={updV(i,"model")} placeholder="Camry" style={vi}/></div>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                    <div><div style={{fontSize:11,color:T.muted,marginBottom:3}}>Year</div><input type="number" value={v.year} onChange={updV(i,"year")} placeholder="2020" style={vi}/></div>
+                    <div><div style={{fontSize:11,color:T.muted,marginBottom:3}}>License Plate</div><input value={v.plate} onChange={updV(i,"plate")} placeholder="ABC-1234" style={vi}/></div>
+                  </div>
+                </div>
+              ))}
+            </Card>
+            <Btn onClick={handleSave} disabled={!firstName.trim()||!lastName.trim()} icon={<Icon d={saved?icons.check:icons.person} size={16} color="#071a0e" stroke={saved?2.5:1.8}/>}>
+              {saved?"Profile Saved! ✓":isNew?"Create My Profile":"Save Changes"}
+            </Btn>
+            {!isNew&&<Btn onClick={onBack} variant="ghost">← Back to App</Btn>}
+            <div style={{fontSize:11,color:T.muted,textAlign:"center",lineHeight:1.7}}>Your information is only shared with your property manager at 33 Cottage St.</div>
+          </div>
+        </div>
+      );
+    }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+    function Dashboard({setTab,tenant,unit}){
+      const [announcements,setAnnouncements]=useState(()=>loadData("cg_announcements",[]));
+      useEffect(()=>{
+        const unsub=listenCloud("cg_announcements",(a)=>{if(a)setAnnouncements(a);});
+        return()=>unsub();
+      },[]);
+      const amount=getRent(unit);
+      const unitType=getType(unit);
+      // Calculate days until next 1st of month
+      const now=new Date();
+      const nextFirst=new Date(now.getFullYear(),now.getMonth()+1,1);
+      const daysLeft=Math.ceil((nextFirst-now)/(1000*60*60*24));
+      const monthName=nextFirst.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+      const urgency=daysLeft<=5?T.red:daysLeft<=10?T.gold:T.green;
+      return(
+        <div style={{display:"flex",flexDirection:"column",gap:18}}>
+          <div style={{background:"linear-gradient(145deg,#0D2518 0%,#071A10 100%)",borderRadius:22,padding:24,position:"relative",overflow:"hidden",border:`1px solid ${T.green}33`}}>
+            <div style={{position:"absolute",top:-40,right:-40,width:180,height:180,borderRadius:"50%",background:T.greenGlow,filter:"blur(30px)"}}/>
+            <div style={{fontSize:11,color:T.green,fontWeight:700,letterSpacing:"0.14em",marginBottom:8}}>NEXT PAYMENT DUE</div>
+            <div style={{fontSize:42,fontWeight:900,color:"#fff",fontFamily:T.serif,letterSpacing:"-1.5px",lineHeight:1}}>${amount.toLocaleString()}</div>
+            <div style={{color:T.muted,fontSize:13,marginTop:6}}>Due 1st of every month &nbsp;·&nbsp;<span style={{color:urgency,fontWeight:600}}>{daysLeft} day{daysLeft!==1?"s":""} until {monthName}</span></div>
+            <div style={{marginTop:18}}><Btn onClick={()=>setTab("pay")} icon={<Icon d={icons.send} size={15} color="#071a0e"/>}>Pay Rent Now</Btn></div>
+          </div>
+          {(()=>{const payments=loadData("cg_payments_"+unit,[]);const totalPaid=payments.reduce((s,p)=>s+p.total,0);return(
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            {[{label:"Unit",value:unit,sub:unitType+" · 33 Cottage St"},{label:"Lease Ends",value:tenant.leaseEnd||"—",sub:tenant.leaseEnd?"":"Not set yet"},{label:"Payments Made",value:payments.length,sub:"This lease"},{label:"Total Paid",value:"$"+totalPaid.toLocaleString(),sub:"All time"}].map(s=>(
+              <Card key={s.label} style={{padding:16}}>
+                <div style={{fontSize:10,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:6}}>{s.label.toUpperCase()}</div>
+                <div style={{fontSize:22,fontWeight:900,color:T.text,fontFamily:T.serif}}>{s.value}</div>
+                <div style={{fontSize:12,color:T.muted}}>{s.sub}</div>
+              </Card>
+            ))}
+          </div>);})()}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            {[{label:"Send Message",tab:"messages",icon:icons.msg,color:T.green},{label:"Building Forum",tab:"forum",icon:icons.forum,color:"#7BCFB8"},{label:"Pay Rent",tab:"pay",icon:icons.pay,color:T.gold},{label:"My Lease",tab:"lease",icon:"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8",color:"#A8D5B5"}].map(n=>(
+              <Card key={n.tab} onClick={()=>setTab(n.tab)} style={{padding:16,cursor:"pointer"}}>
+                <div style={{width:42,height:42,borderRadius:13,background:n.color+"22",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10}}><Icon d={n.icon} size={18} color={n.color}/></div>
+                <div style={{fontSize:13,fontWeight:700,color:T.text}}>{n.label}</div>
+              </Card>
+            ))}
+          </div>
+          {announcements.length>0&&<Card style={{border:`1px solid ${T.gold}44`}}>
+            <div style={{fontSize:12,fontWeight:700,color:T.gold,letterSpacing:"0.1em",marginBottom:12}}>📢 BUILDING ANNOUNCEMENTS</div>
+            {announcements.slice(0,3).map(a=><div key={a.id} style={{padding:"10px 0",borderBottom:`1px solid ${T.border}`}}>
+              <div style={{fontSize:13,color:T.text,lineHeight:1.6}}>{a.text}</div>
+              <div style={{fontSize:11,color:T.muted,marginTop:4}}>Posted {a.date}</div>
+            </div>)}
+          </Card>}
+          <Card>
+            <div style={{fontSize:12,fontWeight:700,color:T.muted,letterSpacing:"0.1em",marginBottom:14}}>RECENT PAYMENTS</div>
+            {(()=>{const payments=loadData("cg_payments_"+unit,[]);return payments.length===0?<div style={{textAlign:"center",padding:"20px 0",color:T.muted,fontSize:13}}>No payments yet. History appears after your first payment.</div>:payments.slice().reverse().slice(0,5).map((t,i)=>(
+              <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"11px 0",borderBottom:`1px solid ${T.border}`}}>
+                <div><div style={{fontSize:13,fontWeight:600,color:T.text}}>{t.desc}</div><div style={{fontSize:11,color:T.muted}}>{t.date} · {t.method}</div></div>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:14,fontWeight:800,color:T.green,fontFamily:T.serif}}>${t.total.toLocaleString()}</span>
+                  <Badge color={T.green}>Paid</Badge>
+                </div>
+              </div>
+            ))})()}
+          </Card>
+        </div>
+      );
+    }
 
-</script>
+    // ── CHARGE DEFINITIONS ───────────────────────────────────────────────
+    const CHARGES_CONFIG = [
+      {id:"rent",    label:"Monthly Rent",  color:"#3EC98E", defaultOn:true},
+      {id:"parking", label:"Parking Fee",   color:"#7BCFB8", defaultOn:false, defaultAmt:75},
+      {id:"pet",     label:"Pet Fee",       color:"#F5A442", defaultOn:false, defaultAmt:50},
+      {id:"fine",    label:"Fine / Fee",    color:"#F76F6F", defaultOn:false, defaultAmt:0},
+      {id:"partial", label:"Partial / Other", color:"#A78BFA", defaultOn:false, defaultAmt:0},
+    ];
+
+    function PayRent({unit,tenant}){
+      const unitRent = getRent(unit);
+      const unitType = getType(unit);
+
+      // Each charge: {on: bool, amt: number}
+      const initCharges = () => ({
+        rent:    {on:true,  amt:unitRent},
+        parking: {on:false, amt:75},
+        pet:     {on:false, amt:50},
+        fine:    {on:false, amt:0},
+        partial: {on:false, amt:0},
+      });
+
+      const [ch, setCh] = useState(initCharges);
+      const [note, setNote] = useState("");
+
+      const toggle = (id) => setCh(prev => ({...prev, [id]:{...prev[id], on:!prev[id].on}}));
+      const setAmt = (id, val) => setCh(prev => ({...prev, [id]:{...prev[id], amt:parseFloat(val)||0}}));
+      const reset  = () => { setCh(initCharges()); setNote(""); };
+
+      const total = CHARGES_CONFIG.reduce((s,c) => ch[c.id].on ? s + (ch[c.id].amt||0) : s, 0);
+      const activeCount = CHARGES_CONFIG.filter(c => ch[c.id].on).length;
+
+      const handlePay = () => {
+        if(total===0) return;
+        const now = new Date();
+        const dateStr  = now.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
+        const monthStr = now.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+        const existing = loadData("cg_payments_"+unit,[]);
+        const record = {
+          date:dateStr, desc:"Payment – "+monthStr,
+          total, method:"Stripe", status:"processing",
+          charges: CHARGES_CONFIG.filter(c=>ch[c.id].on).map(c=>({label:c.label,amt:ch[c.id].amt})),
+          note
+        };
+        saveData("cg_payments_"+unit,[...existing,record]);
+        window.open("https://buy.stripe.com/3cIcN6euJbfJbzR2Rz7EQ00","_blank");
+      };
+
+      return(
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <div style={{fontFamily:T.serif,fontSize:24,fontWeight:900,color:T.text}}>Pay Rent</div>
+
+          {/* Stripe badge */}
+          <div style={{padding:"12px 16px",borderRadius:12,background:T.greenDim,border:`1px solid ${T.green}33`,display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:18}}>🔒</span>
+            <div>
+              <div style={{fontSize:13,fontWeight:700,color:T.green}}>Secured by Stripe</div>
+              <div style={{fontSize:11,color:T.muted}}>Payments go directly to Upside Real Estate Development</div>
+            </div>
+          </div>
+
+          {/* Charges card */}
+          <Card>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+              <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em"}}>SELECT CHARGES</div>
+              <button onClick={reset} style={{background:"none",border:"none",color:T.muted,fontSize:11,cursor:"pointer",textDecoration:"underline"}}>Reset</button>
+            </div>
+            <div style={{fontSize:12,color:T.green,fontWeight:600,marginBottom:14}}>Unit {unit} · {unitType}</div>
+
+            {CHARGES_CONFIG.map(c => {
+              const active = ch[c.id].on;
+              return (
+                <div key={c.id} style={{marginBottom:10}}>
+                  {/* Toggle row */}
+                  <div
+                    onClick={() => toggle(c.id)}
+                    style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",borderRadius:12,
+                      border:`1.5px solid ${active ? c.color+"66" : T.border}`,
+                      background: active ? c.color+"12" : T.surface,
+                      cursor:"pointer",transition:"all 0.15s",marginBottom:active?6:0}}
+                  >
+                    {/* Checkbox circle */}
+                    <div style={{width:22,height:22,borderRadius:"50%",flexShrink:0,
+                      border:`2px solid ${active ? c.color : T.border}`,
+                      background: active ? c.color : "transparent",
+                      display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.15s"}}>
+                      {active && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#071a0e" strokeWidth="3" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>}
+                    </div>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:14,fontWeight:700,color:active?T.text:T.muted}}>{c.label}</div>
+                      {!active && <div style={{fontSize:11,color:T.muted}}>Tap to include</div>}
+                    </div>
+                    {active && <div style={{fontFamily:T.serif,fontSize:15,fontWeight:900,color:c.color}}>${(ch[c.id].amt||0).toLocaleString()}</div>}
+                  </div>
+
+                  {/* Amount input when active */}
+                  {active && (
+                    <div style={{display:"flex",alignItems:"center",gap:10,padding:"2px 6px 0"}}>
+                      <div style={{fontSize:12,color:T.muted,whiteSpace:"nowrap",minWidth:70}}>Amount</div>
+                      <div style={{position:"relative",flex:1}}>
+                        <span style={{position:"absolute",left:11,top:"50%",transform:"translateY(-50%)",color:c.color,fontWeight:800}}>$</span>
+                        <input
+                          type="number"
+                          value={ch[c.id].amt}
+                          onChange={e => setAmt(c.id, e.target.value)}
+                          style={{width:"100%",background:T.surface,border:`1px solid ${c.color}55`,borderRadius:10,
+                            padding:"9px 12px 9px 24px",color:T.text,fontSize:15,fontFamily:T.serif,
+                            fontWeight:800,outline:"none",boxSizing:"border-box"}}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Total */}
+            <div style={{borderTop:`1px solid ${T.border}`,marginTop:8,paddingTop:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em"}}>TOTAL</div>
+                <div style={{fontSize:11,color:T.muted,marginTop:2}}>{activeCount} {activeCount===1?"charge":"charges"} selected</div>
+              </div>
+              <div style={{fontFamily:T.serif,fontSize:32,fontWeight:900,color:total>0?T.green:T.muted}}>
+                ${total.toLocaleString()}
+              </div>
+            </div>
+          </Card>
+
+          {/* Note */}
+          <Input value={note} onChange={setNote} placeholder="Note to manager (optional)"/>
+
+          {/* Payment methods info */}
+          <Card style={{padding:16}}>
+            <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:10}}>ACCEPTED PAYMENT METHODS</div>
+            {[["💳","Credit / Debit Card","Visa, Mastercard, Amex — Instant"],
+              ["🏦","ACH Bank Transfer","Free — 2-3 business days"],
+              ["🍎","Apple Pay / Google Pay","Tap to pay instantly"]].map(([icon,label,sub])=>(
+              <div key={label} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:`1px solid ${T.border}`}}>
+                <span style={{fontSize:18}}>{icon}</span>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:13,fontWeight:600,color:T.text}}>{label}</div>
+                  <div style={{fontSize:11,color:T.muted}}>{sub}</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.green} strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+              </div>
+            ))}
+          </Card>
+
+          {/* Pay button */}
+          <button
+            onClick={handlePay}
+            disabled={total===0}
+            style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,width:"100%",
+              padding:"16px",borderRadius:12,border:"none",
+              background:total===0?"#2A3F30":`linear-gradient(135deg,${T.green},#2aaa72)`,
+              color:total===0?T.muted:"#071a0e",fontSize:16,fontWeight:800,
+              cursor:total===0?"not-allowed":"pointer",
+              boxShadow:total>0?`0 4px 20px ${T.greenGlow}`:"none",
+              transition:"all 0.18s",opacity:total===0?0.5:1}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            {total===0 ? "Select charges above" : `Pay $${total.toLocaleString()} via Stripe`}
+          </button>
+
+          <div style={{textAlign:"center",fontSize:11,color:T.muted,lineHeight:1.7}}>
+            Tapping Pay opens Stripe's secure checkout page.<br/>
+            Choose your payment method there and complete payment.<br/>
+            Stripe sends you an email receipt automatically.
+          </div>
+        </div>
+      );
+    }
+
+    function Messages({tenant,unit}){
+      const initMsgs=[{id:1,from:"manager",text:`Welcome to CommonGround! I'm ${MANAGER.name}, your property manager. Message me anytime.`,time:"Today",read:true}];
+      const [msgs,setMsgs]=useState(()=>loadData("cg_msgs_"+unit,initMsgs));
+      const [input,setInput]=useState("");
+      const [category,setCategory]=useState("general");
+      const bottomRef=useRef();
+      useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});},[msgs]);
+      // Real-time Firebase sync for messages
+      useEffect(()=>{
+        syncFromCloud("cg_msgs_"+unit,initMsgs,(cloudMsgs)=>{if(cloudMsgs&&cloudMsgs.length>0)setMsgs(cloudMsgs);});
+        const unsub=listenCloud("cg_msgs_"+unit,(cloudMsgs)=>{if(cloudMsgs&&cloudMsgs.length>0)setMsgs(cloudMsgs);});
+        return()=>unsub();
+      },[unit]);
+      const send=()=>{
+        if(!input.trim())return;
+        const now=new Date().toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
+        const newMsg={id:Date.now(),from:"tenant",text:input,time:now,unit,tenantName:tenant?`${tenant.firstName} ${tenant.lastName}`:"",category,read:true};
+        const updated=[...msgs,newMsg];
+        setMsgs(updated);
+        saveData("cg_msgs_"+unit,updated);
+        setInput("");
+        setTimeout(()=>{
+          const reply={id:Date.now()+1,from:"manager",text:`Thanks for your message — ${MANAGER.name} will follow up shortly.`,time:"Just now",read:true};
+          const withReply=[...updated,reply];
+          setMsgs(withReply);
+          saveData("cg_msgs_"+unit,withReply);
+        },1200);
+      };
+      return(
+        <div style={{display:"flex",flexDirection:"column",gap:0,height:"calc(100vh - 180px)",maxHeight:620}}>
+          <div style={{fontFamily:T.serif,fontSize:24,fontWeight:900,color:T.text,marginBottom:14}}>Messages</div>
+          <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+            {["maintenance","billing","general","noise"].map(c=>(
+              <button key={c} onClick={()=>setCategory(c)} style={{padding:"5px 14px",borderRadius:20,border:`1px solid ${category===c?T.green:T.border}`,background:category===c?T.greenDim:"transparent",color:category===c?T.green:T.muted,fontSize:12,fontWeight:600,cursor:"pointer",textTransform:"capitalize",transition:"all 0.18s"}}>{c}</button>
+            ))}
+          </div>
+          <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:10,paddingBottom:8}}>
+            {msgs.map(m=>(
+              <div key={m.id} style={{display:"flex",justifyContent:m.from==="tenant"?"flex-end":"flex-start"}}>
+                <div style={{maxWidth:"78%",background:m.from==="tenant"?`linear-gradient(135deg,${T.green},#2aaa72)`:T.card,borderRadius:m.from==="tenant"?"16px 16px 4px 16px":"16px 16px 16px 4px",padding:"10px 14px",border:`1px solid ${m.from==="tenant"?T.green+"44":T.border}`}}>
+                  {m.from==="manager"&&<div style={{fontSize:10,color:T.green,fontWeight:700,letterSpacing:"0.1em",marginBottom:4}}>PROPERTY MANAGER</div>}
+                  <div style={{fontSize:14,color:m.from==="tenant"?"#071a0e":T.text,lineHeight:1.55,fontWeight:m.from==="tenant"?600:400}}>{m.text}</div>
+                  <div style={{fontSize:11,color:m.from==="tenant"?"rgba(7,26,14,0.6)":T.muted,marginTop:4}}>{m.time}</div>
+                </div>
+              </div>
+            ))}
+            <div ref={bottomRef}/>
+          </div>
+          <div style={{display:"flex",gap:10,paddingTop:12,borderTop:`1px solid ${T.border}`}}>
+            <Input value={input} onChange={setInput} placeholder={`${category.charAt(0).toUpperCase()+category.slice(1)} message…`} style={{flex:1}}/>
+            <Btn onClick={send} disabled={!input.trim()} icon={<Icon d={icons.send} size={14} color="#071a0e"/>}>Send</Btn>
+          </div>
+        </div>
+      );
+    }
+
+    function Forum({tenant,unit,isManager=false}){
+      const [forums,setForums]=useState(()=>loadData("cg_forum",INIT_FORUMS));
+      const [view,setView]=useState(null);
+      const [showNew,setShowNew]=useState(false);
+      const [newTitle,setNewTitle]=useState("");
+      const [newBody,setNewBody]=useState("");
+      const [reply,setReply]=useState("");
+      // Real-time Firebase sync for forum — all tenants see same posts
+      useEffect(()=>{
+        syncFromCloud("cg_forum",INIT_FORUMS,(cloudForum)=>{if(cloudForum&&cloudForum.length>0)setForums(cloudForum);});
+        const unsub=listenCloud("cg_forum",(cloudForum)=>{if(cloudForum&&cloudForum.length>0)setForums(cloudForum);});
+        return()=>unsub();
+      },[]);
+      const saveForums=(f)=>{setForums(f);saveData("cg_forum",f);};
+      const post=forums.find(p=>p.id===view);
+      const addPost=()=>{
+        if(!newTitle.trim()||!newBody.trim())return;
+        const a=isManager?`${MANAGER.name} (Manager)`:`${tenant.firstName} ${tenant.lastName[0]}.`;
+        const updated=[{id:Date.now(),author:a,unit:isManager?"MGR":unit,time:"Just now",title:newTitle,body:newBody,replies:[],likes:0,isManager},...forums];
+        saveForums(updated);
+        setNewTitle("");setNewBody("");setShowNew(false);
+      };
+      const addReply=()=>{
+        if(!reply.trim())return;
+        const a=isManager?`${MANAGER.name} (Manager)`:`${tenant.firstName} ${tenant.lastName[0]}.`;
+        const updated=forums.map(p=>p.id===view?{...p,replies:[...p.replies,{author:a,unit:isManager?"MGR":unit,text:reply,time:"Just now",isManager}]}:p);
+        saveForums(updated);
+        setReply("");
+      };
+      const [confirmDelete,setConfirmDelete]=useState(null); // {type,id,replyIdx}
+      const deletePost=(id)=>setConfirmDelete({type:"post",id});
+      const deleteReply=(postId,replyIdx)=>setConfirmDelete({type:"reply",id:postId,replyIdx});
+      const confirmAction=()=>{
+        if(!confirmDelete)return;
+        if(confirmDelete.type==="post"){
+          saveForums(forums.filter(p=>p.id!==confirmDelete.id));
+          if(view===confirmDelete.id)setView(null);
+        } else {
+          const updated=forums.map(p=>p.id===confirmDelete.id?{...p,replies:p.replies.filter((_,i)=>i!==confirmDelete.replyIdx)}:p);
+          saveForums(updated);
+        }
+        setConfirmDelete(null);
+      };
+      if(confirmDelete)return(
+        <div style={{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
+          <Card style={{width:"100%",maxWidth:360,textAlign:"center"}}>
+            <div style={{fontSize:24,marginBottom:12}}>🗑</div>
+            <div style={{fontFamily:T.serif,fontSize:18,fontWeight:900,color:T.text,marginBottom:8}}>Delete {confirmDelete.type==="post"?"Post":"Reply"}?</div>
+            <div style={{fontSize:13,color:T.muted,marginBottom:20}}>{confirmDelete.type==="post"?"This will remove the post and all its replies for everyone.":"This will remove this reply for everyone."}</div>
+            <div style={{display:"flex",gap:10}}>
+              <Btn onClick={()=>setConfirmDelete(null)} variant="ghost">Cancel</Btn>
+              <Btn onClick={confirmAction} variant="danger">Delete</Btn>
+            </div>
+          </Card>
+        </div>
+      );
+      if(post)return(
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <button onClick={()=>setView(null)} style={{display:"flex",alignItems:"center",gap:6,background:"none",border:"none",color:T.green,cursor:"pointer",fontSize:13,fontWeight:700,padding:0}}><Icon d={icons.back} size={16} color={T.green}/> Back to Forum</button>
+          <Card>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+              <div style={{fontFamily:T.serif,fontSize:20,fontWeight:900,color:T.text,flex:1}}>{post.title}</div>
+              {isManager&&<button onClick={()=>deletePost(post.id)} style={{background:"#F76F6F15",border:"1px solid #F76F6F33",borderRadius:8,padding:"4px 10px",color:T.red,fontSize:12,fontWeight:700,cursor:"pointer",flexShrink:0,marginLeft:8}}>🗑 Delete</button>}
+            </div>
+            <div style={{fontSize:12,color:T.muted,marginBottom:14}}>
+              {post.isManager&&<span style={{color:T.gold,fontWeight:700,marginRight:6}}>📢 MANAGER</span>}
+              {post.author} · Unit {post.unit} · {post.time}
+            </div>
+            <div style={{fontSize:14,color:T.text,lineHeight:1.75}}>{post.body}</div>
+          </Card>
+          <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em"}}>REPLIES ({post.replies.length})</div>
+          {post.replies.map((r,i)=>(
+            <Card key={i} style={{padding:14}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                <div style={{fontSize:11,color:r.isManager?T.gold:T.green,fontWeight:700}}>
+                  {r.isManager&&"📢 "}{r.author} · Unit {r.unit} · {r.time}
+                </div>
+                {isManager&&<button onClick={()=>deleteReply(post.id,i)} style={{background:"none",border:"none",color:T.red,fontSize:12,cursor:"pointer",padding:"2px 6px"}}>🗑</button>}
+              </div>
+              <div style={{fontSize:14,color:T.text}}>{r.text}</div>
+            </Card>
+          ))}
+          <div style={{display:"flex",gap:10}}>
+            <Input value={reply} onChange={setReply} placeholder="Write a reply…" style={{flex:1}}/>
+            <Btn onClick={addReply} disabled={!reply.trim()} small icon={<Icon d={icons.send} size={13} color="#071a0e"/>}>Reply</Btn>
+          </div>
+        </div>
+      );
+      return(
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{fontFamily:T.serif,fontSize:24,fontWeight:900,color:T.text}}>Forum</div>
+            <Btn onClick={()=>setShowNew(!showNew)} small variant="green" icon={<Icon d={icons.plus} size={14} color={T.green}/>}>New Post</Btn>
+          </div>
+          {isManager&&<div style={{padding:"10px 14px",borderRadius:10,background:T.gold+"15",border:`1px solid ${T.gold}33`,fontSize:12,color:T.gold,fontWeight:600}}>
+            📢 Manager mode — tap any post to delete it or its replies
+          </div>}
+          <Card style={{padding:"12px 16px"}}>
+            <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:8}}>33 COTTAGE ST — ALL UNITS</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+              {UNITS.map(u=><span key={u} style={{padding:"4px 12px",borderRadius:20,background:u===unit?T.green:T.greenDim,border:`1px solid ${T.green}33`,fontSize:12,fontWeight:700,color:u===unit?"#071a0e":T.green}}>{u===unit?`${u} (You)`:u}</span>)}
+            </div>
+          </Card>
+          {showNew&&(
+            <Card>
+              <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>{isManager?"POST ANNOUNCEMENT TO FORUM":"NEW POST — Unit "+unit}</div>
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                <Input value={newTitle} onChange={setNewTitle} placeholder="Post title"/>
+                <Input value={newBody} onChange={setNewBody} placeholder="What's on your mind?" multiline/>
+                <div style={{display:"flex",gap:8}}>
+                  <Btn onClick={addPost} disabled={!newTitle.trim()||!newBody.trim()} small>Post</Btn>
+                  <Btn onClick={()=>setShowNew(false)} small variant="ghost">Cancel</Btn>
+                </div>
+              </div>
+            </Card>
+          )}
+          {forums.map(p=>(
+            <div key={p.id} style={{position:"relative"}}>
+            <Card onClick={()=>setView(p.id)} style={{cursor:"pointer",border:p.isManager?`1px solid ${T.gold}44`:undefined}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                <div style={{fontFamily:T.serif,fontSize:16,fontWeight:700,color:T.text,flex:1}}>{p.title}</div>
+                {isManager&&<button onClick={e=>{e.stopPropagation();deletePost(p.id);}} style={{background:"#F76F6F15",border:"1px solid #F76F6F33",borderRadius:8,padding:"3px 8px",color:T.red,fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0,marginLeft:8}}>🗑</button>}
+              </div>
+              <div style={{fontSize:13,color:T.muted,marginBottom:12,lineHeight:1.6}}>{p.body.slice(0,90)}…</div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{fontSize:11,color:T.muted}}>
+                  {p.isManager&&<span style={{color:T.gold,fontWeight:700,marginRight:4}}>📢</span>}
+                  {p.author} · Unit {p.unit} · {p.time}
+                </div>
+                <div style={{display:"flex",gap:12,fontSize:12,color:T.muted}}><span>💬 {p.replies.length}</span><span>🌱 {p.likes}</span></div>
+              </div>
+            </Card>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    function BankLink(){
+      const [step,setStep]=useState(0);
+      const [bankName,setBankName]=useState("");
+      const [routing,setRouting]=useState("");
+      const [account,setAccount]=useState("");
+      const [accountType,setAccountType]=useState("checking");
+      const [linked,setLinked]=useState(false);
+      const [loading,setLoading]=useState(false);
+      const banks=["Chase","Bank of America","Wells Fargo","Citi","US Bank","Capital One","PNC","TD Bank"];
+      if(linked)return(
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <div style={{fontFamily:T.serif,fontSize:24,fontWeight:900,color:T.text}}>Linked Account</div>
+          <Card style={{border:`1px solid ${T.green}44`}}>
+            <div style={{display:"flex",gap:14,alignItems:"center"}}>
+              <div style={{width:52,height:52,borderRadius:16,background:T.greenDim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon d={icons.check} size={26} color={T.green} stroke={2.5}/></div>
+              <div>
+                <div style={{fontSize:16,fontWeight:700,color:T.text}}>{bankName}</div>
+                <div style={{fontSize:13,color:T.muted}}>{accountType==="checking"?"Checking":"Savings"} ···· {account.slice(-4)}</div>
+                <div style={{fontSize:12,color:T.green,marginTop:3,fontWeight:700}}>✓ Verified & Active</div>
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>ENABLED PAYMENT METHODS</div>
+            {[{label:"ACH Transfer",sub:"Free · 2–3 business days",color:T.green},{label:"Wire Transfer",sub:"$15 fee · Same business day",color:T.gold},{label:"Auto-Pay",sub:"Rent paid automatically each month",color:"#7BCFB8"}].map(o=>(
+              <div key={o.label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",borderBottom:`1px solid ${T.border}`}}>
+                <div><div style={{fontSize:14,fontWeight:600,color:T.text}}>{o.label}</div><div style={{fontSize:12,color:T.muted}}>{o.sub}</div></div>
+                <Badge color={o.color}>Enabled</Badge>
+              </div>
+            ))}
+          </Card>
+          <Btn onClick={()=>{setLinked(false);setStep(0);setBankName("");setRouting("");setAccount("");}} variant="ghost">Update Bank Account</Btn>
+        </div>
+      );
+      return(
+        <div style={{display:"flex",flexDirection:"column",gap:18}}>
+          <div style={{fontFamily:T.serif,fontSize:24,fontWeight:900,color:T.text}}>Link Bank Account</div>
+          <div style={{display:"flex",background:T.surface,borderRadius:12,padding:4}}>
+            {["Select Bank","Account Info","Verify"].map((s,i)=>(
+              <div key={i} style={{flex:1,textAlign:"center",padding:"8px 4px",borderRadius:10,background:step===i?T.card:"transparent",fontSize:12,fontWeight:700,color:step===i?T.green:T.muted,transition:"all 0.2s"}}>{step>i?"✓ ":""}{s}</div>
+            ))}
+          </div>
+          {step===0&&(
+            <Card>
+              <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>SELECT YOUR BANK</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {banks.map(b=><button key={b} onClick={()=>{setBankName(b);setStep(1);}} style={{padding:"12px",borderRadius:10,border:`1px solid ${T.border}`,background:T.surface,color:T.text,fontSize:13,fontWeight:600,cursor:"pointer",transition:"all 0.18s",textAlign:"left"}}>{b}</button>)}
+              </div>
+              <div style={{marginTop:10}}>
+                <Input value={bankName} onChange={v=>setBankName(v)} placeholder="Or type your bank name…"/>
+                {bankName&&!banks.includes(bankName)&&<div style={{marginTop:8}}><Btn onClick={()=>setStep(1)} small>Continue with {bankName}</Btn></div>}
+              </div>
+            </Card>
+          )}
+          {step===1&&(
+            <Card>
+              <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>{bankName.toUpperCase()} — ACCOUNT DETAILS</div>
+              <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                <div>
+                  <div style={{fontSize:12,color:T.muted,marginBottom:6}}>Account Type</div>
+                  <div style={{display:"flex",gap:8}}>{["checking","savings"].map(t=><button key={t} onClick={()=>setAccountType(t)} style={{flex:1,padding:"10px",borderRadius:10,border:`1px solid ${accountType===t?T.green:T.border}`,background:accountType===t?T.greenDim:"transparent",color:accountType===t?T.green:T.muted,fontSize:13,fontWeight:700,cursor:"pointer",textTransform:"capitalize",transition:"all 0.18s"}}>{t}</button>)}</div>
+                </div>
+                <div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Routing Number</div><Input value={routing} onChange={setRouting} placeholder="9-digit routing number"/></div>
+                <div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Account Number</div><Input value={account} onChange={setAccount} placeholder="Account number"/></div>
+                <div style={{display:"flex",gap:8}}><Btn onClick={()=>setStep(0)} variant="ghost" small>Back</Btn><Btn onClick={()=>setStep(2)} disabled={routing.length<9||account.length<4} small>Continue</Btn></div>
+              </div>
+            </Card>
+          )}
+          {step===2&&(
+            <Card>
+              <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>REVIEW & CONFIRM</div>
+              {[{label:"Bank",val:bankName},{label:"Type",val:accountType==="checking"?"Checking":"Savings"},{label:"Routing",val:"···· "+routing.slice(-4)},{label:"Account",val:"···· "+account.slice(-4)}].map(r=>(
+                <div key={r.label} style={{display:"flex",justifyContent:"space-between",padding:"11px 0",borderBottom:`1px solid ${T.border}`}}>
+                  <span style={{fontSize:13,color:T.muted}}>{r.label}</span>
+                  <span style={{fontSize:13,fontWeight:700,color:T.text}}>{r.val}</span>
+                </div>
+              ))}
+              <div style={{marginTop:14,padding:12,borderRadius:10,background:T.gold+"10",border:`1px solid ${T.gold}33`,display:"flex",gap:8}}>
+                <Icon d={icons.alert} size={16} color={T.gold}/>
+                <div style={{fontSize:12,color:T.gold,lineHeight:1.6}}>Your account will be linked for ACH and wire transfers. Details are encrypted and never shared with third parties.</div>
+              </div>
+              <div style={{marginTop:14,display:"flex",gap:8}}>
+                <Btn onClick={()=>setStep(1)} variant="ghost" small>Back</Btn>
+                <Btn onClick={()=>{setLoading(true);setTimeout(()=>{setLoading(false);setLinked(true);},2000);}} disabled={loading} icon={<Icon d={icons.link} size={14} color="#071a0e"/>}>{loading?"Linking…":"Link Account"}</Btn>
+              </div>
+            </Card>
+          )}
+        </div>
+      );
+    }
+
+    // ── DATA LAYER — localStorage + Firestore REST API ──────────────────
+    const loadData=(key,fallback)=>{try{const v=localStorage.getItem(key);return v?JSON.parse(v):fallback;}catch(e){return fallback;}};
+
+    const saveData=(key,val)=>{
+      try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}
+      if(window.db){
+        window.db._write(key,val)
+          .then(ok=>console.log(ok?"Cloud saved:":"Cloud FAILED:",key));
+      }
+    };
+
+    const syncFromCloud=(key,fallback,setter)=>{
+      if(!window.db)return;
+      window.db._read(key).then(data=>{
+        if(data&&data.v){
+          try{
+            const val=JSON.parse(data.v);
+            localStorage.setItem(key,JSON.stringify(val));
+            if(setter)setter(val);
+          }catch(e){}
+        }
+      });
+    };
+
+    const listenCloud=(key,setter)=>{
+      if(!window.db)return()=>{};
+      let lastT=0;
+      const poll=()=>{
+        window.db._read(key).then(data=>{
+          if(data&&data.v&&data.t!==lastT){
+            lastT=data.t;
+            try{
+              const val=JSON.parse(data.v);
+              localStorage.setItem(key,JSON.stringify(val));
+              setter(val);
+            }catch(e){}
+          }
+        });
+      };
+      poll();
+      const iv=setInterval(poll,4000);
+      return()=>clearInterval(iv);
+    };
+
+    // ── PIN SCREEN ────────────────────────────────────────────────────────
+    function PinScreen({unit,onSuccess,onBack}){
+      const [pin,setPin]=useState("");
+      const [error,setError]=useState(false);
+      const [shake,setShake]=useState(false);
+      const correct=UNIT_PINS[unit];
+      const tap=(d)=>{
+        if(pin.length>=4)return;
+        const next=pin+d;
+        setPin(next);
+        if(next.length===4){
+          if(next===correct){onSuccess();}
+          else{setError(true);setShake(true);setTimeout(()=>{setPin("");setError(false);setShake(false);},700);}
+        }
+      };
+      const del=()=>setPin(p=>p.slice(0,-1));
+      return(
+        <div style={{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
+          <div style={{marginBottom:24,textAlign:"center"}}>
+            <CGMark size={48}/>
+            <div style={{marginTop:12}}><CGWordmark size={22}/></div>
+            <div style={{fontSize:13,color:T.muted,marginTop:6}}>Unit {unit} · Enter your PIN</div>
+          </div>
+          <div style={{display:"flex",gap:14,marginBottom:32,transform:shake?"translateX(8px)":"none",transition:"transform 0.1s"}}>
+            {[0,1,2,3].map(i=><div key={i} style={{width:18,height:18,borderRadius:"50%",border:`2px solid ${error?T.red:T.green}`,background:i<pin.length?(error?T.red:T.green):"transparent",transition:"all 0.2s"}}/>)}
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,width:"100%",maxWidth:260}}>
+            {[1,2,3,4,5,6,7,8,9,"",0,"⌫"].map((k,i)=>(
+              <button key={i} onClick={()=>k==="⌫"?del():k!==""?tap(String(k)):null}
+                style={{padding:"18px 0",borderRadius:14,border:`1px solid ${T.border}`,background:k===""?T.bg:T.card,color:T.text,fontSize:22,fontWeight:700,cursor:k===""?"default":"pointer",opacity:k===""?0:1,fontFamily:T.serif}}>
+                {k}
+              </button>
+            ))}
+          </div>
+          <button onClick={onBack} style={{marginTop:24,background:"none",border:"none",color:T.muted,fontSize:13,cursor:"pointer"}}>← Back to units</button>
+          {error&&<div style={{marginTop:12,color:T.red,fontSize:13,fontWeight:600}}>Incorrect PIN. Try again.</div>}
+        </div>
+      );
+    }
+
+    // ── MANAGER LOGIN ─────────────────────────────────────────────────────
+    function ManagerLogin({onSuccess,onBack}){
+      const [pw,setPw]=useState("");
+      const [error,setError]=useState(false);
+      const check=()=>{if(pw===MANAGER.password)onSuccess();else{setError(true);setTimeout(()=>setError(false),2000);}};
+      return(
+        <div style={{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
+          <CGMark size={48}/>
+          <div style={{margin:"12px 0 4px"}}><CGWordmark size={22}/></div>
+          <div style={{fontSize:13,color:T.muted,marginBottom:32}}>Manager Access</div>
+          <Card style={{width:"100%",maxWidth:360}}>
+            <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>ENTER MANAGER PASSWORD</div>
+            <input type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="Password" autoComplete="current-password" style={{width:"100%",background:T.surface,border:"1px solid "+T.border,borderRadius:10,padding:"10px 14px",color:T.text,fontSize:14,outline:"none",boxSizing:"border-box"}}/>
+            {error&&<div style={{color:T.red,fontSize:12,marginTop:8}}>Incorrect password.</div>}
+            <div style={{marginTop:14,display:"flex",gap:8}}>
+              <Btn onClick={onBack} variant="ghost">Cancel</Btn>
+              <Btn onClick={check} disabled={!pw}>Access Dashboard</Btn>
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
+    // ── LEASE SCREEN ──────────────────────────────────────────────────────
+    function LeaseScreen({unit,tenant}){
+      const [leaseData,setLeaseData]=useState(()=>loadData("cg_lease_"+unit,null));
+      const [signed,setSigned]=useState(()=>loadData("cg_lease_signed_"+unit,false));
+      const [signing,setSigning]=useState(false);
+      const [hasDrawn,setHasDrawn]=useState(false);
+      const canvasRef=useRef();
+      const drawing=useRef(false);
+      const startDraw=(e)=>{drawing.current=true;const c=canvasRef.current;const ctx=c.getContext("2d");const r=c.getBoundingClientRect();const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top;ctx.beginPath();ctx.moveTo(x,y);};
+      const draw=(e)=>{if(!drawing.current)return;e.preventDefault();const c=canvasRef.current;const ctx=c.getContext("2d");const r=c.getBoundingClientRect();const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top;ctx.lineTo(x,y);ctx.strokeStyle=T.green;ctx.lineWidth=2.5;ctx.lineCap="round";ctx.stroke();setHasDrawn(true);};
+      const stopDraw=()=>{drawing.current=false;};
+      const clearSig=()=>{canvasRef.current.getContext("2d").clearRect(0,0,canvasRef.current.width,canvasRef.current.height);setHasDrawn(false);};
+      const confirmSign=()=>{
+        const now=new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
+        const updated={...leaseData,signedDate:now};
+        setLeaseData(updated);saveData("cg_lease_"+unit,updated);
+        saveData("cg_lease_signed_"+unit,true);setSigned(true);setSigning(false);
+      };
+      if(signing)return(
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <div style={{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}}>Sign Lease</div>
+          <Card>
+            <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:8}}>YOUR SIGNATURE</div>
+            <div style={{fontSize:13,color:T.muted,marginBottom:12}}>Sign with your finger in the box below</div>
+            <canvas ref={canvasRef} width={320} height={140} style={{width:"100%",height:140,background:T.surface,borderRadius:10,border:`1px solid ${T.border}`,display:"block"}}
+              onMouseDown={startDraw} onMouseMove={draw} onMouseUp={stopDraw}
+              onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={stopDraw}/>
+            <div style={{display:"flex",gap:8,marginTop:12}}>
+              <Btn onClick={clearSig} variant="ghost" small>Clear</Btn>
+              <Btn onClick={confirmSign} disabled={!hasDrawn}>Confirm Signature</Btn>
+              <Btn onClick={()=>setSigning(false)} variant="ghost" small>Cancel</Btn>
+            </div>
+          </Card>
+        </div>
+      );
+      if(!leaseData)return(
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <div style={{fontFamily:T.serif,fontSize:24,fontWeight:900,color:T.text}}>My Lease</div>
+          <Card style={{textAlign:"center",padding:40}}>
+            <div style={{fontSize:40,marginBottom:16}}>📄</div>
+            <div style={{fontFamily:T.serif,fontSize:18,fontWeight:700,color:T.text,marginBottom:8}}>No Lease Uploaded Yet</div>
+            <div style={{fontSize:13,color:T.muted,lineHeight:1.7,marginBottom:20}}>Your property manager will upload your lease agreement here. You can then review and sign it digitally.</div>
+            <div style={{padding:14,borderRadius:10,background:T.greenDim,border:`1px solid ${T.green}33`}}>
+              <div style={{fontSize:12,color:T.green,fontWeight:600}}>Contact {MANAGER.name}</div>
+              <div style={{fontSize:12,color:T.muted,marginTop:4}}>{MANAGER.email}</div>
+            </div>
+          </Card>
+        </div>
+      );
+      return(
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <div style={{fontFamily:T.serif,fontSize:24,fontWeight:900,color:T.text}}>My Lease</div>
+          <Card style={{border:`1px solid ${signed?T.green+"44":T.gold+"44"}`}}>
+            <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:16}}>
+              <div style={{width:48,height:48,borderRadius:14,background:signed?T.greenDim:T.gold+"15",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:24}}>📄</div>
+              <div>
+                <div style={{fontSize:15,fontWeight:700,color:T.text}}>{leaseData.name||"Lease Agreement"}</div>
+                <div style={{fontSize:12,color:T.muted}}>Unit {unit} · 33 Cottage St</div>
+              </div>
+            </div>
+            {[["Tenant",tenant?`${tenant.firstName} ${tenant.lastName}`:"—"],["Unit",`Unit ${unit} · ${getType(unit)}`],["Monthly Rent",`$${getRent(unit).toLocaleString()}`],["Lease Start",leaseData.startDate||tenant?.moveIn||"—"],["Lease End",leaseData.endDate||tenant?.leaseEnd||"—"],["Status",signed?"✓ Signed":"Awaiting Signature"]].map(([l,v])=>(
+              <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"9px 0",borderBottom:`1px solid ${T.border}`}}>
+                <span style={{fontSize:13,color:T.muted}}>{l}</span>
+                <span style={{fontSize:13,fontWeight:700,color:l==="Status"?(signed?T.green:T.gold):T.text}}>{v}</span>
+              </div>
+            ))}
+            {signed&&leaseData.signedDate&&<div style={{marginTop:12,padding:10,borderRadius:10,background:T.greenDim,textAlign:"center"}}><div style={{fontSize:11,color:T.green,fontWeight:700}}>✓ Signed on {leaseData.signedDate}</div></div>}
+          </Card>
+          {!signed&&<Btn onClick={()=>setSigning(true)}>Sign Lease</Btn>}
+          <Btn onClick={()=>window.print()} variant="green">🖨 Print Hard Copy</Btn>
+        </div>
+      );
+    }
+
+    // ── MANAGER DASHBOARD ─────────────────────────────────────────────────
+    function LedgerTab(){
+      const CATS=[
+        {id:"rent",label:"Rent",color:"#3EC98E",type:"income"},
+        {id:"repair",label:"Repairs",color:"#F76F6F",type:"expense"},
+        {id:"utility",label:"Utilities",color:"#F5C542",type:"expense"},
+        {id:"tax",label:"Property Tax",color:"#A78BFA",type:"expense"},
+        {id:"insurance",label:"Insurance",color:"#5B9CF6",type:"expense"},
+        {id:"landscaping",label:"Landscaping",color:"#7BCFB8",type:"expense"},
+        {id:"snow",label:"Snow Removal",color:"#A8D5B5",type:"expense"},
+        {id:"other",label:"Other",color:"#6A8070",type:"expense"},
+      ];
+      const [entries,setEntries]=useState(()=>loadData("cg_ledger",[]));
+      const [showAdd,setShowAdd]=useState(false);
+      const [form,setForm]=useState({date:"",desc:"",amount:"",cat:"rent",unit:"",type:"income",note:""});
+      const [filter,setFilter]=useState("all");
+      const upd=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
+
+      const save=()=>{
+        if(!form.date||!form.desc||!form.amount)return;
+        const cat=CATS.find(c=>c.id===form.cat);
+        const entry={
+          id:Date.now(),date:form.date,desc:form.desc,
+          amount:parseFloat(form.amount),cat:form.cat,
+          catLabel:cat?.label||form.cat,color:cat?.color||T.muted,
+          unit:form.unit,type:cat?.type||form.type,note:form.note
+        };
+        const updated=[entry,...entries];
+        setEntries(updated);
+        saveData("cg_ledger",updated);
+        setForm({date:"",desc:"",amount:"",cat:"rent",unit:"",type:"income",note:""});
+        setShowAdd(false);
+      };
+
+      const del=id=>{
+        const updated=entries.filter(e=>e.id!==id);
+        setEntries(updated);
+        saveData("cg_ledger",updated);
+      };
+
+      const filtered=filter==="all"?entries:entries.filter(e=>e.type===filter);
+      const totalIncome=entries.filter(e=>e.type==="income").reduce((s,e)=>s+e.amount,0);
+      const totalExpense=entries.filter(e=>e.type==="expense").reduce((s,e)=>s+e.amount,0);
+      const net=totalIncome-totalExpense;
+
+      const inp={width:"100%",background:T.surface,border:"1px solid "+T.border,borderRadius:10,padding:"9px 12px",color:T.text,fontSize:13,outline:"none",boxSizing:"border-box"};
+      const sel={...inp,appearance:"none"};
+
+      return(
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}}>Ledger</div>
+            <button onClick={()=>setShowAdd(!showAdd)} style={{background:`linear-gradient(135deg,${T.green},#2aaa72)`,border:"none",borderRadius:10,padding:"8px 16px",color:"#071a0e",fontWeight:700,fontSize:13,cursor:"pointer"}}>+ Add Entry</button>
+          </div>
+
+          {/* Summary */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+            {[["Income","$"+totalIncome.toLocaleString(),T.green],["Expenses","$"+totalExpense.toLocaleString(),T.red],["Net","$"+Math.abs(net).toLocaleString()+(net<0?" (loss)":""),net>=0?T.green:T.red]].map(([l,v,c])=>(
+              <Card key={l} style={{padding:12,textAlign:"center"}}>
+                <div style={{fontSize:10,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:4}}>{l.toUpperCase()}</div>
+                <div style={{fontSize:16,fontWeight:900,color:c,fontFamily:T.serif}}>{v}</div>
+              </Card>
+            ))}
+          </div>
+
+          {/* Add entry form */}
+          {showAdd&&(
+            <Card style={{border:`1px solid ${T.green}44`}}>
+              <div style={{fontSize:11,color:T.green,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>NEW ENTRY</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+                <div><div style={{fontSize:11,color:T.muted,marginBottom:4}}>Date *</div><input type="date" value={form.date} onChange={upd("date")} style={inp}/></div>
+                <div><div style={{fontSize:11,color:T.muted,marginBottom:4}}>Category *</div>
+                  <select value={form.cat} onChange={e=>{const c=CATS.find(x=>x.id===e.target.value);setForm(f=>({...f,cat:e.target.value,type:c?.type||"expense"}));}} style={sel}>
+                    {CATS.map(c=><option key={c.id} value={c.id}>{c.label}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div style={{marginBottom:10}}><div style={{fontSize:11,color:T.muted,marginBottom:4}}>Description *</div><input value={form.desc} onChange={upd("desc")} placeholder="e.g. April rent Unit 101" style={inp}/></div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+                <div><div style={{fontSize:11,color:T.muted,marginBottom:4}}>Amount ($) *</div><input type="number" value={form.amount} onChange={upd("amount")} placeholder="0.00" style={inp}/></div>
+                <div><div style={{fontSize:11,color:T.muted,marginBottom:4}}>Unit</div>
+                  <select value={form.unit} onChange={upd("unit")} style={sel}>
+                    <option value="">All / Building</option>
+                    {["101","102","201","202","301","302","303"].map(u=><option key={u} value={u}>Unit {u}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div style={{marginBottom:14}}><div style={{fontSize:11,color:T.muted,marginBottom:4}}>Note</div><input value={form.note} onChange={upd("note")} placeholder="Optional note" style={inp}/></div>
+              <div style={{display:"flex",gap:8}}>
+                <button onClick={()=>setShowAdd(false)} style={{flex:1,padding:"10px",borderRadius:10,border:"1px solid "+T.border,background:"transparent",color:T.muted,fontSize:13,fontWeight:700,cursor:"pointer"}}>Cancel</button>
+                <button onClick={save} disabled={!form.date||!form.desc||!form.amount} style={{flex:2,padding:"10px",borderRadius:10,border:"none",background:!form.date||!form.desc||!form.amount?"#2A3F30":`linear-gradient(135deg,${T.green},#2aaa72)`,color:!form.date||!form.desc||!form.amount?T.muted:"#071a0e",fontSize:13,fontWeight:800,cursor:"pointer"}}>Save Entry</button>
+              </div>
+            </Card>
+          )}
+
+          {/* Filter */}
+          <div style={{display:"flex",gap:8}}>
+            {[["all","All"],["income","Income"],["expense","Expenses"]].map(([v,l])=>(
+              <button key={v} onClick={()=>setFilter(v)} style={{padding:"6px 14px",borderRadius:20,border:"1px solid "+(filter===v?T.green:T.border),background:filter===v?T.greenDim:"transparent",color:filter===v?T.green:T.muted,fontSize:12,fontWeight:700,cursor:"pointer"}}>{l}</button>
+            ))}
+            <span style={{marginLeft:"auto",fontSize:11,color:T.muted,alignSelf:"center"}}>{filtered.length} entries</span>
+          </div>
+
+          {/* Entries */}
+          {filtered.length===0?(
+            <Card><div style={{textAlign:"center",padding:"24px 0",color:T.muted,fontSize:13}}>No entries yet. Tap + Add Entry to get started.</div></Card>
+          ):(
+            <Card style={{padding:0}}>
+              {filtered.map((e,i)=>(
+                <div key={e.id} style={{display:"flex",alignItems:"center",gap:12,padding:"13px 16px",borderBottom:i<filtered.length-1?"1px solid "+T.border:"none"}}>
+                  <div style={{width:10,height:10,borderRadius:"50%",background:e.color,flexShrink:0}}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:13,fontWeight:600,color:T.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.desc}</div>
+                    <div style={{fontSize:11,color:T.muted}}>{e.date} · {e.catLabel}{e.unit?" · Unit "+e.unit:""}{e.note?" · "+e.note:""}</div>
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0}}>
+                    <div style={{fontSize:14,fontWeight:800,color:e.type==="income"?T.green:T.red,fontFamily:T.serif}}>{e.type==="income"?"+":"-"}${e.amount.toLocaleString()}</div>
+                  </div>
+                  <button onClick={()=>del(e.id)} style={{background:"none",border:"none",color:T.muted,cursor:"pointer",padding:"2px 6px",fontSize:16,flexShrink:0}}>×</button>
+                </div>
+              ))}
+            </Card>
+          )}
+        </div>
+      );
+    }
+
+    function ManagerDashboard({tenantProfiles,onClose}){
+      const [mTab,setMTab]=useState("overview");
+      const [announcement,setAnnouncement]=useState("");
+      const [announcements,setAnnouncements]=useState(()=>loadData("cg_announcements",[]));
+      // Real-time announcements sync
+      useEffect(()=>{
+        syncFromCloud("cg_announcements",[],(a)=>{if(a&&a.length>0)setAnnouncements(a);});
+        const unsub=listenCloud("cg_announcements",(a)=>{if(a)setAnnouncements(a);});
+        return()=>unsub();
+      },[]);
+      const [selUnit,setSelUnit]=useState(null);
+      const [leaseForm,setLeaseForm]=useState({name:"",startDate:"",endDate:""});
+      const [leaseFile,setLeaseFile]=useState(null);
+      const [leaseFileName,setLeaseFileName]=useState("");
+      const [leaseUploadSuccess,setLeaseUploadSuccess]=useState(null);
+      const fileInputRef=useRef();
+      const handleFileSelect=(e)=>{
+        const file=e.target.files[0];
+        if(!file)return;
+        const reader=new FileReader();
+        reader.onload=(ev)=>{
+          setLeaseFile(ev.target.result);
+          setLeaseFileName(file.name);
+          // Auto-fill lease name from filename
+          const cleanName=file.name.replace(/\.[^/.]+$/,"").replace(/_/g," ");
+          setLeaseForm(p=>({...p,name:p.name||cleanName}));
+        };
+        reader.readAsDataURL(file);
+      };
+      const totalExpected=UNITS.reduce((s,u)=>s+getRent(u),0);
+      const totalCollected=UNITS.reduce((s,u)=>s+loadData("cg_payments_"+u,[]).reduce((ps,p)=>ps+p.total,0),0);
+      const postAnn=()=>{
+        if(!announcement.trim())return;
+        const a={id:Date.now(),text:announcement,date:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),author:MANAGER.name};
+        const updated=[a,...announcements];
+        setAnnouncements(updated);
+        saveData("cg_announcements",updated);  // saves to Firebase too
+        setAnnouncement("");
+      };
+      const uploadLease=()=>{
+        if(!selUnit||!leaseForm.name)return;
+        const leaseData={
+          ...leaseForm,
+          uploadedDate:new Date().toLocaleDateString(),
+          fileName:leaseFileName||leaseForm.name,
+          fileData:leaseFile||null,
+          hasFile:!!leaseFile
+        };
+        saveData("cg_lease_"+selUnit,leaseData);
+        saveData("cg_lease_signed_"+selUnit,false);
+        setLeaseUploadSuccess(selUnit);
+        setLeaseForm({name:"",startDate:"",endDate:""});
+        setLeaseFile(null);setLeaseFileName("");
+        setTimeout(()=>setLeaseUploadSuccess(null),3000);
+      };
+      const mgrTabs=[
+        {id:"overview",label:"Overview"},{id:"units",label:"Units"},
+        {id:"ledger",label:"Ledger"},{id:"leases",label:"Leases"},
+        {id:"screening",label:"Screening"},{id:"forum",label:"Forum"},{id:"announce",label:"Post"}
+      ];
+      return(
+        <div style={{minHeight:"100vh",background:T.bg}}>
+          <div style={{position:"sticky",top:0,zIndex:10,background:T.bg+"f0",backdropFilter:"blur(14px)",borderBottom:`1px solid ${T.border}`,padding:"14px 18px",display:"flex",alignItems:"center",gap:12}}>
+            <CGMark size={32}/>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:T.serif,fontSize:17,fontWeight:900,color:T.text}}>Manager Dashboard</div>
+              <div style={{fontSize:10,color:T.muted}}>{MANAGER.company} · 33 Cottage St</div>
+            </div>
+            <Btn onClick={onClose} variant="ghost" small>Exit</Btn>
+          </div>
+          <div style={{display:"flex",gap:0,borderBottom:`1px solid ${T.border}`,overflowX:"auto",background:T.surface}}>
+            {mgrTabs.map(t=><button key={t.id} onClick={()=>setMTab(t.id)} style={{padding:"12px 16px",background:"none",border:"none",borderBottom:`2px solid ${mTab===t.id?T.green:"transparent"}`,color:mTab===t.id?T.green:T.muted,fontSize:13,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>{t.label}</button>)}
+          </div>
+          <div style={{maxWidth:480,margin:"0 auto",padding:"20px 16px 40px",display:"flex",flexDirection:"column",gap:16}}>
+            {mTab==="overview"&&<>
+              <div style={{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}}>Overview</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                {[["Total Units","7","33 Cottage St"],["Occupied",Object.keys(tenantProfiles).filter(u=>tenantProfiles[u]?.firstName).length,"with profiles"],["Monthly Expected","$"+totalExpected.toLocaleString(),"all units"],["Total Collected","$"+totalCollected.toLocaleString(),"all time"]].map(([l,v,s])=>(
+                  <Card key={l} style={{padding:16}}><div style={{fontSize:10,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:6}}>{l.toUpperCase()}</div><div style={{fontSize:20,fontWeight:900,color:T.text,fontFamily:T.serif}}>{v}</div><div style={{fontSize:12,color:T.muted}}>{s}</div></Card>
+                ))}
+              </div>
+              <Card>
+                <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>ALL UNITS AT A GLANCE</div>
+                {UNITS.map(u=>{
+                  const p=tenantProfiles[u];const has=p&&p.firstName;
+                  const payments=loadData("cg_payments_"+u,[]);const lease=loadData("cg_lease_"+u,null);const signed=loadData("cg_lease_signed_"+u,false);
+                  return(<div key={u} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 0",borderBottom:`1px solid ${T.border}`}}>
+                    <div style={{width:40,height:40,borderRadius:12,background:has?T.greenDim:T.faint,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:900,color:has?T.green:T.muted,fontFamily:T.serif,flexShrink:0}}>{u}</div>
+                    <div style={{flex:1}}><div style={{fontSize:13,fontWeight:700,color:T.text}}>{has?`${p.firstName} ${p.lastName}`:"Vacant"}</div><div style={{fontSize:11,color:T.muted}}>{getType(u)} · ${getRent(u).toLocaleString()}/mo</div></div>
+                    <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3}}>
+                      <span style={{background:payments.length>0?T.green+"22":T.faint,color:payments.length>0?T.green:T.muted,fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:20}}>{payments.length>0?"Paid":"No payments"}</span>
+                      {lease&&<span style={{background:signed?T.green+"22":T.gold+"22",color:signed?T.green:T.gold,fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:20}}>{signed?"Signed":"Unsigned"}</span>}
+                    </div>
+                  </div>);
+                })}
+              </Card>
+            </>}
+            {mTab==="units"&&<>
+              <div style={{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}}>Unit Details</div>
+              {UNITS.map(u=>{
+                const p=tenantProfiles[u];const has=p&&p.firstName;const payments=loadData("cg_payments_"+u,[]);
+                return(<Card key={u}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                    <div style={{fontFamily:T.serif,fontSize:18,fontWeight:900,color:T.text}}>Unit {u}</div>
+                    <span style={{background:has?T.green+"22":T.faint,color:has?T.green:T.muted,fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:20}}>{has?"Active":"Vacant"}</span>
+                  </div>
+                  <div style={{fontSize:12,color:T.green,marginBottom:10}}>{getType(u)} · ${getRent(u).toLocaleString()}/month</div>
+                  {has?(<>
+                    {[["Tenant",`${p.firstName} ${p.lastName}`],["Phone",p.phone||"—"],["Email",p.email||"—"],["Move-In",p.moveIn||"—"],["Lease End",p.leaseEnd||"—"],["Emergency",p.emergency||"—"],["Payments",`${payments.length} recorded · $${payments.reduce((s,px)=>s+px.total,0).toLocaleString()} total`]].map(([l,v])=>(
+                      <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:`1px solid ${T.border}`}}>
+                        <span style={{fontSize:12,color:T.muted}}>{l}</span>
+                        <span style={{fontSize:12,fontWeight:600,color:T.text,textAlign:"right",maxWidth:"60%"}}>{v}</span>
+                      </div>
+                    ))}
+                    {p.vehicles&&p.vehicles.length>0&&<>
+                      <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginTop:12,marginBottom:8}}>VEHICLES ({p.vehicles.length})</div>
+                      {p.vehicles.map((v,i)=>(
+                        <div key={i} style={{padding:"6px 0",borderBottom:`1px solid ${T.border}`}}>
+                          <div style={{fontSize:12,fontWeight:600,color:T.text}}>{v.year} {v.make} {v.model}</div>
+                          <div style={{fontSize:11,color:T.muted}}>Plate: {v.plate||"—"}</div>
+                        </div>
+                      ))}
+                    </>}
+                    {payments.length>0&&<>
+                      <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginTop:12,marginBottom:8}}>PAYMENT HISTORY</div>
+                      {payments.slice().reverse().map((px,i)=>(
+                        <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:`1px solid ${T.border}`}}>
+                          <div><div style={{fontSize:12,color:T.text}}>{px.desc}</div><div style={{fontSize:11,color:T.muted}}>{px.date}</div></div>
+                          <span style={{fontSize:12,fontWeight:700,color:T.green}}>${px.total.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </>}
+                  </>):<div style={{textAlign:"center",padding:"12px 0",color:T.muted,fontSize:13}}>No tenant profile yet</div>}
+                </Card>);
+              })}
+            </>}
+            {mTab==="ledger"&&<LedgerTab/>}
+            {mTab==="leases"&&<>
+              <div style={{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}}>Lease Management</div>
+              {leaseUploadSuccess&&<div style={{padding:"12px 16px",borderRadius:12,background:T.greenDim,border:`1px solid ${T.green}44`,display:"flex",alignItems:"center",gap:10}}>
+                <span style={{fontSize:18}}>✅</span>
+                <div style={{fontSize:13,color:T.green,fontWeight:700}}>Lease uploaded for Unit {leaseUploadSuccess}! Tenant can now review and sign.</div>
+              </div>}
+
+              {/* Hidden file input */}
+              <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.png,.jpg" style={{display:"none"}} onChange={handleFileSelect}/>
+
+              {/* Per-unit lease rows with paperclip */}
+              <Card>
+                <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>LEASE STATUS BY UNIT</div>
+                {UNITS.map(u=>{
+                  const lease=loadData("cg_lease_"+u,null);
+                  const signed=loadData("cg_lease_signed_"+u,false);
+                  const isSelected=selUnit===u;
+                  return(
+                    <div key={u}>
+                      <div style={{display:"flex",alignItems:"center",gap:12,padding:"12px 0",borderBottom:isSelected?`none`:`1px solid ${T.border}`}}>
+                        {/* Unit label */}
+                        <div style={{width:42,height:42,borderRadius:12,background:lease?T.greenDim:T.faint,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:900,color:lease?T.green:T.muted,fontFamily:T.serif,flexShrink:0}}>{u}</div>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:13,fontWeight:700,color:T.text}}>Unit {u} · {getType(u)}</div>
+                          <div style={{fontSize:11,color:T.muted}}>{lease?lease.fileName||lease.name:"No lease uploaded"}</div>
+                          {lease&&lease.startDate&&<div style={{fontSize:11,color:T.muted}}>{lease.startDate} → {lease.endDate||"—"}</div>}
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <span style={{background:!lease?T.faint:signed?T.green+"22":T.gold+"22",color:!lease?T.muted:signed?T.green:T.gold,fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:20}}>{!lease?"None":signed?"✓ Signed":"Unsigned"}</span>
+                          {/* Paperclip button */}
+                          <button
+                            onClick={()=>{setSelUnit(isSelected?null:u);setLeaseFile(null);setLeaseFileName("");setLeaseForm({name:"",startDate:lease?.startDate||"",endDate:lease?.endDate||""}); }}
+                            style={{width:36,height:36,borderRadius:10,border:`1px solid ${isSelected?T.green:T.border}`,background:isSelected?T.greenDim:T.surface,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0}}
+                            title="Upload lease">
+                            📎
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Expanded upload form for selected unit */}
+                      {isSelected&&<div style={{background:T.surface,borderRadius:12,padding:16,marginBottom:12,border:`1px solid ${T.green}33`}}>
+                        <div style={{fontSize:11,color:T.green,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>UPLOAD LEASE — UNIT {u}</div>
+                        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+
+                          {/* File upload area */}
+                          <div
+                            onClick={()=>fileInputRef.current&&fileInputRef.current.click()}
+                            style={{border:`2px dashed ${leaseFile?T.green:T.border}`,borderRadius:10,padding:"16px",textAlign:"center",cursor:"pointer",background:leaseFile?T.greenDim:"transparent",transition:"all 0.2s"}}>
+                            <div style={{fontSize:24,marginBottom:6}}>{leaseFile?"📄":"📎"}</div>
+                            <div style={{fontSize:13,fontWeight:700,color:leaseFile?T.green:T.muted}}>{leaseFileName||"Tap to select lease file"}</div>
+                            <div style={{fontSize:11,color:T.muted,marginTop:2}}>PDF, Word, or image accepted</div>
+                          </div>
+
+                          <div><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Lease Name</div><Input value={leaseForm.name} onChange={v=>setLeaseForm(p=>({...p,name:v}))} placeholder="e.g. Lease Agreement 2025-2026"/></div>
+                          <div style={{display:"flex",gap:10}}>
+                            <div style={{flex:1}}><div style={{fontSize:12,color:T.muted,marginBottom:4}}>Start Date</div><Input value={leaseForm.startDate} onChange={v=>setLeaseForm(p=>({...p,startDate:v}))} placeholder="MM/DD/YYYY"/></div>
+                            <div style={{flex:1}}><div style={{fontSize:12,color:T.muted,marginBottom:4}}>End Date</div><Input value={leaseForm.endDate} onChange={v=>setLeaseForm(p=>({...p,endDate:v}))} placeholder="MM/DD/YYYY"/></div>
+                          </div>
+                          <div style={{display:"flex",gap:8}}>
+                            <Btn onClick={()=>{setSelUnit(null);setLeaseFile(null);setLeaseFileName("");}} variant="ghost" small>Cancel</Btn>
+                            <Btn onClick={uploadLease} disabled={!leaseForm.name}>📎 Upload for Unit {u}</Btn>
+                          </div>
+                        </div>
+                      </div>}
+                    </div>
+                  );
+                })}
+              </Card>
+            </>}
+            {mTab==="screening"&&<>
+              <div style={{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}}>Tenant Screening</div>
+              <Card>
+                <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>NEW SCREENING REQUEST</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {[["Applicant Name","Full name"],["Email","email@example.com"],["Phone","(555) 000-0000"],["Unit Applying For","e.g. 101"],["Desired Move-In","MM/DD/YYYY"]].map(([l,ph])=>(
+                    <div key={l}><div style={{fontSize:12,color:T.muted,marginBottom:4}}>{l}</div><Input value="" onChange={()=>{}} placeholder={ph}/></div>
+                  ))}
+                  <Btn onClick={()=>alert("Screening request sent! Results in 24-48 hours.")}>Send Screening Request</Btn>
+                </div>
+              </Card>
+              <Card>
+                <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>WHAT IS INCLUDED</div>
+                {["Credit check & score","Criminal background check","Eviction history","Employment verification","Identity verification"].map(item=>(
+                  <div key={item} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:`1px solid ${T.border}`}}>
+                    <span style={{color:T.green,fontWeight:900}}>✓</span><span style={{fontSize:13,color:T.text}}>{item}</span>
+                  </div>
+                ))}
+                <div style={{marginTop:12,padding:10,borderRadius:10,background:T.greenDim}}>
+                  <div style={{fontSize:12,color:T.green,fontWeight:700}}>Cost: $45 per applicant</div>
+                  <div style={{fontSize:11,color:T.muted,marginTop:2}}>Charged to applicant · Results in 24-48 hours</div>
+                </div>
+              </Card>
+            </>}
+            {mTab==="forum"&&<Forum tenant={{firstName:MANAGER.name,lastName:""}} unit="MGR" isManager={true}/>}
+            {mTab==="announce"&&<>
+              <div style={{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}}>Post Announcement</div>
+              <Card>
+                <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:12}}>NEW ANNOUNCEMENT — ALL TENANTS</div>
+                <Input value={announcement} onChange={setAnnouncement} placeholder="e.g. Water shut off Tuesday 10am-2pm for repairs." multiline/>
+                <div style={{marginTop:12}}><Btn onClick={postAnn} disabled={!announcement.trim()}>Post to All Tenants</Btn></div>
+              </Card>
+              {announcements.length>0&&<Card>
+                <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:"0.1em",marginBottom:14}}>PAST ANNOUNCEMENTS</div>
+                {announcements.map(a=><div key={a.id} style={{padding:"12px 0",borderBottom:`1px solid ${T.border}`}}>
+                  <div style={{fontSize:13,color:T.text,lineHeight:1.6}}>{a.text}</div>
+                  <div style={{fontSize:11,color:T.muted,marginTop:4}}>Posted {a.date} by {MANAGER.name}</div>
+                </div>)}
+              </Card>}
+            </>}
+          </div>
+        </div>
+      );
+    }
+
+    // ── ROOT APP ──────────────────────────────────────────────────────────
+    function Landing({onTenant,onManager,onApplicant}){
+      return(
+        <div style={{minHeight:"100vh",background:"#0D1117",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 20px"}}>
+          <div style={{position:"fixed",width:400,height:400,borderRadius:"50%",background:"#3EC98E28",filter:"blur(100px)",top:"-10%",left:"50%",transform:"translateX(-50%)",pointerEvents:"none"}}/>
+          <div style={{position:"relative",zIndex:1,width:"100%",maxWidth:400}}>
+            <div style={{textAlign:"center",marginBottom:36}}>
+              <CGMark size={56}/>
+              <div style={{marginTop:12,marginBottom:4}}><CGWordmark size={32}/></div>
+              <div style={{fontSize:11,color:"#6A8070",letterSpacing:".2em",textTransform:"uppercase"}}>Connected Living</div>
+            </div>
+            <div style={{textAlign:"center",marginBottom:32}}>
+              <div style={{fontFamily:"'Fraunces',serif",fontSize:26,fontWeight:900,color:"#E8ECF4",marginBottom:4}}>33 Cottage St</div>
+              <div style={{fontSize:13,color:"#6A8070"}}>Rutland, VT 05701</div>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:14}}>
+              <button onClick={onManager} style={{width:"100%",padding:"20px 24px",borderRadius:16,border:"1px solid #F5C54244",background:"#F5C54212",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:16}}>
+                <div style={{width:48,height:48,borderRadius:14,background:"#F5C54222",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F5C542" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:16,fontWeight:800,color:"#F5C542",marginBottom:3}}>Landlord</div>
+                  <div style={{fontSize:12,color:"#6A8070"}}>Manager dashboard · Ledger · Work orders</div>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5C542" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+              <button onClick={onTenant} style={{width:"100%",padding:"20px 24px",borderRadius:16,border:"1px solid #3EC98E44",background:"#3EC98E12",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:16}}>
+                <div style={{width:48,height:48,borderRadius:14,background:"#3EC98E22",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3EC98E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:16,fontWeight:800,color:"#3EC98E",marginBottom:3}}>Tenant</div>
+                  <div style={{fontSize:12,color:"#6A8070"}}>Pay rent · Messages · Maintenance · Documents</div>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3EC98E" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+              <button onClick={onApplicant} style={{width:"100%",padding:"20px 24px",borderRadius:16,border:"1px solid #5B9CF644",background:"#5B9CF612",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:16}}>
+                <div style={{width:48,height:48,borderRadius:14,background:"#5B9CF622",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5B9CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:16,fontWeight:800,color:"#5B9CF6",marginBottom:3}}>New Applicant</div>
+                  <div style={{fontSize:12,color:"#6A8070"}}>Apply for a unit · Background check · Get started</div>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5B9CF6" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function TenantApplication({onBack}){
+      const [page,setPage]=React.useState(1);
+      const [submitted,setSubmitted]=React.useState(false);
+      const [sending,setSending]=React.useState(false);
+      const [form,setForm]=React.useState({
+        fullName:"",dob:"",phone:"",email:"",address:"",occupants:"",pets:"No",petDetails:"",
+        moveIn:"",unit:"",ssn:"",dlNumber:"",employmentStatus:"Employed",employer:"",
+        employerAddress:"",lengthEmployment:"",supervisorPhone:"",monthlyIncome:"",additionalIncome:"",
+        currentLandlord:"",currentRent:"",lengthAtAddress:"",reasonLeaving:"",prevLandlord:"",
+        ref1Name:"",ref1Rel:"",ref1Phone:"",ref2Name:"",ref2Rel:"",ref2Phone:"",
+        hasVehicle:"No",vehicleMake:"",vehicleYear:"",vehiclePlate:"",
+        authCredit:false,certifyAccurate:false,signature:"",signDate:""
+      });
+      const upd=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
+      const toggle=k=>()=>setForm(f=>({...f,[k]:!f[k]}));
+      const inp={width:"100%",background:"#111A14",border:"1px solid #1E3024",borderRadius:10,padding:"10px 14px",color:"#E8ECF4",fontSize:14,outline:"none",boxSizing:"border-box",fontFamily:"'DM Sans',sans-serif"};
+      const sel={...inp,appearance:"none"};
+      const row={marginBottom:12};
+      const lab={fontSize:12,color:"#6A8070",fontWeight:600,marginBottom:4,display:"block"};
+      const sec={fontSize:11,color:"#3EC98E",fontWeight:700,letterSpacing:".14em",marginBottom:14,marginTop:8,paddingBottom:6,borderBottom:"1px solid #1E3024"};
+
+      if(submitted)return(
+        <div style={{minHeight:"100vh",background:"#0D1117",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,textAlign:"center"}}>
+          <div style={{width:80,height:80,borderRadius:"50%",background:"#3EC98E15",border:"2px solid #3EC98E44",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px"}}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#3EC98E" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div style={{fontFamily:"'Fraunces',serif",fontSize:28,fontWeight:900,color:"#E8ECF4",marginBottom:8}}>Application Submitted!</div>
+          <div style={{fontSize:14,color:"#6A8070",marginBottom:32,lineHeight:1.7}}>Thank you, {form.fullName.split(" ")[0]||"Applicant"}.<br/>We will be in touch within 3-5 business days.</div>
+          <button onClick={onBack} style={{background:"linear-gradient(135deg,#3EC98E,#2aaa72)",border:"none",borderRadius:10,padding:"13px 32px",color:"#071a0e",fontWeight:800,fontSize:15,cursor:"pointer"}}>Back to Home</button>
+        </div>
+      );
+
+      return(
+        <div style={{minHeight:"100vh",background:"#0D1117"}}>
+          <div style={{position:"sticky",top:0,zIndex:10,background:"#0D1117f0",backdropFilter:"blur(14px)",borderBottom:"1px solid #1E3024",padding:"12px 18px"}}>
+            <div style={{maxWidth:480,margin:"0 auto",display:"flex",alignItems:"center",gap:12}}>
+              <button onClick={onBack} style={{background:"#2A3F30",border:"1px solid #1E3024",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:12,fontWeight:700,color:"#6A8070"}}>Back</button>
+              <div style={{flex:1}}><div style={{fontSize:14,fontWeight:800,color:"#E8ECF4"}}>Tenant Application</div><div style={{fontSize:10,color:"#6A8070"}}>33 Cottage St - Rutland, VT</div></div>
+              <div style={{fontSize:11,color:"#5B9CF6",fontWeight:700}}>Page {page}/2</div>
+            </div>
+            <div style={{maxWidth:480,margin:"6px auto 0",height:3,background:"#1E3024",borderRadius:2}}>
+              <div style={{height:"100%",width:page===1?"50%":"100%",background:"linear-gradient(90deg,#5B9CF6,#3EC98E)",borderRadius:2,transition:"width .4s"}}/>
+            </div>
+          </div>
+          <div style={{maxWidth:480,margin:"0 auto",padding:"20px 16px 80px"}}>
+            {page===1&&(
+              <div>
+                <div style={sec}>PERSONAL INFORMATION</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  <div style={row}><label style={lab}>Full Name *</label><input autoComplete="name" value={form.fullName} onChange={upd("fullName")} placeholder="First Last" style={inp}/></div>
+                  <div style={row}><label style={lab}>Date of Birth *</label><input type="date" value={form.dob} onChange={upd("dob")} style={inp}/></div>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  <div style={row}><label style={lab}>Phone *</label><input type="tel" autoComplete="tel" value={form.phone} onChange={upd("phone")} placeholder="(555) 000-0000" style={inp}/></div>
+                  <div style={row}><label style={lab}>Email *</label><input type="email" autoComplete="email" value={form.email} onChange={upd("email")} placeholder="you@email.com" style={inp}/></div>
+                </div>
+                <div style={row}><label style={lab}>Current Address *</label><input autoComplete="street-address" value={form.address} onChange={upd("address")} placeholder="Street, City, State, ZIP" style={inp}/></div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  <div style={row}><label style={lab}>Occupants *</label><input type="number" value={form.occupants} onChange={upd("occupants")} placeholder="2" style={inp}/></div>
+                  <div style={row}><label style={lab}>Pets?</label><select value={form.pets} onChange={upd("pets")} style={sel}><option>No</option><option>Yes</option></select></div>
+                </div>
+                {form.pets==="Yes"&&<div style={row}><label style={lab}>Pet Details</label><input value={form.petDetails} onChange={upd("petDetails")} placeholder="Type, breed, weight" style={inp}/></div>}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  <div style={row}><label style={lab}>Move-In Date *</label><input type="date" value={form.moveIn} onChange={upd("moveIn")} style={inp}/></div>
+                  <div style={row}><label style={lab}>Unit Applying For</label><select value={form.unit} onChange={upd("unit")} style={sel}><option>-</option><option>101</option><option>102</option><option>201</option><option>202</option><option>301</option><option>302</option><option>303</option></select></div>
+                </div>
+                <div style={sec}>IDENTIFICATION</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  <div style={row}><label style={lab}>SSN *</label><input type="password" value={form.ssn} onChange={upd("ssn")} placeholder="XXX-XX-XXXX" style={inp}/></div>
+                  <div style={row}><label style={lab}>Drivers License</label><input value={form.dlNumber} onChange={upd("dlNumber")} placeholder="License #" style={inp}/></div>
+                </div>
+                <div style={sec}>EMPLOYMENT</div>
+                <div style={row}><label style={lab}>Status *</label><select value={form.employmentStatus} onChange={upd("employmentStatus")} style={sel}><option>Employed</option><option>Self-Employed</option><option>Unemployed</option><option>Other</option></select></div>
+                {(form.employmentStatus==="Employed"||form.employmentStatus==="Self-Employed")&&<div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                    <div style={row}><label style={lab}>Employer</label><input value={form.employer} onChange={upd("employer")} placeholder="Company" style={inp}/></div>
+                    <div style={row}><label style={lab}>Length</label><input value={form.lengthEmployment} onChange={upd("lengthEmployment")} placeholder="2 years" style={inp}/></div>
+                  </div>
+                  <div style={row}><label style={lab}>Employer Address</label><input value={form.employerAddress} onChange={upd("employerAddress")} placeholder="Street, City, State" style={inp}/></div>
+                  <div style={row}><label style={lab}>Supervisor Name and Phone</label><input value={form.supervisorPhone} onChange={upd("supervisorPhone")} placeholder="Name - Phone" style={inp}/></div>
+                </div>}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  <div style={row}><label style={lab}>Monthly Income *</label><input type="number" value={form.monthlyIncome} onChange={upd("monthlyIncome")} placeholder="0" style={inp}/></div>
+                  <div style={row}><label style={lab}>Other Income</label><input value={form.additionalIncome} onChange={upd("additionalIncome")} placeholder="Freelance etc" style={inp}/></div>
+                </div>
+                <div style={sec}>RENTAL HISTORY</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  <div style={row}><label style={lab}>Current Landlord and Phone *</label><input value={form.currentLandlord} onChange={upd("currentLandlord")} placeholder="Name - Phone" style={inp}/></div>
+                  <div style={row}><label style={lab}>Current Rent</label><input type="number" value={form.currentRent} onChange={upd("currentRent")} placeholder="0" style={inp}/></div>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  <div style={row}><label style={lab}>Time at Address</label><input value={form.lengthAtAddress} onChange={upd("lengthAtAddress")} placeholder="3 years" style={inp}/></div>
+                  <div style={row}><label style={lab}>Reason for Leaving *</label><input value={form.reasonLeaving} onChange={upd("reasonLeaving")} placeholder="Relocating" style={inp}/></div>
+                </div>
+                <div style={row}><label style={lab}>Previous Landlord</label><input value={form.prevLandlord} onChange={upd("prevLandlord")} placeholder="Name - Phone" style={inp}/></div>
+                <button onClick={()=>{setPage(2);window.scrollTo(0,0);}} style={{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#3EC98E,#2aaa72)",color:"#071a0e",fontSize:15,fontWeight:800,cursor:"pointer",marginTop:8}}>Continue to Page 2</button>
+              </div>
+            )}
+            {page===2&&(
+              <div>
+                <div style={sec}>REFERENCES</div>
+                <div style={{background:"#162019",border:"1px solid #1E3024",borderRadius:14,padding:14,marginBottom:12}}>
+                  <div style={{fontSize:12,color:"#5B9CF6",fontWeight:700,marginBottom:10}}>Reference 1</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                    <div style={row}><label style={lab}>Name *</label><input value={form.ref1Name} onChange={upd("ref1Name")} placeholder="Full name" style={inp}/></div>
+                    <div style={row}><label style={lab}>Relationship *</label><input value={form.ref1Rel} onChange={upd("ref1Rel")} placeholder="Friend" style={inp}/></div>
+                  </div>
+                  <div style={row}><label style={lab}>Phone *</label><input type="tel" value={form.ref1Phone} onChange={upd("ref1Phone")} placeholder="(555) 000-0000" style={inp}/></div>
+                </div>
+                <div style={{background:"#162019",border:"1px solid #1E3024",borderRadius:14,padding:14,marginBottom:12}}>
+                  <div style={{fontSize:12,color:"#5B9CF6",fontWeight:700,marginBottom:10}}>Reference 2</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                    <div style={row}><label style={lab}>Name *</label><input value={form.ref2Name} onChange={upd("ref2Name")} placeholder="Full name" style={inp}/></div>
+                    <div style={row}><label style={lab}>Relationship *</label><input value={form.ref2Rel} onChange={upd("ref2Rel")} placeholder="Colleague" style={inp}/></div>
+                  </div>
+                  <div style={row}><label style={lab}>Phone *</label><input type="tel" value={form.ref2Phone} onChange={upd("ref2Phone")} placeholder="(555) 000-0000" style={inp}/></div>
+                </div>
+                <div style={sec}>VEHICLE</div>
+                <div style={row}><label style={lab}>Do You Have a Vehicle?</label><select value={form.hasVehicle} onChange={upd("hasVehicle")} style={sel}><option>No</option><option>Yes</option></select></div>
+                {form.hasVehicle==="Yes"&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+                  <div style={row}><label style={lab}>Make and Model</label><input value={form.vehicleMake} onChange={upd("vehicleMake")} placeholder="Toyota Camry" style={inp}/></div>
+                  <div style={row}><label style={lab}>Year</label><input type="number" value={form.vehicleYear} onChange={upd("vehicleYear")} placeholder="2020" style={inp}/></div>
+                  <div style={row}><label style={lab}>Plate</label><input value={form.vehiclePlate} onChange={upd("vehiclePlate")} placeholder="ABC-123" style={inp}/></div>
+                </div>}
+                <div style={sec}>AUTHORIZATION</div>
+                <div style={{background:"#162019",border:"1px solid #1E3024",borderRadius:14,padding:14,marginBottom:14}}>
+                  <div style={{fontSize:13,color:"#6A8070",lineHeight:1.7,marginBottom:12}}>By submitting I authorize verification of all information including a credit and background check. I certify all information is true and accurate.</div>
+                  <div onClick={toggle("authCredit")} style={{display:"flex",alignItems:"flex-start",gap:12,cursor:"pointer",marginBottom:10}}>
+                    <div style={{width:22,height:22,borderRadius:6,border:form.authCredit?"2px solid #3EC98E":"2px solid #1E3024",background:form.authCredit?"#3EC98E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
+                      {form.authCredit&&<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#071a0e" strokeWidth="3" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>}
+                    </div>
+                    <div style={{fontSize:13,color:"#E8ECF4",lineHeight:1.5}}>I authorize a credit and background check *</div>
+                  </div>
+                  <div onClick={toggle("certifyAccurate")} style={{display:"flex",alignItems:"flex-start",gap:12,cursor:"pointer"}}>
+                    <div style={{width:22,height:22,borderRadius:6,border:form.certifyAccurate?"2px solid #3EC98E":"2px solid #1E3024",background:form.certifyAccurate?"#3EC98E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
+                      {form.certifyAccurate&&<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#071a0e" strokeWidth="3" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>}
+                    </div>
+                    <div style={{fontSize:13,color:"#E8ECF4",lineHeight:1.5}}>I certify all information is true and accurate *</div>
+                  </div>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+                  <div style={row}><label style={lab}>Signature (Full Legal Name) *</label><input autoComplete="name" value={form.signature} onChange={upd("signature")} placeholder="Full legal name" style={inp}/></div>
+                  <div style={row}><label style={lab}>Date *</label><input type="date" value={form.signDate} onChange={upd("signDate")} style={inp}/></div>
+                </div>
+                <div style={{display:"flex",gap:10}}>
+                  <button onClick={()=>{setPage(1);window.scrollTo(0,0);}} style={{flex:1,padding:"13px",borderRadius:12,border:"1px solid #1E3024",background:"transparent",color:"#6A8070",fontSize:14,fontWeight:700,cursor:"pointer"}}>Back</button>
+                  <button disabled={sending} onClick={async()=>{
+                    if(!form.authCredit||!form.certifyAccurate||!form.signature||!form.fullName||!form.email){
+                      alert("Please complete all required fields and check both boxes.");return;
+                    }
+                    setSending(true);
+                    try{
+                      await emailjs.send("service_p9ljggf","template_m747tql",{
+                        to_email:"mszloch809@gmail.com",
+                        applicant_name:form.fullName,applicant_email:form.email,applicant_phone:form.phone,
+                        dob:form.dob,current_address:form.address,occupants:form.occupants,
+                        pets:form.pets==="Yes"?"Yes - "+form.petDetails:"No",
+                        move_in:form.moveIn,unit:form.unit||"Not specified",
+                        ssn:"Provided (hidden)",dl_number:form.dlNumber||"-",
+                        employment_status:form.employmentStatus,employer:form.employer||"-",
+                        employer_address:form.employerAddress||"-",length_employment:form.lengthEmployment||"-",
+                        supervisor_phone:form.supervisorPhone||"-",
+                        monthly_income:form.monthlyIncome?"$"+parseFloat(form.monthlyIncome).toLocaleString():"-",
+                        additional_income:form.additionalIncome||"-",
+                        current_landlord:form.currentLandlord,
+                        current_rent:form.currentRent?"$"+parseFloat(form.currentRent).toLocaleString():"-",
+                        length_at_address:form.lengthAtAddress||"-",reason_leaving:form.reasonLeaving,
+                        prev_landlord:form.prevLandlord||"-",
+                        ref1:form.ref1Name+" - "+form.ref1Rel+" - "+form.ref1Phone,
+                        ref2:form.ref2Name+" - "+form.ref2Rel+" - "+form.ref2Phone,
+                        vehicle:form.hasVehicle==="Yes"?form.vehicleYear+" "+form.vehicleMake+" - "+form.vehiclePlate:"None",
+                        signature:form.signature,sign_date:form.signDate,
+                        submitted_at:new Date().toLocaleString()
+                      });
+                      setSubmitted(true);window.scrollTo(0,0);
+                    }catch(err){
+                      alert("Submission failed. Please try again.");console.error(err);
+                    }finally{setSending(false);}
+                  }} style={{flex:2,padding:"13px",borderRadius:12,border:"none",background:sending?"#2A3F30":"linear-gradient(135deg,#3EC98E,#2aaa72)",color:sending?"#6A8070":"#071a0e",fontSize:14,fontWeight:800,cursor:sending?"not-allowed":"pointer"}}>
+                    {sending?"Submitting...":"Submit Application"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function App(){
+      const [splashDone,setSplashDone]=useState(false);
+      const [selectedUnit,setSelectedUnit]=useState(null);
+      const [showSetup,setShowSetup]=useState(false);
+      const [tenantProfiles,setTenantProfiles]=useState(()=>{
+        const combined=loadData("cg_profiles",{});
+        ["101","102","201","202","301","302","303"].forEach(u=>{
+          if(!combined[u]){
+            const individual=loadData("cg_profile_"+u,null);
+            if(individual)combined[u]=individual;
+          }
+        });
+        return combined;
+      });
+      const [tab,setTab]=useState("home");
+      const [pinVerified,setPinVerified]=useState(false);
+      const [showMgrLogin,setShowMgrLogin]=useState(false);
+      const [showMgr,setShowMgr]=useState(false);
+      const [showApplicant,setShowApplicant]=useState(false);
+      const [showUnitSelect,setShowUnitSelect]=useState(false);
+
+      useEffect(()=>{saveData("cg_unit",selectedUnit);},[selectedUnit]);
+      useEffect(()=>{saveData("cg_profiles",tenantProfiles);},[tenantProfiles]);
+      useEffect(()=>{saveData("cg_tab",tab);},[tab]);
+
+      // ── Firebase status ────────────────────────────────────────────────
+      const [fbStatus,setFbStatus]=useState("checking");
+      useEffect(()=>{
+        if(!window.db){setFbStatus("offline");return;}
+        let attempts=0;
+        const check=()=>{
+          attempts++;
+          if(window.__fb_ready===true){setFbStatus("online");return;}
+          if(attempts>8){setFbStatus("offline");return;}
+          setTimeout(check,600);
+        };
+        setTimeout(check,800);
+      },[]);
+
+      // ── Real-time Firebase listeners ──────────────────────────────────
+      useEffect(()=>{
+        // Listen for real-time profile changes — when any tenant updates their info
+        // we immediately see it without refreshing
+        const unsubProfiles = listenCloud("cg_profiles",(cloudProfiles)=>{
+          if(cloudProfiles&&Object.keys(cloudProfiles).length>0){
+            setTenantProfiles(prev=>{
+              const merged={...prev};
+              Object.keys(cloudProfiles).forEach(u=>{
+                if(cloudProfiles[u]&&cloudProfiles[u].firstName){
+                  merged[u]=cloudProfiles[u];
+                  // Also update localStorage cache per unit
+                  try{localStorage.setItem("cg_profile_"+u,JSON.stringify(cloudProfiles[u]));}catch(e){}
+                }
+              });
+              return merged;
+            });
+          }
+        });
+        return()=>unsubProfiles();
+      },[]);
+
+      const handleUnitSelect=(unit)=>{setSelectedUnit(unit);setPinVerified(false);setShowUnitSelect(false);};
+      const handlePinSuccess=()=>{
+        setPinVerified(true);
+        saveData("cg_pin_verified_"+selectedUnit, true);
+        if(!tenantProfiles[selectedUnit]?.firstName)setShowSetup(true);
+      };
+      const handleProfileSave=(profile)=>{
+        const u={...tenantProfiles,[selectedUnit]:profile};
+        setTenantProfiles(u);
+        // Save to localStorage
+        saveData("cg_profiles",u);
+        saveData("cg_profile_"+selectedUnit,profile);
+        if(window.db){
+          window.db._write("cg_profile_"+selectedUnit,profile);
+          window.db._write("cg_profiles",u);
+        }
+        setShowSetup(false);
+        setTab("home");
+      };
+      const handleBack=()=>{if(showSetup){setShowSetup(false);if(!tenantProfiles[selectedUnit]?.firstName){setPinVerified(false);setSelectedUnit(null);}}else{setPinVerified(false);setSelectedUnit(null);}};
+      const handleSwitchUnit=()=>{setSelectedUnit(null);setPinVerified(false);setShowSetup(false);setTab("home");setShowUnitSelect(false);};
+      const handleLogoTap=()=>{const n=logoTaps+1;setLogoTaps(n);};
+
+      const tenant=tenantProfiles[selectedUnit]||{};
+      const isInApp=selectedUnit&&pinVerified&&!showSetup&&tenant.firstName;
+
+      if(showMgr)return <ManagerDashboard tenantProfiles={tenantProfiles} onClose={()=>setShowMgr(false)}/>;
+      if(showMgrLogin)return <ManagerLogin onSuccess={()=>{setShowMgrLogin(false);setShowMgr(true);}} onBack={()=>setShowMgrLogin(false)}/>;
+      if(showApplicant)return <TenantApplication onBack={()=>setShowApplicant(false)}/>;
+      if(showUnitSelect&&!selectedUnit)return <UnitSelect tenantProfiles={tenantProfiles} onSelect={handleUnitSelect} onBack={()=>setShowUnitSelect(false)}/>;
+      if(selectedUnit&&!pinVerified)return <PinScreen unit={selectedUnit} onSuccess={handlePinSuccess} onBack={()=>{setSelectedUnit(null);setShowUnitSelect(true);}}/>;
+      if(selectedUnit&&pinVerified&&showSetup)return <TenantSetup unit={selectedUnit} existing={tenantProfiles[selectedUnit]} onSave={handleProfileSave} onBack={handleBack}/>;
+
+      const tabs=[
+        {id:"home",label:"Home",icon:"M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10"},
+        {id:"pay",label:"Pay",icon:"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"},
+        {id:"messages",label:"Messages",icon:"M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"},
+        {id:"forum",label:"Forum",icon:"M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 7a4 4 0 100 8 4 4 0 000-8z M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75"},
+        {id:"lease",label:"Lease",icon:"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8"},
+      ];
+
+      const screens={
+        home:<Dashboard setTab={setTab} tenant={tenant} unit={selectedUnit}/>,
+        pay:<PayRent unit={selectedUnit} tenant={tenant}/>,
+        messages:<Messages tenant={tenant} unit={selectedUnit}/>,
+        forum:<Forum tenant={tenant} unit={selectedUnit}/>,
+        lease:<LeaseScreen unit={selectedUnit} tenant={tenant}/>,
+      };
+
+      return(
+        <div style={{minHeight:"100vh",background:T.bg,color:T.text}}>
+          {!splashDone&&<Splash onDone={()=>setSplashDone(true)}/>}
+          {splashDone&&!isInApp&&(
+            <Landing
+              onTenant={()=>setShowUnitSelect(true)}
+              onManager={()=>setShowMgrLogin(true)}
+              onApplicant={()=>setShowApplicant(true)}
+            />
+          )}
+          {splashDone&&isInApp&&(
+            <>
+              <div style={{position:"sticky",top:0,zIndex:10,background:T.bg+"f0",backdropFilter:"blur(14px)",borderBottom:`1px solid ${T.border}`,padding:"12px 18px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{display:"flex",alignItems:"center",gap:10}}>
+                  <CGMark size={32}/>
+                  <div>
+                    <CGWordmark size={17}/>
+                    <div style={{fontSize:10,color:T.muted,letterSpacing:"0.06em"}}>
+                      33 Cottage St · Unit {selectedUnit}
+                      <span style={{marginLeft:6,color:fbStatus==="online"?T.green:T.red}}>
+                        {fbStatus==="online"?"● Live":"○ Offline"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <button onClick={()=>setShowSetup(true)} style={{background:"none",border:"none",cursor:"pointer",padding:0}}>
+                    <div style={{width:38,height:38,borderRadius:"50%",background:`linear-gradient(135deg,${T.green},#2aaa72)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:"#071a0e",fontFamily:T.serif}}>
+                      {initials(`${tenant.firstName} ${tenant.lastName}`)}
+                    </div>
+                  </button>
+                  <button onClick={handleSwitchUnit} style={{background:T.faint,border:`1px solid ${T.border}`,borderRadius:8,padding:"5px 9px",cursor:"pointer",fontSize:10,fontWeight:700,color:T.muted}}>Switch</button>
+                </div>
+              </div>
+              <div style={{maxWidth:480,margin:"0 auto",padding:"20px 16px 90px"}}>{screens[tab]}</div>
+              <div style={{position:"fixed",bottom:0,left:0,right:0,background:T.surface+"f8",backdropFilter:"blur(18px)",borderTop:`1px solid ${T.border}`,display:"flex",justifyContent:"space-around",padding:"10px 0 max(10px,env(safe-area-inset-bottom))",zIndex:20}}>
+                {tabs.map(t=>{
+                  const active=tab===t.id;
+                  return(
+                    <button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,background:"none",border:"none",cursor:"pointer",padding:"4px 12px",color:active?T.green:T.muted,transition:"color 0.18s",position:"relative"}}>
+                      {active&&<div style={{position:"absolute",top:-10,left:"50%",transform:"translateX(-50%)",width:32,height:2,borderRadius:2,background:T.green}}/>}
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={t.icon}/></svg>
+                      <span style={{fontSize:10,fontWeight:700}}>{t.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+  </script>
 </body>
 </html>
