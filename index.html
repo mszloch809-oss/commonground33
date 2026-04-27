@@ -65,38 +65,15 @@ const Btn=({children,onClick,variant="primary",small,icon,disabled,full})=>{cons
 
 const CGMark=({size=36})=>React.createElement("svg",{width:size,height:size,viewBox:"0 0 80 80",fill:"none"},React.createElement("rect",{x:"10",y:"56",width:"60",height:"4",rx:"2",fill:T.green,opacity:".35"}),React.createElement("rect",{x:"12",y:"28",width:"18",height:"28",rx:"3",stroke:T.green,strokeWidth:"1.8",fill:"none",opacity:".55"}),React.createElement("rect",{x:"31",y:"14",width:"18",height:"42",rx:"3",fill:T.green,opacity:".15"}),React.createElement("rect",{x:"31",y:"14",width:"18",height:"42",rx:"3",stroke:T.green,strokeWidth:"2.2",fill:"none"}),React.createElement("rect",{x:"50",y:"34",width:"18",height:"22",rx:"3",stroke:T.green,strokeWidth:"1.8",fill:"none",opacity:".55"}),React.createElement("rect",{x:"37",y:"44",width:"6",height:"12",rx:"1.5",fill:T.green,opacity:".9"}),React.createElement("circle",{cx:"21",cy:"27",r:"2.5",fill:T.green,opacity:".8"}),React.createElement("circle",{cx:"40",cy:"13",r:"2.8",fill:T.green}),React.createElement("circle",{cx:"59",cy:"33",r:"2.5",fill:T.green,opacity:".8"}),React.createElement("path",{d:"M21 27 Q40 10 59 33",stroke:T.green,strokeWidth:"1.5",fill:"none",strokeDasharray:"3 3",opacity:".5"}));
 const CGWordmark=({size=20})=>React.createElement("span",{style:{fontFamily:T.serif,fontSize:size,fontWeight:900,letterSpacing:"-.5px",lineHeight:1}},React.createElement("span",{style:{color:T.text}},"Common"),React.createElement("span",{style:{color:T.green}},"Ground"));
-const DemoBanner=()=>React.createElement("div",{style:{background:`linear-gradient(90deg,${T.gold}18,${T.gold}08)`,border:`1px solid ${T.gold}44`,borderRadius:10,padding:"8px 14px",display:"flex",alignItems:"center",gap:8,fontSize:12,color:T.gold,fontWeight:600,marginBottom:4}},React.createElement("span",null,"\u2726"),React.createElement("span",null,"DEMO \u2014 Live preview for prospective property managers"));
+const DemoBanner=()=>null;
 
 const PROPERTIES={cottage:{id:"cottage",name:"33 Cottage St",city:"Rutland, VT 05701",type:"Residential \u00B7 7 Units",color:T.green,emoji:"\uD83C\uDFE0"},main:{id:"main",name:"24 Marlborough St",city:"Rutland, VT 05701",type:"Mixed-Use \u00B7 4 Units",color:T.blue,emoji:"\uD83C\uDFE2"},elm:{id:"elm",name:"76 Forest St",city:"Stoneham, MA",type:"Residential \u00B7 3 Units",color:T.purple,emoji:"\uD83C\uDFE1"}};
 const PROPERTY_UNIT_CONFIG={cottage:{"101":{type:"3 Bedroom",rent:1590,floor:1},"102":{type:"3 Bedroom",rent:1590,floor:1},"201":{type:"3 Bedroom",rent:1590,floor:2},"202":{type:"3 Bedroom",rent:1590,floor:2},"301":{type:"1 Bedroom",rent:1100,floor:3},"302":{type:"1 Bedroom",rent:1100,floor:3},"303":{type:"1 Bedroom",rent:1100,floor:3}},main:{"1A":{type:"2 Bedroom",rent:1450,floor:1},"1B":{type:"Studio",rent:875,floor:1},"2A":{type:"2 Bedroom",rent:1450,floor:2},"2B":{type:"1 Bedroom",rent:1100,floor:2}},elm:{"1":{type:"3 Bedroom",rent:1800,floor:1},"2":{type:"2 Bedroom",rent:1400,floor:2},"3":{type:"2 Bedroom",rent:1400,floor:3}}};
 const PROPERTY_PROFILES={cottage:{"101":{firstName:"Kassie",lastName:"Bashaw",phone:"9784172831",email:"kassieb109@icloud.com",moveIn:"05/10/2025",leaseEnd:""},"102":{firstName:"Krystal",lastName:"Gardner",phone:"8028550496",email:"krystalspaulding69@gmail.com",moveIn:"06/06/2025",leaseEnd:"05/31/2026"},"201":{firstName:"Shelby",lastName:"White",phone:"",email:"",moveIn:"",leaseEnd:""},"202":{firstName:"Mike",lastName:"Szloch",phone:"7817062034",email:"mszloch809@gmail.com",moveIn:"04/01/2025",leaseEnd:"04/01/2026"},"301":{firstName:"Scott",lastName:"Mockler",phone:"",email:"",moveIn:"",leaseEnd:""},"302":{firstName:"Abigail",lastName:"Blanchard",phone:"8024877162",email:"Crabigail12345@gmail.com",moveIn:"05/12/2025",leaseEnd:""},"303":{firstName:"Brandon",lastName:"Woodward",phone:"",email:"",moveIn:"",leaseEnd:""}},main:{"1A":{firstName:"Marcus",lastName:"Thompson",phone:"(555) 020-1001",email:"marcus@email.com",moveIn:"Feb 1, 2024",leaseEnd:"Jan 31, 2026"},"2A":{firstName:"Priya",lastName:"Nair",phone:"(555) 020-2001",email:"priya@email.com",moveIn:"May 1, 2024",leaseEnd:"Apr 30, 2026"},"2B":{firstName:"Devon",lastName:"Walsh",phone:"(555) 020-2002",email:"devon@email.com",moveIn:"Aug 1, 2023",leaseEnd:"Jul 31, 2025"}},elm:{"1":{firstName:"Tatiana",lastName:"Brooks",phone:"(555) 030-0001",email:"tatiana@email.com",moveIn:"Oct 1, 2023",leaseEnd:"Sep 30, 2025"},"2":{firstName:"Omar",lastName:"Hassan",phone:"(555) 030-0002",email:"omar@email.com",moveIn:"Jan 1, 2025",leaseEnd:"Dec 31, 2025"}}};
 const PROPERTY_RENT_STATUS={cottage:{"101":"paid","102":"paid","201":"overdue","202":"paid","301":"due","302":"vacant","303":"vacant"},main:{"1A":"paid","1B":"vacant","2A":"paid","2B":"overdue"},elm:{"1":"paid","2":"due","3":"vacant"}};
-const PROPERTY_DEMO_PAYMENTS={cottage:[{date:"Apr 1, 2025",desc:"Rent \u2013 April 2025",total:1590,method:"ZRent ACH"},{date:"Mar 1, 2025",desc:"Rent \u2013 March 2025",total:1590,method:"ACH"},{date:"Feb 1, 2025",desc:"Rent \u2013 February 2025",total:1590,method:"ACH"}],main:[{date:"Apr 1, 2025",desc:"Rent \u2013 April 2025",total:1450,method:"ZRent ACH"},{date:"Mar 1, 2025",desc:"Rent \u2013 March 2025",total:1450,method:"ACH"}],elm:[{date:"Apr 1, 2025",desc:"Rent \u2013 April 2025",total:1800,method:"ZRent ACH"},{date:"Mar 1, 2025",desc:"Rent \u2013 March 2025",total:1800,method:"ACH"}]};
+const PROPERTY_DEMO_PAYMENTS={cottage:[{date:"Apr 19, 2026",desc:"Rent \u2013 April 2026",total:1590,method:"Stripe",unit:"102"},{date:"Apr 2026",desc:"Rent \u2013 April 2026",total:5,method:"Stripe",unit:"202"}],main:[],elm:[]};
 const PROPERTY_DEMO_FORUM={cottage:[{id:1,author:"Alex M.",unit:"101",time:"2h ago",title:"Laundry room schedule \uD83E\uDDFA",body:"Hey neighbors! Can we coordinate laundry times? I suggest floors 1 & 2 mornings, floor 3 evenings.",replies:[{author:"Sam R.",unit:"201",text:"Works for me!",time:"1h ago"}],likes:6},{id:2,author:"Jordan L.",unit:"102",time:"1d ago",title:"Package room code updated",body:"The package room code was updated. Check with the property manager for the new one.",replies:[],likes:3}],main:[{id:1,author:"Marcus T.",unit:"1A",time:"3h ago",title:"Parking space swap",body:"Has spot #3, looking to trade for spot #6. Anyone interested?",replies:[{author:"Priya N.",unit:"2A",text:"I have spot #6! Let's talk.",time:"2h ago"}],likes:4}],elm:[{id:1,author:"Tatiana B.",unit:"1",time:"1h ago",title:"Trash pickup reminder \uD83D\uDDD1",body:"Trash goes out Tuesday nights, not Wednesday!",replies:[{author:"Omar H.",unit:"2",text:"Thanks for the reminder!",time:"30m ago"}],likes:3}]};
-const INITIAL_WORK_ORDERS=[
-  // 33 COTTAGE ST — Open
-  {id:1,propId:"cottage",unit:"101",title:"Kitchen faucet dripping",cat:"plumbing",priority:"medium",status:"in_progress",desc:"Tenant reports kitchen faucet dripping for 3 days. Cabinet under sink is wet.",date:"Apr 12, 2025",assignee:"Doherty Plumbing",notes:"Joe confirmed ETA 2pm. Parts ordered.",eta:"2pm",vendor:"Joe Doherty",vendorPhone:"(617) 894-0445"},
-  {id:2,propId:"cottage",unit:"201",title:"Paint vestibule & hallway",cat:"general",priority:"low",status:"open",desc:"Paint peeling in 2nd floor vestibule and hallway. Needs full repaint.",date:"Apr 15, 2025",assignee:"ProPaint Solutions",notes:"Awaiting vendor confirmation",eta:null,vendor:"ProPaint Solutions",vendorPhone:"(508) 555-0707"},
-  {id:3,propId:"cottage",unit:"202",title:"Repair broken bedroom door lock",cat:"general",priority:"high",status:"in_progress",desc:"Bedroom door lock is broken — tenant cannot secure room. Safety concern.",date:"Apr 14, 2025",assignee:"Building Maintenance",notes:"Mike S. scheduled Apr 17 between 10am-12pm",eta:"Apr 17, 10am",vendor:"Building Maintenance",vendorPhone:""},
-  {id:4,propId:"cottage",unit:"301",title:"Ceiling water stain — possible leak",cat:"structural",priority:"high",status:"open",desc:"Large water stain appeared near bathroom ceiling. Possibly from unit above.",date:"Apr 14, 2025",assignee:"",notes:"",eta:null,vendor:"",vendorPhone:""},
-  // 33 COTTAGE ST — Closed
-  {id:5,propId:"cottage",unit:"102",title:"Radiator not heating",cat:"hvac",priority:"high",status:"closed",desc:"Bedroom radiator cold, rest of unit heating fine.",date:"Mar 3, 2025",closedDate:"Mar 5, 2025",assignee:"AirCare HVAC",notes:"Bled radiator valve, restored heat. Completed Mar 5.",eta:null,vendor:"AirCare HVAC",vendorPhone:"(508) 555-0303"},
-  {id:6,propId:"cottage",unit:"302",title:"Garbage disposal jammed",cat:"plumbing",priority:"low",status:"closed",desc:"Disposal humming but not spinning. Tenant unsure what caused it.",date:"Feb 18, 2025",closedDate:"Feb 19, 2025",assignee:"Doherty Plumbing",notes:"Reset button triggered, cleared obstruction. Completed Feb 19.",eta:null,vendor:"Joe Doherty",vendorPhone:"(617) 894-0445"},
-  {id:7,propId:"cottage",unit:"201",title:"Dryer not heating",cat:"appliance",priority:"medium",status:"closed",desc:"Dryer runs but clothes not drying. Vent may be clogged.",date:"Jan 22, 2025",closedDate:"Jan 24, 2025",assignee:"HandyPro Services",notes:"Vent cleaned, heating element tested OK. Completed Jan 24.",eta:null,vendor:"HandyPro Services",vendorPhone:"(508) 555-0606"},
-  // 148 MAIN ST — Open
-  {id:8,propId:"main",unit:"2B",title:"Bathroom exhaust fan grinding noise",cat:"electrical",priority:"medium",status:"open",desc:"Exhaust fan runs but makes loud grinding noise. Needs replacement.",date:"Apr 10, 2025",assignee:"",notes:"",eta:null,vendor:"",vendorPhone:""},
-  {id:9,propId:"main",unit:"1A",title:"Paint lobby and mailroom",cat:"general",priority:"low",status:"in_progress",desc:"Lobby walls scuffed and dated. Mailroom needs fresh coat before summer.",date:"Apr 8, 2025",assignee:"ProPaint Solutions",notes:"Scheduled for Apr 20 weekend. Paint color approved by landlord.",eta:"Apr 20",vendor:"ProPaint Solutions",vendorPhone:"(508) 555-0707"},
-  {id:10,propId:"main",unit:"2A",title:"Front door deadbolt sticking",cat:"general",priority:"medium",status:"in_progress",desc:"Deadbolt requires excessive force. Possible alignment issue.",date:"Apr 8, 2025",assignee:"Building Maintenance",notes:"Hardware ordered, install scheduled Apr 19.",eta:"Apr 19",vendor:"Building Maintenance",vendorPhone:""},
-  // 148 MAIN ST — Closed
-  {id:11,propId:"main",unit:"1A",title:"Kitchen sink leak under cabinet",cat:"plumbing",priority:"high",status:"closed",desc:"Water pooling under kitchen sink. P-trap appears cracked.",date:"Mar 10, 2025",closedDate:"Mar 11, 2025",assignee:"Doherty Plumbing",notes:"Replaced P-trap and supply lines. No further leaks. Completed Mar 11.",eta:null,vendor:"Joe Doherty",vendorPhone:"(617) 894-0445"},
-  {id:12,propId:"main",unit:"2B",title:"Broken window latch — Unit 2B bedroom",cat:"structural",priority:"medium",status:"closed",desc:"Bedroom window latch broken, cannot lock. Security concern.",date:"Feb 28, 2025",closedDate:"Mar 2, 2025",assignee:"Building Maintenance",notes:"Replaced latch hardware. Window now locks properly. Completed Mar 2.",eta:null,vendor:"Building Maintenance",vendorPhone:""},
-  // 22 ELM AVE — Open
-  {id:13,propId:"elm",unit:"1",title:"Water heater pilot light out",cat:"hvac",priority:"high",status:"open",desc:"No hot water. Pilot light out, tenant could not re-light.",date:"Apr 13, 2025",assignee:"",notes:"",eta:null,vendor:"",vendorPhone:""},
-  {id:14,propId:"elm",unit:"2",title:"Repair cracked bathroom tile",cat:"structural",priority:"low",status:"open",desc:"Two floor tiles cracked near shower base. Risk of water damage if not addressed.",date:"Apr 9, 2025",assignee:"",notes:"",eta:null,vendor:"",vendorPhone:""},
-  // 22 ELM AVE — Closed
-  {id:15,propId:"elm",unit:"1",title:"Dryer vent cleaning",cat:"appliance",priority:"medium",status:"closed",desc:"Annual dryer vent cleaning. Tenant reported long dry times.",date:"Mar 15, 2025",closedDate:"Mar 15, 2025",assignee:"HandyPro Services",notes:"Vent cleared, 18 inches of lint buildup removed. Completed Mar 15.",eta:null,vendor:"HandyPro Services",vendorPhone:"(508) 555-0606"},
-  {id:16,propId:"elm",unit:"2",title:"Exterior deck board replacement",cat:"structural",priority:"high",status:"closed",desc:"Two deck boards rotted through. Safety hazard for tenant.",date:"Feb 5, 2025",closedDate:"Feb 10, 2025",assignee:"ABC Roofing",notes:"Replaced 4 boards, sanded and sealed. Passed inspection Feb 10.",eta:null,vendor:"ABC Roofing",vendorPhone:"(508) 555-0505"}
-];
+const INITIAL_WORK_ORDERS=[];
 const TENANT_INBOXES={"101":[{id:1,from:"manager",text:"Welcome to CommonGround! Message me anytime.",time:"Today"},{id:2,from:"tenant",text:"The kitchen faucet has been dripping. Can you send maintenance?",time:"Mon 9:14 AM"},{id:3,from:"manager",text:"\uD83D\uDD27 Your request was received and assigned to Doherty Plumbing. ETA: 2pm today.",time:"Mon 11:02 AM"}],"102":[{id:1,from:"manager",text:"Hi Jordan! Welcome to CommonGround.",time:"Today"}],"201":[{id:1,from:"manager",text:"Hi Sam! Welcome to CommonGround.",time:"Today"}],"202":[{id:1,from:"manager",text:"Hi Casey! Welcome to CommonGround.",time:"Today"}],"301":[{id:1,from:"manager",text:"Hi Riley! Welcome to CommonGround.",time:"Today"}],"302":[],"303":[],"1A":[{id:1,from:"manager",text:"Hi Marcus! Welcome to CommonGround at 24 Marlborough St.",time:"Today"}],"1B":[],"2A":[{id:1,from:"manager",text:"Hi Priya! Welcome to CommonGround at 24 Marlborough St.",time:"Today"}],"2B":[{id:1,from:"manager",text:"Hi Devon! Welcome to CommonGround at 24 Marlborough St.",time:"Today"}],"1":[{id:1,from:"manager",text:"Hi Tatiana! Welcome to CommonGround at 76 Forest Ave.",time:"Today"}],"2":[{id:1,from:"manager",text:"Hi Omar! Welcome to CommonGround at 76 Forest Ave.",time:"Today"}],"3":[]};
 const INITIAL_REMINDERS=[{id:1,type:"lease",unit:"301",title:"Lease Expiring Soon",desc:"Riley Patel \u00B7 Unit 301 lease ends Jun 30, 2025",date:"Jun 30, 2025",daysOut:75,dismissed:false},{id:2,type:"rent",unit:"201",title:"Rent Overdue",desc:"Sam Rivera \u00B7 Unit 201 \u2014 no payment recorded for April",date:"Apr 1, 2025",daysOut:-15,dismissed:false}];
 const INITIAL_VENDORS=[{id:1,name:"Doherty Plumbing",trade:"plumbing",phone:"(617) 894-0445",email:"",rate:"",preferred:true,notes:"Joe Doherty"},{id:2,name:"Szloch Electric",trade:"electrical",phone:"(781) 706-2034",email:"",rate:"",preferred:true,notes:"Mike Szloch"},{id:3,name:"PlumbRight LLC",trade:"plumbing",phone:"(508) 555-0101",email:"service@plumbright.com",rate:"$95/hr",preferred:false,notes:"24hr emergency line"},{id:4,name:"Voltex Electric",trade:"electrical",phone:"(508) 555-0202",email:"info@voltex.com",rate:"$110/hr",preferred:false,notes:""},{id:5,name:"AirCare HVAC",trade:"hvac",phone:"(508) 555-0303",email:"dispatch@aircare.com",rate:"$125/hr",preferred:false,notes:"Boiler specialists"},{id:6,name:"J&R Landscaping",trade:"landscaping",phone:"(508) 555-0404",email:"",rate:"$200/visit",preferred:true,notes:"Snow removal and spring cleanup"},{id:7,name:"HandyPro Services",trade:"general",phone:"(508) 555-0606",email:"",rate:"$75/hr",preferred:false,notes:"General repairs"}];
@@ -304,8 +281,7 @@ function DocsTab({unit,prop,sharedDocs,setSharedDocs,onTenantSign,propId}){
   const unitCfg=PROPERTY_UNIT_CONFIG[prop.id||"cottage"]||PROPERTY_UNIT_CONFIG["cottage"];
   const cfg=unitCfg[unit];
   const DOCS=[
-    {id:"lease",name:"Lease Agreement 2024-2025.pdf",cat:"Lease",color:"#2e7d32",date:"Sep 1, 2024",size:"412 KB",requiresSig:true},
-    {id:"inspection",name:"Move-In Inspection Report.pdf",cat:"Inspection",color:"#1565c0",date:"Sep 1, 2024",size:"1.2 MB",requiresSig:true},
+    
     {id:"rules",name:"Building Rules & Regulations.pdf",cat:"Rules",color:"#6a1b9a",date:"Jan 15, 2024",size:"88 KB",requiresSig:false}
   ];
   const uploadedDocs=(sharedDocs||[]).filter(d=>d.unit===unit||d.unit==="all");
@@ -507,7 +483,7 @@ function ManagerDemo({onBack,workOrders,setWorkOrders,tenantInboxes,setTenantInb
       tab==="maintenance"&&React.createElement(MgrMaintenanceHub,{workOrders,setWorkOrders,...propCtx}),
       tab==="finance"&&React.createElement(MgrFinanceHub,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses}),
       tab==="docs"&&React.createElement(MgrDocsHub,{sharedDocs,setSharedDocs,units,profiles,prop,unitCfg,reminders,setReminders,rentStatus,workOrders}),
-      tab==="agent"&&React.createElement(MgrAgent,{prop,units,unitCfg,profiles,rentStatus,workOrders,setWorkOrders,tenantInboxes,setTenantInboxes,reminders,setReminders,setPropId,setTab,setRentStatusOverrides,globalExpenses,setGlobalExpenses})));}
+      tab==="agent"&&React.createElement(MgrAgent,{prop,units,unitCfg,profiles,rentStatus,workOrders,setWorkOrders,tenantInboxes,setTenantInboxes,reminders,setReminders,setPropId,setTab,setRentStatusOverrides,globalExpenses,setGlobalExpenses,sharedDocs,setSharedDocs})));}
 
 
 
@@ -742,7 +718,7 @@ function MgrUnits({prop,unitCfg,profiles,rentStatus,units}){
       profileTab==="info"&&!p&&React.createElement(Card,null,React.createElement("div",{style:{textAlign:"center",padding:"20px",color:T.muted}},"Vacant unit — no tenant on file")),
       profileTab==="lease"&&React.createElement(Card,null,
         React.createElement("div",{style:{fontSize:10,color:prop.color,fontWeight:900,letterSpacing:".1em",marginBottom:12}},"LEASE DOCUMENTS"),
-        [{name:"Lease Agreement 2024-2025.pdf",date:"Sep 1, 2024",status:"signed",size:"412 KB"},{name:"Move-In Inspection Report.pdf",date:"Sep 1, 2024",status:"signed",size:"1.2 MB"},{name:"Building Rules & Regulations.pdf",date:"Sep 1, 2024",status:"signed",size:"88 KB"},{name:"Lease Renewal Offer 2025-2026.pdf",date:"Mar 15, 2025",status:"pending",size:"380 KB"}].map((doc,i)=>React.createElement("div",{key:i,style:{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:`1px solid ${T.border}`}},
+        [].map((doc,i)=>React.createElement("div",{key:i,style:{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:`1px solid ${T.border}`}},
           React.createElement("div",{style:{width:32,height:40,background:"#fff",borderRadius:4,boxShadow:"0 1px 4px rgba(0,0,0,.2)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",paddingBottom:4,position:"relative",flexShrink:0,border:"1px solid #e0e0e0"}},
             React.createElement("div",{style:{position:"absolute",top:0,right:0,width:0,height:0,borderStyle:"solid",borderWidth:"8px 8px 0 0",borderColor:`${prop.color} transparent transparent transparent`}}),
             React.createElement("span",{style:{fontSize:7,fontWeight:900,color:prop.color}},"PDF")),
@@ -1392,101 +1368,7 @@ function MgrWorkOrders({workOrders,setWorkOrders,prop,unitCfg,profiles}){
 function MgrVendors(){const[vendors]=useState(INITIAL_VENDORS);const[filter,setFilter]=useState("all");const filtered=filter==="all"?vendors:vendors.filter(v=>v.trade===filter);return React.createElement(React.Fragment,null,React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},"Vendors"),React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none",paddingBottom:4}},React.createElement("button",{onClick:()=>setFilter("all"),style:{flexShrink:0,padding:"6px 14px",borderRadius:20,border:`1px solid ${filter==="all"?T.green:T.border}`,background:filter==="all"?T.greenDim:"transparent",color:filter==="all"?T.green:T.muted,fontSize:11,fontWeight:700,cursor:"pointer"}},"All (",vendors.length,")"),Object.entries(TRADES).map(([k,v])=>{const count=vendors.filter(vv=>vv.trade===k).length;if(!count)return null;return React.createElement("button",{key:k,onClick:()=>setFilter(k),style:{flexShrink:0,padding:"6px 14px",borderRadius:20,border:`1px solid ${filter===k?v.color:T.border}`,background:filter===k?v.color+"22":"transparent",color:filter===k?v.color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer"}},v.icon," ",v.label," (",count,")");})),filtered.map(v=>{const t=TRADES[v.trade]||TRADES.general;return React.createElement(Card,{key:v.id,style:{border:`1px solid ${v.preferred?T.gold+"44":T.border}`}},React.createElement("div",{style:{display:"flex",alignItems:"flex-start",gap:12}},React.createElement("div",{style:{width:44,height:44,borderRadius:12,background:t.color+"18",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}},t.icon),React.createElement("div",{style:{flex:1,minWidth:0}},React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6,marginBottom:4}},React.createElement("div",{style:{fontFamily:T.serif,fontSize:16,fontWeight:800,color:T.text}},v.name),v.preferred&&React.createElement("span",{style:{fontSize:10,fontWeight:700,color:T.gold}},"\u2B50 Preferred")),React.createElement("div",{style:{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}},React.createElement("span",{style:{padding:"2px 8px",borderRadius:10,background:t.color+"22",color:t.color,fontSize:10,fontWeight:700}},t.label),v.rate&&React.createElement("span",{style:{padding:"2px 8px",borderRadius:10,background:T.faint,color:T.muted,fontSize:10,fontWeight:600}},v.rate)),React.createElement("div",{style:{fontSize:12,color:T.blue,fontWeight:600}},v.phone),v.notes&&React.createElement("div",{style:{fontSize:11,color:T.muted,marginTop:2,fontStyle:"italic"}},v.notes))));}));}
 
 // ---- MgrLedger ----
-const LEDGER_EXPENSES={
-  cottage:{
-    2024:[
-      {id:1,date:"Jan 15, 2024",desc:"State Farm — Annual Property Insurance",cat:"Insurance",amount:2400,vendor:"State Farm",recurring:true},
-      {id:2,date:"Jan 31, 2024",desc:"Q1 Property Tax",cat:"Taxes",amount:3200,vendor:"City of Worcester",recurring:false},
-      {id:3,date:"Feb 12, 2024",desc:"AirCare HVAC — Annual boiler service",cat:"Repairs",amount:480,vendor:"AirCare HVAC",recurring:false},
-      {id:4,date:"Feb 20, 2024",desc:"J&R Landscaping — Snow removal Feb",cat:"Landscaping",amount:350,vendor:"J&R Landscaping",recurring:true},
-      {id:5,date:"Mar 8, 2024",desc:"Doherty Plumbing — Toilet rebuild Unit 201",cat:"Repairs",amount:290,vendor:"Joe Doherty",recurring:false},
-      {id:6,date:"Mar 20, 2024",desc:"J&R Landscaping — Snow removal Mar",cat:"Landscaping",amount:350,vendor:"J&R Landscaping",recurring:true},
-      {id:7,date:"Apr 1, 2024",desc:"Water & Sewer Q2",cat:"Utilities",amount:620,vendor:"City of Worcester",recurring:true},
-      {id:8,date:"Apr 22, 2024",desc:"ABC Roofing — Flat roof patch",cat:"Repairs",amount:1200,vendor:"ABC Roofing",recurring:false},
-      {id:9,date:"May 15, 2024",desc:"J&R Landscaping — Spring cleanup",cat:"Landscaping",amount:400,vendor:"J&R Landscaping",recurring:false},
-      {id:10,date:"Jun 15, 2024",desc:"HandyPro — Unit 302 turnover repairs",cat:"Repairs",amount:650,vendor:"HandyPro Services",recurring:false},
-      {id:11,date:"Jul 1, 2024",desc:"Water & Sewer Q3",cat:"Utilities",amount:620,vendor:"City of Worcester",recurring:true},
-      {id:12,date:"Jul 31, 2024",desc:"Q3 Property Tax",cat:"Taxes",amount:3200,vendor:"City of Worcester",recurring:false},
-      {id:13,date:"Aug 10, 2024",desc:"Szloch Electric — Panel inspection",cat:"Repairs",amount:320,vendor:"Mike Szloch",recurring:false},
-      {id:14,date:"Sep 5, 2024",desc:"State Farm — Liability add-on",cat:"Insurance",amount:180,vendor:"State Farm",recurring:false},
-      {id:15,date:"Oct 1, 2024",desc:"Water & Sewer Q4",cat:"Utilities",amount:620,vendor:"City of Worcester",recurring:true},
-      {id:16,date:"Oct 15, 2024",desc:"J&R Landscaping — Fall cleanup",cat:"Landscaping",amount:380,vendor:"J&R Landscaping",recurring:false},
-      {id:17,date:"Nov 8, 2024",desc:"Doherty Plumbing — Hot water heater Unit 101",cat:"Repairs",amount:1400,vendor:"Joe Doherty",recurring:false},
-      {id:18,date:"Nov 30, 2024",desc:"Q4 Property Tax",cat:"Taxes",amount:3200,vendor:"City of Worcester",recurring:false},
-      {id:19,date:"Dec 10, 2024",desc:"HandyPro — General winter prep",cat:"Repairs",amount:290,vendor:"HandyPro Services",recurring:false},
-      {id:20,date:"Dec 20, 2024",desc:"J&R Landscaping — Snow removal Dec",cat:"Landscaping",amount:350,vendor:"J&R Landscaping",recurring:true}
-    ],
-    2025:[
-      {id:1,date:"Jan 15, 2025",desc:"State Farm — Property Insurance",cat:"Insurance",amount:2400,vendor:"State Farm",recurring:true},
-      {id:2,date:"Jan 31, 2025",desc:"Q1 Property Tax Payment",cat:"Taxes",amount:3200,vendor:"City of Worcester",recurring:false},
-      {id:3,date:"Feb 10, 2025",desc:"Doherty Plumbing — Garbage disposal repair Unit 302",cat:"Repairs",amount:185,vendor:"Joe Doherty",recurring:false},
-      {id:4,date:"Feb 18, 2025",desc:"J&R Landscaping — Snow removal Feb",cat:"Landscaping",amount:350,vendor:"J&R Landscaping",recurring:true},
-      {id:5,date:"Mar 5, 2025",desc:"AirCare HVAC — Radiator bleed Unit 102",cat:"Repairs",amount:225,vendor:"AirCare HVAC",recurring:false},
-      {id:6,date:"Mar 18, 2025",desc:"J&R Landscaping — Snow removal Mar",cat:"Landscaping",amount:350,vendor:"J&R Landscaping",recurring:true},
-      {id:7,date:"Apr 1, 2025",desc:"Water & Sewer — Q2",cat:"Utilities",amount:640,vendor:"City of Worcester",recurring:true},
-      {id:8,date:"Apr 12, 2025",desc:"Doherty Plumbing — Kitchen faucet repair Unit 101",cat:"Repairs",amount:210,vendor:"Joe Doherty",recurring:false},
-      {id:9,date:"Apr 15, 2025",desc:"ProPaint Solutions — Vestibule repaint",cat:"Repairs",amount:850,vendor:"ProPaint Solutions",recurring:false}
-    ]
-  },
-  main:{
-    2024:[
-      {id:1,date:"Jan 15, 2024",desc:"Travelers Insurance — Annual Premium",cat:"Insurance",amount:1800,vendor:"Travelers",recurring:true},
-      {id:2,date:"Jan 31, 2024",desc:"Q1 Property Tax",cat:"Taxes",amount:2400,vendor:"City of Worcester",recurring:false},
-      {id:3,date:"Feb 5, 2024",desc:"Eversource — Common area electric Jan",cat:"Utilities",amount:195,vendor:"Eversource",recurring:true},
-      {id:4,date:"Mar 5, 2024",desc:"Eversource — Common area electric Feb",cat:"Utilities",amount:188,vendor:"Eversource",recurring:true},
-      {id:5,date:"Apr 1, 2024",desc:"Eversource — Common area electric Mar",cat:"Utilities",amount:202,vendor:"Eversource",recurring:true},
-      {id:6,date:"Apr 15, 2024",desc:"Doherty Plumbing — Water pressure fix",cat:"Repairs",amount:260,vendor:"Joe Doherty",recurring:false},
-      {id:7,date:"May 10, 2024",desc:"Eversource — Apr electric",cat:"Utilities",amount:195,vendor:"Eversource",recurring:true},
-      {id:8,date:"Jun 10, 2024",desc:"Eversource — May electric",cat:"Utilities",amount:185,vendor:"Eversource",recurring:true},
-      {id:9,date:"Jul 1, 2024",desc:"Eversource — Jun electric",cat:"Utilities",amount:210,vendor:"Eversource",recurring:true},
-      {id:10,date:"Jul 31, 2024",desc:"Q3 Property Tax",cat:"Taxes",amount:2400,vendor:"City of Worcester",recurring:false},
-      {id:11,date:"Aug 10, 2024",desc:"HandyPro — Unit 1B turnover cleanup",cat:"Repairs",amount:380,vendor:"HandyPro Services",recurring:false},
-      {id:12,date:"Sep 10, 2024",desc:"Eversource — Jul-Aug electric",cat:"Utilities",amount:420,vendor:"Eversource",recurring:true},
-      {id:13,date:"Oct 10, 2024",desc:"Eversource — Sep electric",cat:"Utilities",amount:198,vendor:"Eversource",recurring:true},
-      {id:14,date:"Oct 20, 2024",desc:"Szloch Electric — Lobby lighting upgrade",cat:"Repairs",amount:540,vendor:"Mike Szloch",recurring:false},
-      {id:15,date:"Nov 10, 2024",desc:"Eversource — Oct electric",cat:"Utilities",amount:215,vendor:"Eversource",recurring:true},
-      {id:16,date:"Nov 30, 2024",desc:"Q4 Property Tax",cat:"Taxes",amount:2400,vendor:"City of Worcester",recurring:false},
-      {id:17,date:"Dec 10, 2024",desc:"Eversource — Nov electric",cat:"Utilities",amount:225,vendor:"Eversource",recurring:true}
-    ],
-    2025:[
-      {id:1,date:"Jan 15, 2025",desc:"Travelers Insurance — Property Insurance",cat:"Insurance",amount:1800,vendor:"Travelers",recurring:true},
-      {id:2,date:"Jan 31, 2025",desc:"Q1 Property Tax Payment",cat:"Taxes",amount:2400,vendor:"City of Worcester",recurring:false},
-      {id:3,date:"Feb 5, 2025",desc:"Eversource — Common area electric Jan",cat:"Utilities",amount:210,vendor:"Eversource",recurring:true},
-      {id:4,date:"Mar 5, 2025",desc:"Eversource — Common area electric Feb",cat:"Utilities",amount:195,vendor:"Eversource",recurring:true},
-      {id:5,date:"Mar 11, 2025",desc:"Doherty Plumbing — Sink leak Unit 1A",cat:"Repairs",amount:320,vendor:"Joe Doherty",recurring:false},
-      {id:6,date:"Apr 5, 2025",desc:"Eversource — Common area electric Mar",cat:"Utilities",amount:205,vendor:"Eversource",recurring:true},
-      {id:7,date:"Apr 8, 2025",desc:"ProPaint Solutions — Lobby repaint deposit",cat:"Repairs",amount:500,vendor:"ProPaint Solutions",recurring:false}
-    ]
-  },
-  elm:{
-    2024:[
-      {id:1,date:"Jan 15, 2024",desc:"State Farm — Annual Property Insurance",cat:"Insurance",amount:1400,vendor:"State Farm",recurring:true},
-      {id:2,date:"Jan 31, 2024",desc:"Q1 Property Tax",cat:"Taxes",amount:1800,vendor:"Town of Stoneham",recurring:false},
-      {id:3,date:"Mar 15, 2024",desc:"GreenThumb Landscaping — Spring cleanup",cat:"Landscaping",amount:260,vendor:"GreenThumb",recurring:false},
-      {id:4,date:"Apr 1, 2024",desc:"Water & Sewer Q2",cat:"Utilities",amount:310,vendor:"Town of Stoneham",recurring:true},
-      {id:5,date:"May 20, 2024",desc:"HandyPro — Unit 3 touch-up paint",cat:"Repairs",amount:420,vendor:"HandyPro Services",recurring:false},
-      {id:6,date:"Jun 15, 2024",desc:"AirCare HVAC — Central AC service",cat:"Repairs",amount:380,vendor:"AirCare HVAC",recurring:false},
-      {id:7,date:"Jul 1, 2024",desc:"Water & Sewer Q3",cat:"Utilities",amount:310,vendor:"Town of Stoneham",recurring:true},
-      {id:8,date:"Jul 31, 2024",desc:"Q3 Property Tax",cat:"Taxes",amount:1800,vendor:"Town of Stoneham",recurring:false},
-      {id:9,date:"Sep 18, 2024",desc:"ABC Roofing — Gutter cleaning & repair",cat:"Repairs",amount:520,vendor:"ABC Roofing",recurring:false},
-      {id:10,date:"Oct 1, 2024",desc:"Water & Sewer Q4",cat:"Utilities",amount:310,vendor:"Town of Stoneham",recurring:true},
-      {id:11,date:"Oct 15, 2024",desc:"GreenThumb Landscaping — Fall cleanup",cat:"Landscaping",amount:240,vendor:"GreenThumb",recurring:false},
-      {id:12,date:"Nov 30, 2024",desc:"Q4 Property Tax",cat:"Taxes",amount:1800,vendor:"Town of Stoneham",recurring:false},
-      {id:13,date:"Dec 5, 2024",desc:"Doherty Plumbing — Water heater flush",cat:"Repairs",amount:180,vendor:"Joe Doherty",recurring:false}
-    ],
-    2025:[
-      {id:1,date:"Jan 15, 2025",desc:"State Farm — Property Insurance",cat:"Insurance",amount:1400,vendor:"State Farm",recurring:true},
-      {id:2,date:"Jan 31, 2025",desc:"Q1 Property Tax Payment",cat:"Taxes",amount:1800,vendor:"Town of Stoneham",recurring:false},
-      {id:3,date:"Feb 10, 2025",desc:"HandyPro — Dryer vent cleaning Unit 1",cat:"Repairs",amount:150,vendor:"HandyPro Services",recurring:false},
-      {id:4,date:"Feb 5, 2025",desc:"ABC Roofing — Deck board replacement Unit 1",cat:"Repairs",amount:780,vendor:"ABC Roofing",recurring:false},
-      {id:5,date:"Mar 20, 2025",desc:"GreenThumb Landscaping — Spring cleanup",cat:"Landscaping",amount:280,vendor:"GreenThumb",recurring:false},
-      {id:6,date:"Apr 1, 2025",desc:"Water & Sewer — Q2",cat:"Utilities",amount:320,vendor:"Town of Stoneham",recurring:true}
-    ]
-  }
-};
-
-const EXPENSE_CATS=["Insurance","Taxes","Repairs","Utilities","Landscaping","Management","Legal","Other"];
-const CAT_COLORS={Insurance:"#1565c0",Taxes:"#6a1b9a",Repairs:"#e65100",Utilities:"#00695c",Landscaping:"#2e7d32",Management:"#4527a0",Legal:"#880e4f",Other:"#37474f"};
+const LEDGER_EXPENSES={cottage:{2025:[],2024:[]},main:{2025:[],2024:[]},elm:{2025:[],2024:[]}};
 
 function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses,initView,onGoToK1}){
   const[view,setView]=useState(initView||"summary");
@@ -2244,17 +2126,9 @@ function MgrDocs({sharedDocs,setSharedDocs,units,profiles,prop,unitCfg}){
   ];
 
   const MOCK_DOCS={
-    lease:[
-      {name:"Lease Agreement 2024-2025.pdf",date:"Sep 1, 2024",status:"signed",notes:"Signed by tenant Sep 1"},
-      {name:"Lease Renewal Offer 2025-2026.pdf",date:"Mar 15, 2025",status:"pending",notes:"Awaiting tenant signature"}
-    ],
-    inspection:[
-      {name:"Move-In Inspection Report.pdf",date:"Sep 1, 2024",status:"signed",notes:"Completed at move-in"},
-      {name:"Annual Inspection 2025.pdf",date:"Apr 1, 2025",status:"pending",notes:"Scheduled — not yet completed"}
-    ],
-    rules:[
-      {name:"Building Rules & Regulations.pdf",date:"Jan 15, 2024",status:"signed",notes:"Tenant acknowledged"}
-    ],
+    lease:[],
+    inspection:[],
+    rules:[],
     violations:[],
     notices:[],
     other:[]
@@ -2429,15 +2303,87 @@ function MgrDocs({sharedDocs,setSharedDocs,units,profiles,prop,unitCfg}){
       })));
 }
 // ---- MgrAgent ----
-function MgrAgent({prop,units,unitCfg,profiles,rentStatus,workOrders,setWorkOrders,tenantInboxes,setTenantInboxes,reminders,setReminders,setPropId,setTab,setRentStatusOverrides,globalExpenses,setGlobalExpenses}){
+function MgrAgent({prop,units,unitCfg,profiles,rentStatus,workOrders,setWorkOrders,tenantInboxes,setTenantInboxes,reminders,setReminders,setPropId,setTab,setRentStatusOverrides,globalExpenses,setGlobalExpenses,sharedDocs,setSharedDocs}){
   const[msgs,setMsgs]=useState([]);
   const[input,setInput]=useState("");
   const[loading,setLoading]=useState(false);
   const[actionLog,setActionLog]=useState([]);
+  const[uploadLoading,setUploadLoading]=useState(false);
   const bottomRef=useRef();
   const recRef=useRef(null);
+  const fileRef=useRef(null);
   const[listening,setListening]=useState(false);
   useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});},[msgs,actionLog]);
+
+  const handleDocUpload=async(e)=>{
+    const file=e.target.files?.[0];
+    if(!file)return;
+    setUploadLoading(true);
+    const ts=new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
+    setActionLog(l=>[...l,{ts,icon:"📄",text:`Analyzing: ${file.name}...`,color:T.blue}]);
+    try{
+      const base64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(",")[1]);r.onerror=rej;r.readAsDataURL(file);});
+      const mediaType=file.type||"image/jpeg";
+      const isImage=mediaType.startsWith("image/");
+      const isPDF=mediaType==="application/pdf";
+      const contentBlock=isImage
+        ?{type:"image",source:{type:"base64",media_type:mediaType,data:base64}}
+        :{type:"document",source:{type:"base64",media_type:"application/pdf",data:base64}};
+      const res=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          model:"claude-sonnet-4-20250514",
+          max_tokens:1000,
+          messages:[{role:"user",content:[
+            contentBlock,
+            {type:"text",text:`You are analyzing a document uploaded to a property management app for 33 Cottage St, Rutland VT.
+
+Analyze this document and respond ONLY with a JSON object (no other text) in this exact format:
+{
+  "category": "Lease|Inspection|Expense|WorkOrder|Rules|Notice|Tax|Insurance|Other",
+  "subcategory": "lease|inspection|expense|rules|violations|notices|other",
+  "title": "Short descriptive title",
+  "summary": "2-3 sentence summary of what this document is",
+  "unit": "101|102|201|202|301|302|303|all|null",
+  "amount": null or number if it's a bill/invoice,
+  "vendor": "vendor/payee name if applicable",
+  "date": "date from document if visible",
+  "actionType": "add_doc|add_expense|create_work_order",
+  "expenseCategory": "Repairs|Insurance|Taxes|Utilities|Landscaping|Other"
+}`}
+          ]}]
+        })
+      });
+      const data=await res.json();
+      const text=data.content?.[0]?.text||"{}";
+      let parsed;
+      try{parsed=JSON.parse(text.replace(/```json|```/g,"").trim());}catch(e){parsed=null;}
+      if(!parsed){
+        setMsgs(prev=>[...prev,{role:"assistant",content:`I received the document "${file.name}" but had trouble reading it. Please try again or describe what it is.`}]);
+        setUploadLoading(false);return;
+      }
+      // Auto-file the document
+      const newDoc={id:Date.now(),propId:prop.id,unit:parsed.unit||"all",name:parsed.title||file.name,cat:parsed.subcategory||"other",date:parsed.date||new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),status:"uploaded",notes:parsed.summary,file:file.name,size:Math.round(file.size/1024)+" KB"};
+      if(setSharedDocs)setSharedDocs(prev=>[...(prev||[]),newDoc]);
+      // If it's an expense, also add it
+      if(parsed.actionType==="add_expense"&&parsed.amount){
+        const yr=new Date().getFullYear();
+        const exp={id:Date.now()+1,date:parsed.date||new Date().toLocaleDateString(),desc:parsed.title,cat:parsed.expenseCategory||"Repairs",amount:Number(parsed.amount),vendor:parsed.vendor||"Unknown",recurring:false};
+        const key=prop.id+"-"+yr;
+        setGlobalExpenses(prev=>{const next={...prev};next[key]=[...(prev[key]||[]),exp];return next;});
+      }
+      setActionLog(l=>[...l,{ts,icon:"✅",text:`Filed "${parsed.title}" → ${parsed.category} tab${parsed.unit&&parsed.unit!=="all"?" (Unit "+parsed.unit+")":""}`,color:T.green}]);
+      setMsgs(prev=>[...prev,
+        {role:"user",content:`[Uploaded: ${file.name}]`},
+        {role:"assistant",content:`📄 **Document filed automatically!**\n\n**${parsed.title}**\n${parsed.summary}\n\n✅ Filed to: **${parsed.category}** tab${parsed.unit&&parsed.unit!=="all"?" — Unit "+parsed.unit:""}\n${parsed.amount?"💰 Amount: $"+Number(parsed.amount).toLocaleString()+" added to expenses\n":""}${parsed.vendor?"🏢 Vendor: "+parsed.vendor:""}`}
+      ]);
+    }catch(err){
+      setMsgs(prev=>[...prev,{role:"assistant",content:"Upload failed: "+err.message}]);
+    }
+    setUploadLoading(false);
+    if(fileRef.current)fileRef.current.value="";
+  };
   const executeAction=(action)=>{
     const ts=new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
     switch(action.type){
@@ -2558,8 +2504,10 @@ Use actions when the user asks you to DO something. You can chain multiple actio
         React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},"AI Command Center"),
         React.createElement("div",{style:{fontSize:10,color:T.muted,marginTop:2}},"Full portfolio control \u2014 ask or command anything")),
       React.createElement("div",{style:{fontSize:11,color:T.green,fontWeight:600,padding:"4px 10px",background:T.greenDim,borderRadius:20}},"\u26A1 Live")),
+    React.createElement("input",{ref:fileRef,type:"file",accept:"image/*,application/pdf",style:{display:"none"},onChange:handleDocUpload}),
     React.createElement("div",{style:{display:"flex",gap:8,borderBottom:`1px solid ${T.border}`,paddingBottom:12,marginBottom:12}},
       React.createElement("button",{onClick:listening?()=>recRef.current?.stop():startVoice,style:{width:42,height:42,borderRadius:"50%",border:"none",background:listening?"radial-gradient(circle,#F76F6F,#c0392b)":`linear-gradient(135deg,${prop.color},${prop.color}bb)`,color:"#071a0e",fontSize:18,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:listening?"0 0 0 8px rgba(247,111,111,.2)":"none"}},listening?"\uD83D\uDD34":"\uD83C\uDF99"),
+      React.createElement("button",{onClick:()=>fileRef.current?.click(),disabled:uploadLoading,title:"Upload a document — AI will auto-categorize it",style:{width:42,height:42,borderRadius:"50%",border:`1px solid ${T.border}`,background:T.surface,color:uploadLoading?T.muted:T.green,fontSize:18,cursor:uploadLoading?"not-allowed":"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}},uploadLoading?"\u23F3":"📎"),
       React.createElement("input",{value:input,onChange:e=>setInput(e.target.value),onKeyDown:e=>e.key==="Enter"&&send(),placeholder:"Ask or command anything...",style:{flex:1,background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 14px",color:T.text,fontSize:14,outline:"none",fontFamily:T.font}}),
       React.createElement("button",{onClick:send,disabled:!input.trim()||loading,style:{padding:"10px 18px",borderRadius:10,border:"none",background:input.trim()&&!loading?`linear-gradient(135deg,${prop.color},${prop.color}bb)`:"#1a2e20",color:input.trim()&&!loading?"#071a0e":T.muted,fontWeight:700,fontSize:13,cursor:input.trim()&&!loading?"pointer":"default"}},"Send")),
     actionLog.length>0&&React.createElement("div",{style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 12px",maxHeight:110,overflowY:"auto",marginBottom:4}},
