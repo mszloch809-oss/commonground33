@@ -1,15 +1,15 @@
-[functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/manager-agent"
+  to = "/.netlify/functions/manager-agent"
+  status = 200
 
 [[redirects]]
   from = "/api/report-issue"
   to = "/.netlify/functions/report-issue"
-  status = 200
-
-[[redirects]]
-  from = "/api/vendor-reply"
-  to = "/.netlify/functions/vendor-reply"
   status = 200
 
 [[redirects]]
@@ -18,18 +18,6 @@
   status = 200
 
 [[redirects]]
-  from = "/api/manager-agent"
-  to = "/.netlify/functions/manager-agent"
+  from = "/api/vendor-reply"
+  to = "/.netlify/functions/vendor-reply"
   status = 200
-
-[[headers]]
-  for = "/demo.html"
-  [headers.values]
-    Basic-Auth = "demo:commonground2025"
-
-[[headers]]
-  for = "/api/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "POST, GET, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type"
