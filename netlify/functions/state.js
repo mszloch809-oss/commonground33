@@ -1,48 +1,44 @@
-let store = {
-  lastId: 1000,
-  workOrders: {}
+const FIREBASE_DB_URL = process.env.FIREBASE_DB_URL;
+
+const headers = {
+  "Content-Type": "application/json",
+  "Access-Control-Allow-Origin": "*"
 };
 
-function createWorkOrder(data) {
-  const id = "WO-" + (++store.lastId);
-
-  store.workOrders[id] = {
-    id,
-    status: "OPEN",
-    createdAt: new Date().toISOString(),
-    tenantPhone: data.tenantPhone,
-    vendorPhone: data.vendorPhone,
-    address: data.address,
-    unit: data.unit,
-    issue: data.issue,
-    messages: []
-  };
-
-  return store.workOrders[id];
+async function fbGet(path) {
+  const res = await fetch(`${FIREBASE_DB_URL}/${path}.json`);
+  return await res.json();
 }
 
-function getWorkOrder(id) {
-  return store.workOrders[id];
-}
-
-function addMessage(id, message) {
-  if (store.workOrders[id]) {
-    store.workOrders[id].messages.push({
-      ...message,
-      time: new Date().toISOString()
-    });
+export const handler = async (event) => {
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers,
+      body: ""
+    };
   }
-}
 
-function updateStatus(id, status) {
-  if (store.workOrders[id]) {
-    store.workOrders[id].status = status;
+  try {
+    const data = await fbGet("workOrders");
+    const workOrders = data ? Object.values(data) : [];
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        ok: true,
+        workOrders
+      })
+    };
+  } catch (e) {
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        ok: false,
+        error: e.message
+      })
+    };
   }
-}
-
-module.exports = {
-  createWorkOrder,
-  getWorkOrder,
-  addMessage,
-  updateStatus
-}; 
+};
