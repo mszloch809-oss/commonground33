@@ -55,6 +55,29 @@
         } catch(e) { return null; }
       }
     };
+    // Seed tenant data on first load
+    (async () => {
+      const seedKey = "cg_seeded_v1";
+      const alreadySeeded = await fetch(`${RTDB}/cg/${seedKey}.json`).then(r=>r.json()).catch(()=>null);
+      if (alreadySeeded) return;
+      const tenants = {
+        "cg_profile_101": {firstName:"Kassie",lastName:"Bashaw",phone:"9784172831",email:"kassieb109@icloud.com",moveIn:"05/10/2025",leaseEnd:"",emergency:"Mom – 9785187954",unit:"101"},
+        "cg_profile_102": {firstName:"Krystal",lastName:"Gardner",phone:"8028550496",email:"krystalspaulding69@gmail.com",moveIn:"06/06/2025",leaseEnd:"05/31/2026",emergency:"Friend Karen 802-557-5002",unit:"102"},
+        "cg_profile_201": {firstName:"Shelby",lastName:"White",phone:"",email:"",moveIn:"",leaseEnd:"",emergency:"",unit:"201"},
+        "cg_profile_202": {firstName:"Mike",lastName:"Szloch",phone:"7817062034",email:"mszloch809@gmail.com",moveIn:"04/01/2025",leaseEnd:"04/01/2026",emergency:"Tara 708 506 8284",unit:"202",vehicles:[{year:"2011",make:"Cadillac",model:"Escalade EXT",plate:"4vy 28lt"}]},
+        "cg_profile_301": {firstName:"Scott",lastName:"Mockler",phone:"",email:"",moveIn:"",leaseEnd:"",emergency:"",unit:"301"},
+        "cg_profile_302": {firstName:"Abigail",lastName:"Blanchard",phone:"8024877162",email:"Crabigail12345@gmail.com",moveIn:"05/12/2025",leaseEnd:"",emergency:"",unit:"302",vehicles:[{year:"2018",make:"Subaru",model:"Legacy",plate:"KTP 770"}]},
+        "cg_profile_303": {firstName:"Brandon",lastName:"Woodward",phone:"",email:"",moveIn:"",leaseEnd:"",emergency:"",unit:"303"},
+        "cg_payments_102": [{id:"p1",date:"April 19, 2026",month:"April 2026",total:1590,note:""}],
+        "cg_payments_202": [{id:"p2",date:"April 2026",month:"April 2026",total:5,note:""}]
+      };
+      for (const [key, val] of Object.entries(tenants)) {
+        await fetch(`${RTDB}/cg/${key}.json`, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({v:JSON.stringify(val),t:Date.now()})});
+      }
+      await fetch(`${RTDB}/cg/${seedKey}.json`, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({v:"1",t:Date.now()})});
+      console.log('Tenant data seeded!');
+    })();
+
     // Test connection
     fetch(`${RTDB}/cg/__ping__.json`, {
       method: 'PUT',
