@@ -14,7 +14,7 @@ export const handler = async (event) => {
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5",
+        model: "claude-sonnet-4-6",
         max_tokens: 1024,
         system: systemPrompt || "You are an AI property management assistant.",
         messages: messages || []
@@ -25,7 +25,7 @@ export const handler = async (event) => {
       return {
         statusCode: 200,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ok: false, error: data.error?.message || "API error "+res.status })
+        body: JSON.stringify({ ok: false, error: data.error?.message || "API error " + res.status })
       };
     }
     return {
@@ -41,4 +41,3 @@ export const handler = async (event) => {
     };
   }
 };
-
