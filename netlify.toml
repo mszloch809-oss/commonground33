@@ -3,11 +3,6 @@
   functions = "netlify/functions"
 
 [[redirects]]
-  from = "/api/manager-agent"
-  to = "/.netlify/functions/manager-agent"
-  status = 200
-
-[[redirects]]
   from = "/api/report-issue"
   to = "/.netlify/functions/report-issue"
   status = 200
@@ -15,6 +10,11 @@
 [[redirects]]
   from = "/api/state"
   to = "/.netlify/functions/state"
+  status = 200
+
+[[redirects]]
+  from = "/api/manager-agent"
+  to = "/.netlify/functions/manager-agent"
   status = 200
 
 [[redirects]]
