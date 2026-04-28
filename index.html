@@ -696,13 +696,67 @@ function MgrVacancy({prop,units,unitCfg,profiles,rentStatus}){
 function MgrWorkOrders({workOrders,setWorkOrders,prop,unitCfg,profiles}){
   const[selOrder,setSelOrder]=useState(null);
   const[filter,setFilter]=useState("all");
+  const[showAdd,setShowAdd]=useState(false);
+  const[editMode,setEditMode]=useState(false);
+  const units=Object.keys(unitCfg||{});
+  const[form,setForm]=useState({title:"",desc:"",cat:"general",priority:"medium",unit:units[0]||"",assignee:"",eta:"",notes:""});
   const propOrders=workOrders.filter(o=>o.propId===prop.id||(!o.propId&&prop.id==="cottage"));
   const activeCount=propOrders.filter(o=>o.status==="open"||o.status==="in_progress").length;
   const filtered=filter==="all"?propOrders:filter==="closed"?propOrders.filter(o=>o.status==="closed"||o.status==="resolved"):propOrders.filter(o=>o.status===filter);
   const order=propOrders.find(o=>o.id===selOrder);
   const updateOrder=(id,fields)=>setWorkOrders(prev=>prev.map(o=>o.id===id?{...o,...fields}:o));
+  const deleteOrder=(id)=>{setWorkOrders(prev=>prev.filter(o=>o.id!==id));setSelOrder(null);};
   const isClosed=o=>o.status==="closed"||o.status==="resolved";
   const woNum=id=>"WO-"+String(id).padStart(4,"0");
+  const blankForm=()=>({title:"",desc:"",cat:"general",priority:"medium",unit:units[0]||"",assignee:"",eta:"",notes:""});
+  const submitNew=()=>{
+    if(!form.title.trim())return;
+    const o={id:Date.now(),propId:prop.id||"cottage",unit:form.unit,title:form.title,cat:form.cat,priority:form.priority,status:"open",desc:form.desc,date:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),assignee:form.assignee,notes:form.notes,eta:form.eta||null};
+    setWorkOrders(prev=>[o,...prev]);
+    setForm(blankForm());setShowAdd(false);
+  };
+  const submitEdit=()=>{
+    if(!form.title.trim())return;
+    updateOrder(selOrder,{title:form.title,desc:form.desc,cat:form.cat,priority:form.priority,unit:form.unit,assignee:form.assignee,eta:form.eta||null,notes:form.notes});
+    setEditMode(false);
+  };
+  const startEdit=()=>{
+    if(!order)return;
+    setForm({title:order.title||"",desc:order.desc||"",cat:order.cat||"general",priority:order.priority||"medium",unit:order.unit||"",assignee:order.assignee||"",eta:order.eta||"",notes:order.notes||""});
+    setEditMode(true);
+  };
+  const F=({label,children})=>React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:4}},React.createElement("div",{style:{fontSize:10,color:T.muted,fontWeight:700,letterSpacing:".1em"}},label),children);
+  const inp=(val,onChange,placeholder="")=>React.createElement("input",{value:val,onChange:e=>onChange(e.target.value),placeholder,style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"8px 10px",color:T.text,fontSize:13,outline:"none",width:"100%",boxSizing:"border-box"}});
+  const sel=(val,onChange,opts)=>React.createElement("select",{value:val,onChange:e=>onChange(e.target.value),style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"8px 10px",color:T.text,fontSize:13,outline:"none",width:"100%"}},opts.map(([v,l])=>React.createElement("option",{key:v,value:v},l)));
+
+  // Add/Edit form
+  const WorkOrderForm=({onSave,onCancel,saveLabel})=>React.createElement(Card,null,
+    React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
+      React.createElement(F,{label:"TITLE"},inp(form.title,v=>setForm(f=>({...f,title:v})),"Brief description of issue")),
+      React.createElement(F,{label:"DETAILS"},React.createElement("textarea",{value:form.desc,onChange:e=>setForm(f=>({...f,desc:e.target.value})),placeholder:"Full description...",rows:3,style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"8px 10px",color:T.text,fontSize:13,outline:"none",width:"100%",resize:"none",boxSizing:"border-box",fontFamily:"inherit"}})),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}},
+        React.createElement(F,{label:"UNIT"},sel(form.unit,v=>setForm(f=>({...f,unit:v})),units.map(u=>[u,"Unit "+u]))),
+        React.createElement(F,{label:"CATEGORY"},sel(form.cat,v=>setForm(f=>({...f,cat:v})),Object.entries(WO_CATS).map(([k,v])=>[k,v.icon+" "+v.label]))),
+        React.createElement(F,{label:"PRIORITY"},sel(form.priority,v=>setForm(f=>({...f,priority:v})),[["low","Low"],["medium","Medium"],["high","High"]])),
+        React.createElement(F,{label:"VENDOR"},inp(form.assignee,v=>setForm(f=>({...f,assignee:v})),"Vendor name"))),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}},
+        React.createElement(F,{label:"ETA"},inp(form.eta,v=>setForm(f=>({...f,eta:v})),"e.g. Tomorrow 10am")),
+        React.createElement(F,{label:"NOTES"},inp(form.notes,v=>setForm(f=>({...f,notes:v})),"Internal notes"))),
+      React.createElement("div",{style:{display:"flex",gap:8}},
+        React.createElement("button",{onClick:onSave,disabled:!form.title.trim(),style:{flex:1,padding:"10px",borderRadius:10,border:"none",background:form.title.trim()?`linear-gradient(135deg,${T.green},#2aaa72)`:"#1a2e20",color:form.title.trim()?"#071a0e":T.muted,fontWeight:700,fontSize:13,cursor:"pointer"}},saveLabel),
+        React.createElement("button",{onClick:onCancel,style:{padding:"10px 16px",borderRadius:10,border:`1px solid ${T.border}`,background:"transparent",color:T.muted,fontWeight:700,fontSize:13,cursor:"pointer"}},"Cancel"))));
+
+  if(showAdd)return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
+    React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
+      React.createElement("button",{onClick:()=>setShowAdd(false),style:{background:"none",border:"none",color:T.green,cursor:"pointer",fontSize:13,fontWeight:700,padding:0}},React.createElement(Icon,{d:IC.back,size:16,color:T.green})," Work Orders"),
+      React.createElement("div",{style:{fontFamily:T.serif,fontSize:18,fontWeight:900,color:T.text}},"New Work Order")),
+    React.createElement(WorkOrderForm,{onSave:submitNew,onCancel:()=>setShowAdd(false),saveLabel:"Create Work Order"}));
+
+  if(order&&editMode)return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
+    React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
+      React.createElement("button",{onClick:()=>setEditMode(false),style:{background:"none",border:"none",color:T.green,cursor:"pointer",fontSize:13,fontWeight:700,padding:0}},React.createElement(Icon,{d:IC.back,size:16,color:T.green})," Back"),
+      React.createElement("div",{style:{fontFamily:T.serif,fontSize:18,fontWeight:900,color:T.text}},"Edit ",woNum(order.id))),
+    React.createElement(WorkOrderForm,{onSave:submitEdit,onCancel:()=>setEditMode(false),saveLabel:"Save Changes"}));
 
   if(order){
     const closed=isClosed(order);
@@ -712,7 +766,11 @@ function MgrWorkOrders({workOrders,setWorkOrders,prop,unitCfg,profiles}){
     const tenant=profiles[order.unit];
     const statusBg=closed?"#1B5E20":order.status==="in_progress"?"#0D47A1":"#E65100";
     return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
-      React.createElement("button",{onClick:()=>setSelOrder(null),style:{display:"flex",alignItems:"center",gap:6,background:"none",border:"none",color:T.green,cursor:"pointer",fontSize:13,fontWeight:700,padding:0}},React.createElement(Icon,{d:IC.back,size:16,color:T.green})," All Work Orders"),
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
+        React.createElement("button",{onClick:()=>setSelOrder(null),style:{display:"flex",alignItems:"center",gap:6,background:"none",border:"none",color:T.green,cursor:"pointer",fontSize:13,fontWeight:700,padding:0}},React.createElement(Icon,{d:IC.back,size:16,color:T.green})," All Work Orders"),
+        React.createElement("div",{style:{display:"flex",gap:6}},
+          React.createElement("button",{onClick:startEdit,style:{padding:"6px 12px",borderRadius:8,border:`1px solid ${T.border}`,background:"transparent",color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer"}},"✏️ Edit"),
+          React.createElement("button",{onClick:()=>{if(window.confirm("Delete this work order?"))deleteOrder(order.id);},style:{padding:"6px 12px",borderRadius:8,border:`1px solid ${T.red}44`,background:T.red+"15",color:T.red,fontSize:11,fontWeight:700,cursor:"pointer"}},"🗑 Delete"))),
       React.createElement("div",{style:{background:"#fff",borderRadius:14,overflow:"hidden",boxShadow:"0 8px 32px rgba(0,0,0,.4)"}},
         React.createElement("div",{style:{background:"#1a237e",padding:"14px 18px",display:"flex",justifyContent:"space-between",alignItems:"flex-start"}},
           React.createElement("div",null,
@@ -800,9 +858,11 @@ function MgrWorkOrders({workOrders,setWorkOrders,prop,unitCfg,profiles}){
       React.createElement("div",null,
         React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},"Work Orders"),
         React.createElement("div",{style:{fontSize:11,color:prop.color,fontWeight:600,marginTop:2}},prop.emoji," ",prop.name)),
-      React.createElement("div",{style:{textAlign:"right"}},
-        React.createElement("div",{style:{fontFamily:T.serif,fontSize:20,fontWeight:900,color:activeCount>0?T.red:T.green}},activeCount),
-        React.createElement("div",{style:{fontSize:10,color:T.muted}},"active"))),
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
+        React.createElement("div",{style:{textAlign:"right"}},
+          React.createElement("div",{style:{fontFamily:T.serif,fontSize:20,fontWeight:900,color:activeCount>0?T.red:T.green}},activeCount),
+          React.createElement("div",{style:{fontSize:10,color:T.muted}},"active")),
+        React.createElement("button",{onClick:()=>{setForm(blankForm());setShowAdd(true);},style:{padding:"8px 14px",borderRadius:10,border:"none",background:`linear-gradient(135deg,${T.green},#2aaa72)`,color:"#071a0e",fontSize:12,fontWeight:800,cursor:"pointer"}},"+ New"))),
     React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none"}},
       [["all","All ("+propOrders.length+")"],["open","Open"],["in_progress","In Progress"],["closed","Closed"]].map(([v,l])=>React.createElement("button",{key:v,onClick:()=>setFilter(v),style:{flexShrink:0,padding:"7px 14px",borderRadius:20,border:`1px solid ${filter===v?prop.color:T.border}`,background:filter===v?prop.color+"18":"transparent",color:filter===v?prop.color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer"}},l))),
     filtered.length===0&&React.createElement("div",{style:{textAlign:"center",padding:"40px 20px",color:T.muted,fontSize:13}},React.createElement("div",{style:{fontSize:32,marginBottom:8}},"\u2705"),React.createElement("div",{style:{fontWeight:700,color:T.text,marginBottom:4}},"No ",filter==="all"?"":filter.replace("_"," ")," work orders")),
