@@ -2644,7 +2644,7 @@ function ManagerDemo({onBack,workOrders,setWorkOrders,tenantInboxes,setTenantInb
   const propOrders=workOrders.filter(o=>o.propId===propId||(!o.propId&&propId==="cottage"));
   const openOrders=propOrders.filter(o=>o.status==="open"||o.status==="in_progress").length;
   const mgTabs=[{id:"overview",label:"Overview",icon:IC.grid,color:"#3EC98E"},{id:"units",label:"Units",icon:IC.home,color:"#5B9CF6"},{id:"tenants",label:"Tenants",icon:IC.person,color:"#7BCFB8"},{id:"maintenance",label:"Ops",icon:IC.wrench,color:"#F5A442",badge:openOrders||null},{id:"finance",label:"Finance",icon:IC.ledger,color:"#F5C542"},{id:"docs",label:"Docs",icon:IC.doc,color:"#A78BFA"},{id:"agent",label:"AI Agent",icon:IC.spark,color:"#3EC98E"}];
-  const propCtx={propId,prop,unitCfg,profiles,rentStatus,units,totalExpected,updProfile,updUnit};
+  const propCtx={propId,prop,unitCfg,profiles,rentStatus,units,totalExpected,updProfile,updUnit,setRentStatusOverrides};
   return React.createElement("div",{style:{minHeight:"100vh",background:T.bg}},
     React.createElement("div",{style:{position:"sticky",top:0,zIndex:20,background:T.bg+"f8",backdropFilter:"blur(16px)",borderBottom:`1px solid ${T.border}`}},
       React.createElement("div",{style:{padding:"12px 16px",display:"flex",alignItems:"center",gap:10}},
@@ -2847,9 +2847,7 @@ function MgrUnits({prop,unitCfg,profiles,rentStatus,units,setRentStatusOverrides
   const floorLabels={1:"1st Floor",2:"2nd Floor",3:"3rd Floor"};
   const removeTenant=(unit)=>{
     if(!window.confirm("Remove tenant from Unit "+unit+"? This will mark the unit vacant."))return;
-    if(updProfile){
-      ["firstName","lastName","phone","email","moveIn","leaseEnd"].forEach(f=>updProfile(prop.id,unit,f,""));
-    }
+    if(updProfile){updProfile(prop.id,unit,"__clear__",true);}
     if(setRentStatusOverrides)setRentStatusOverrides(prev=>{const n={...prev};const pid=prop.id;n[pid]={...(n[pid]||{}),[unit]:"vacant"};return n;});
     setSelUnit(null);
   };
@@ -3049,7 +3047,7 @@ function App(){
   const[mProfiles,setMProfiles]=useState(()=>JSON.parse(JSON.stringify(PROPERTY_PROFILES)));
   useEffect(()=>{fbRead("cg_rent_overrides").then(v=>{if(v)setMUnitCfg(prev=>{const n=JSON.parse(JSON.stringify(prev));Object.entries(v).forEach(([pid,units])=>{Object.entries(units).forEach(([u,rent])=>{if(n[pid]&&n[pid][u])n[pid][u].rent=rent;});});return n;});});},[]);
   const updUnit=(pid,unit,f,v)=>{setMUnitCfg(p=>{const n=JSON.parse(JSON.stringify(p));n[pid][unit][f]=v;if(f==="rent"){fbRead("cg_rent_overrides").then(existing=>{const overrides=existing||{};if(!overrides[pid])overrides[pid]={};overrides[pid][unit]=v;fbWrite("cg_rent_overrides",overrides);});}return n;});};
-  const updProfile=(pid,unit,f,v)=>setMProfiles(p=>{const n=JSON.parse(JSON.stringify(p));if(!n[pid][unit])n[pid][unit]={};n[pid][unit][f]=v;return n;});
+  const updProfile=(pid,unit,f,v)=>setMProfiles(p=>{const n=JSON.parse(JSON.stringify(p));if(f==="__clear__"){n[pid][unit]=null;return n;}if(!n[pid][unit])n[pid][unit]={};n[pid][unit][f]=v;return n;});
   if(vendorWoId){return React.createElement(VendorPortal,{woId:vendorWoId,workOrders:workOrders});}
   if(screen==="splash")return React.createElement(Splash,{onDone:()=>setScreen("landing")});
   if(screen==="landing")return React.createElement(Landing,{onExplore:()=>setScreen("units"),onManager:()=>setScreen("manager"),onApply:()=>setScreen("apply"),onMarket:()=>setScreen("marketplace")});
