@@ -2383,6 +2383,183 @@ function MgrApplications({applications,setApplications,prop,units,unitCfg}){
             React.createElement("div",{style:{fontSize:11,color:T.muted}},"\uD83D\uDCBC ",app.employer," \u00B7 Income: ",app.form.annualIncome)))))));
 }
 
+function MgrTenantsHub({prop,units,unitCfg,profiles,rentStatus,applications,setApplications,tenantInboxes,setTenantInboxes}){
+  const[sub,setSub]=useState("applications");
+  const subs=[{id:"applications",label:"Applications",color:"#7BCFB8"},{id:"newTenant",label:"New Tenant",color:"#3EC98E"},{id:"rentSplit",label:"Rent Split",color:"#F5C542"},{id:"moveOut",label:"Move-Out",color:"#F5A442"},{id:"messages",label:"Messages",color:"#5B9CF6"}];
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:14}},
+    React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none",paddingBottom:2}},
+      subs.map(s=>React.createElement("button",{key:s.id,onClick:()=>setSub(s.id),style:{flexShrink:0,padding:"6px 14px",borderRadius:20,border:"1px solid "+(sub===s.id?s.color:T.border),background:sub===s.id?s.color+"22":"transparent",color:sub===s.id?s.color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}},s.label))
+    ),
+    sub==="applications"&&React.createElement(MgrApplications,{applications,setApplications,prop,units,unitCfg}),
+    sub==="newTenant"&&React.createElement(MgrNewTenant,{prop,units,unitCfg,applications,setApplications}),
+    sub==="rentSplit"&&React.createElement(MgrRentSplit,{prop,units,unitCfg,profiles,rentStatus}),
+    sub==="moveOut"&&React.createElement(MgrMoveOut,{prop,units,unitCfg,profiles}),
+    sub==="messages"&&React.createElement(MgrMessages,{tenantInboxes,setTenantInboxes,prop,units,unitCfg,profiles,rentStatus})
+  );
+}
+
+// ---- MgrMaintenanceHub ----
+
+function MgrMaintenanceHub({workOrders,setWorkOrders,propCtx,...rest}){
+  const[sub,setSub]=useState("orders");
+  const prop=rest.prop;const units=rest.units;const unitCfg=rest.unitCfg;const profiles=rest.profiles;const rentStatus=rest.rentStatus;const propId=rest.propId;
+  const openCount=(workOrders||[]).filter(o=>o.status==="open"||o.status==="in_progress").length;
+  const subs=[{id:"orders",label:"Work Orders"+(openCount?` (${openCount})`:""),color:"#F5A442"},{id:"vendors",label:"Vendors",color:"#F76F6F"},{id:"vacancies",label:"Vacancies",color:"#5B9CF6"}];
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:14}},
+    React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none",paddingBottom:2}},
+      subs.map(s=>React.createElement("button",{key:s.id,onClick:()=>setSub(s.id),style:{flexShrink:0,padding:"6px 14px",borderRadius:20,border:"1px solid "+(sub===s.id?s.color:T.border),background:sub===s.id?s.color+"22":"transparent",color:sub===s.id?s.color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}},s.label))
+    ),
+    sub==="orders"&&React.createElement(MgrWorkOrders,{workOrders,setWorkOrders,prop,units,unitCfg,profiles,rentStatus,propId}),
+    sub==="vendors"&&React.createElement(MgrVendors,null),
+    sub==="vacancies"&&React.createElement(MgrVacancy,{prop,units,unitCfg,profiles,rentStatus})
+  );
+}
+
+// ---- MgrFinanceHub ----
+
+function MgrFinanceHub({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses}){
+  const[sub,setSub]=useState("analytics");
+  const subs=[{id:"analytics",label:"ZRent Analytics",color:"#F5C542"},{id:"smartRent",label:"Smart Pricing",color:"#3EC98E"},{id:"finance",label:"Tax & Finance",color:"#A78BFA"},{id:"lender",label:"Lender Package",color:"#5B9CF6"}];
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:14}},
+    React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none",paddingBottom:2}},
+      subs.map(s=>React.createElement("button",{key:s.id,onClick:()=>setSub(s.id),style:{flexShrink:0,padding:"6px 14px",borderRadius:20,border:"1px solid "+(sub===s.id?s.color:T.border),background:sub===s.id?s.color+"22":"transparent",color:sub===s.id?s.color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}},s.label))
+    ),
+    sub==="analytics"&&React.createElement(MgrZRentAnalytics,{prop,units,unitCfg,profiles,rentStatus,workOrders}),
+    sub==="smartRent"&&React.createElement(MgrSmartRent,{prop,units,unitCfg,rentStatus}),
+    sub==="finance"&&React.createElement(MgrFinance,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses}),
+    sub==="lender"&&React.createElement(MgrLenderPackage,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses})
+  );
+}
+
+// ---- MgrDocsHub ----
+
+function MgrDocsHub({sharedDocs,setSharedDocs,units,profiles,prop,unitCfg,reminders,setReminders,rentStatus,workOrders}){
+  const[sub,setSub]=useState("docs");
+  const subs=[{id:"docs",label:"Documents",color:"#A78BFA"},{id:"reminders",label:"Reminders",color:"#F76F6F"}];
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:14}},
+    React.createElement("div",{style:{display:"flex",gap:6,paddingBottom:2}},
+      subs.map(s=>React.createElement("button",{key:s.id,onClick:()=>setSub(s.id),style:{flexShrink:0,padding:"6px 14px",borderRadius:20,border:"1px solid "+(sub===s.id?s.color:T.border),background:sub===s.id?s.color+"22":"transparent",color:sub===s.id?s.color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer"}},s.label))
+    ),
+    sub==="docs"&&React.createElement(MgrDocs,{sharedDocs,setSharedDocs,units,profiles,prop,unitCfg}),
+    sub==="reminders"&&React.createElement(MgrReminders,{reminders,setReminders,prop,units,unitCfg,profiles,rentStatus,workOrders})
+  );
+}
+
+// ---- MgrZRentAnalytics ----
+
+function MgrOverview({propId,prop,unitCfg,profiles,rentStatus,units,totalExpected,reminders,setTab,workOrders}){
+  const paid=Object.values(rentStatus).filter(s=>s==="paid").length;
+  const overdue=Object.values(rentStatus).filter(s=>s==="overdue").length;
+  const propOrders=(workOrders||[]).filter(o=>o.propId===propId||(!o.propId&&propId==="cottage"));
+  const openOrders=propOrders.filter(o=>o.status==="open"||o.status==="in_progress");
+  const urgent=reminders?reminders.filter(r=>!r.dismissed&&(r.type==="rent"||r.daysOut<0||r.daysOut<=14)):[];
+  const vacantUnits=units.filter(u=>!profiles[u]);
+  const vacantRentLost=vacantUnits.reduce((s,u)=>s+(unitCfg[u]?.rent||0),0);
+  const[vacTick,setVacTick]=useState(0);
+  useEffect(()=>{if(!vacantRentLost)return;const t=setInterval(()=>setVacTick(p=>p+1),1000);return()=>clearInterval(t);},[vacantRentLost]);
+  const lostPerSecond=vacantRentLost/(30*24*3600);
+  const lostToday=Math.round(lostPerSecond*86400*100)/100;
+  return React.createElement(React.Fragment,null,
+    React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},prop.name),
+    React.createElement("div",{style:{fontSize:12,color:T.muted,marginTop:-10}},prop.type," \u00B7 ",prop.city),
+    vacantUnits.length>0&&React.createElement("div",{style:{background:"linear-gradient(135deg,#1a0a0a,#120506)",border:"1px solid "+T.red+"44",borderRadius:14,padding:"14px 16px",marginTop:10,display:"flex",justifyContent:"space-between",alignItems:"center"}},
+      React.createElement("div",null,
+        React.createElement("div",{style:{fontSize:10,color:T.red,fontWeight:700,letterSpacing:".1em",marginBottom:4}},"\uD83D\uDD34 VACANCY COST CLOCK"),
+        React.createElement("div",{style:{fontFamily:T.serif,fontSize:26,fontWeight:900,color:T.red}},"-$"+lostToday.toFixed(2),React.createElement("span",{style:{fontSize:12,color:T.muted,fontWeight:400}},"/today")),
+        React.createElement("div",{style:{fontSize:11,color:T.muted,marginTop:2}},vacantUnits.length+" vacant unit"+(vacantUnits.length>1?"s":"")+": "+vacantUnits.join(", "))
+      ),
+      React.createElement("div",{style:{textAlign:"right"}},
+        React.createElement("div",{style:{fontSize:10,color:T.muted,fontWeight:700,marginBottom:4}},"MONTHLY LOSS"),
+        React.createElement("div",{style:{fontFamily:T.serif,fontSize:18,fontWeight:900,color:T.red}},"$"+vacantRentLost.toLocaleString())
+      )
+    ),
+    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}},[{label:"Total Units",v:units.length.toString(),s:prop.name,c:prop.color},{label:"Monthly Expected",v:"$"+totalExpected.toLocaleString(),s:"all units",c:T.green},{label:"Paid This Month",v:`${paid}/${units.length}`,s:"units paid",c:T.green},{label:"Overdue",v:overdue.toString(),s:"need attention",c:overdue>0?T.red:T.green}].map(s=>React.createElement(Card,{key:s.label,style:{padding:14}},React.createElement("div",{style:{fontSize:10,color:T.muted,fontWeight:700,letterSpacing:".1em",marginBottom:4}},s.label.toUpperCase()),React.createElement("div",{style:{fontSize:22,fontWeight:900,color:s.c,fontFamily:T.serif}},s.v),React.createElement("div",{style:{fontSize:11,color:T.muted}},s.s)))),
+    openOrders.length>0&&React.createElement("div",{onClick:()=>setTab("orders"),style:{padding:12,borderRadius:12,background:T.blue+"12",border:`1px solid ${T.blue}33`,cursor:"pointer",display:"flex",alignItems:"center",gap:10}},React.createElement(Icon,{d:IC.orders,size:18,color:T.blue}),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontSize:13,fontWeight:700,color:T.blue}},openOrders.length," Active Work Order",openOrders.length>1?"s":""),React.createElement("div",{style:{fontSize:11,color:T.muted}},openOrders[0].title," \u2014 Unit ",openOrders[0].unit,openOrders[0].eta?` \u00B7 ETA: ${openOrders[0].eta}`:" \u00B7 Awaiting vendor"))),
+    urgent.length>0&&React.createElement("div",{onClick:()=>setTab("reminders"),style:{padding:12,borderRadius:12,background:"#F76F6F12",border:"1px solid #F76F6F33",cursor:"pointer",display:"flex",alignItems:"center",gap:10}},React.createElement(Icon,{d:IC.bell,size:18,color:T.red}),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontSize:13,fontWeight:700,color:T.red}},urgent.length," Urgent Reminder",urgent.length>1?"s":""),React.createElement("div",{style:{fontSize:11,color:T.muted}},urgent[0].title))),
+    React.createElement(Card,null,React.createElement("div",{style:{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:".1em",marginBottom:14}},"RENT STATUS"),units.map(u=>{const p=profiles[u];const status=rentStatus[u];const sc=status==="paid"?T.green:status==="overdue"?T.red:status==="due"?T.gold:T.muted;return React.createElement("div",{key:u,style:{display:"flex",alignItems:"center",gap:12,padding:"11px 0",borderBottom:`1px solid ${T.border}`}},React.createElement("div",{style:{width:38,height:38,borderRadius:10,background:p?T.greenDim:T.faint,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900,color:p?T.green:T.muted,fontFamily:T.serif,flexShrink:0}},u),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontSize:13,fontWeight:700,color:T.text}},p?`${p.firstName} ${p.lastName}`:"Vacant"),React.createElement("div",{style:{fontSize:11,color:T.muted}},unitCfg[u].type," \u00B7 $",unitCfg[u].rent.toLocaleString(),"/mo")),React.createElement("span",{style:{background:sc+"22",color:sc,fontSize:11,fontWeight:700,padding:"4px 10px",borderRadius:12,border:`1px solid ${sc}44`}},status==="paid"?"\u2713 Paid":status==="overdue"?"\u26A0 Overdue":status==="due"?"Due Soon":"Vacant"));})));}
+
+// ---- MgrUnits ----
+
+function MgrUnits({prop,unitCfg,profiles,rentStatus,units,setRentStatusOverrides,updProfile,updUnit}){
+  const[selUnit,setSelUnit]=useState(null);
+  const[profileTab,setProfileTab]=useState("info");
+  const colors=["#3EC98E","#5B9CF6","#A78BFA","#F5C542","#F76F6F","#7BCFB8","#F5A442","#E879A0"];
+  const floors=[...new Set(Object.values(unitCfg).map(u=>u.floor))].sort();
+  const floorLabels={1:"1st Floor",2:"2nd Floor",3:"3rd Floor"};
+  const TENANT_VEHICLES={"101":{make:"Toyota",model:"Camry",year:"2021",color:"Silver",plate:"ABC-1234",state:"MA"},"102":{make:"Honda",model:"Civic",year:"2019",color:"Blue",plate:"XYZ-5678",state:"MA"},"201":{make:"Ford",model:"F-150",year:"2020",color:"Black",plate:"TRK-9012",state:"MA"},"202":{make:"Chevrolet",model:"Malibu",year:"2022",color:"White",plate:"MLB-3456",state:"MA"},"301":{make:"Nissan",model:"Altima",year:"2018",color:"Red",plate:"NIS-7890",state:"MA"},"1A":{make:"Toyota",model:"RAV4",year:"2020",color:"Gray",plate:"RAV-1111",state:"MA"},"2A":{make:"Honda",model:"Accord",year:"2021",color:"White",plate:"ACC-2222",state:"MA"},"1":{make:"Subaru",model:"Outback",year:"2019",color:"Green",plate:"OUT-3333",state:"MA"},"2":{make:"Mazda",model:"CX-5",year:"2022",color:"Red",plate:"MAZ-4444",state:"MA"}};
+  const TENANT_NOTES={"101":"Long-term tenant. Very reliable, always pays on time. Renewed lease twice.","102":"Quiet tenant. Works night shifts — please schedule maintenance in afternoons.","201":"Rent consistently late. Issued written warning April 2025. Has cat (approved).","202":"New tenant as of Sep 2024. No issues to date.","301":"Due for renewal discussion. Has expressed interest in staying.","1A":"Excellent tenant. Referred two other tenants to the building.","2A":"Overdue balance from February. Payment plan agreed upon.","1":"Long-term tenant, 4 years. Has dog (approved, $50/mo pet fee).","2":"On month-to-month after lease expiry. Renewal pending."};
+  const TENANT_VIOLATIONS={"201":[{date:"Mar 15, 2025",type:"Late Payment",desc:"Rent received 12 days after due date. $75 late fee assessed.",status:"resolved"}],"2A":[{date:"Feb 3, 2025",type:"Late Payment",desc:"February rent not received. Payment plan established.",status:"open"}],"202":[{date:"Jan 10, 2025",type:"Noise Complaint",desc:"Neighbor complaint about loud music after 11pm. Verbal warning issued.",status:"resolved"}]};
+  const riskScore=(unit)=>{const st=rentStatus[unit];const violations=({"201":[1],"2A":[1]})[unit]||[];const base=st==="paid"?90:st==="due"?72:st==="overdue"?45:50;return Math.max(20,base-violations.length*15+(profiles[unit]?0:-20));};
+  if(selUnit){
+    const p=profiles[selUnit];const cfg=unitCfg[selUnit];const status=rentStatus[selUnit];
+    const sc=status==="paid"?T.green:status==="overdue"?T.red:status==="due"?T.gold:T.muted;
+    const colorIdx=units.indexOf(selUnit)%colors.length;
+    const vehicle=TENANT_VEHICLES[selUnit];const notes=TENANT_NOTES[selUnit];const violations=TENANT_VIOLATIONS[selUnit]||[];
+    const PTABS=[{id:"info",label:"Info",icon:"\uD83D\uDC64"},{id:"lease",label:"Lease",icon:"\uD83D\uDCCB"},{id:"vehicle",label:"Vehicle",icon:"\uD83D\uDE97"},{id:"violations",label:"Violations",icon:"\u26A0\uFE0F",badge:violations.filter(v=>v.status==="open").length||null},{id:"notes",label:"Notes",icon:"\uD83D\uDCDD"}];
+    return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
+      React.createElement("button",{onClick:()=>{setSelUnit(null);setProfileTab("info");},style:{display:"flex",alignItems:"center",gap:6,background:"none",border:"none",color:T.green,cursor:"pointer",fontSize:13,fontWeight:700,padding:0}},React.createElement(Icon,{d:IC.back,size:16,color:T.green})," All Units"),
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:14,padding:"14px 16px",background:T.card,borderRadius:14,border:`1px solid ${T.border}`}},
+        React.createElement("div",{style:{width:56,height:56,borderRadius:16,flexShrink:0,background:p?`linear-gradient(135deg,${colors[colorIdx]},${colors[colorIdx]}bb)`:"#2A3F30",display:"flex",alignItems:"center",justifyContent:"center",fontSize:p?18:22,fontWeight:900,color:p?"#071a0e":T.muted,fontFamily:T.serif}},p?initials(`${p.firstName} ${p.lastName}`):selUnit),
+        React.createElement("div",{style:{flex:1}},
+          React.createElement("div",{style:{fontFamily:T.serif,fontSize:20,fontWeight:900,color:T.text}},p?p.firstName+" "+p.lastName:"Vacant"),
+          React.createElement("div",{style:{fontSize:12,color:prop.color,marginTop:2,fontWeight:600}},"Unit ",selUnit," \u00B7 ",cfg.type," \u00B7 $",cfg.rent.toLocaleString(),"/mo")),
+        React.createElement("span",{style:{background:sc+"22",color:sc,fontSize:11,fontWeight:700,padding:"4px 10px",borderRadius:12,flexShrink:0}},status==="paid"?"\u2713 Paid":status==="overdue"?"\u26A0 Overdue":status==="due"?"Due Soon":"Vacant")),
+      React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none"}},
+        PTABS.map(t=>React.createElement("button",{key:t.id,onClick:()=>setProfileTab(t.id),style:{flexShrink:0,display:"flex",alignItems:"center",gap:5,padding:"7px 14px",borderRadius:20,border:`1px solid ${profileTab===t.id?prop.color:T.border}`,background:profileTab===t.id?prop.color+"18":"transparent",color:profileTab===t.id?prop.color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer"}},t.icon," ",t.label,t.badge&&React.createElement("span",{style:{background:T.red,color:"#fff",fontSize:9,fontWeight:900,padding:"1px 5px",borderRadius:8,marginLeft:2}},t.badge)))),
+      profileTab==="info"&&p&&React.createElement(EditTenantInfo,{p,cfg,selUnit,prop,updProfile,updUnit}),
+      profileTab==="info"&&!p&&React.createElement(Card,null,React.createElement("div",{style:{textAlign:"center",padding:"20px",color:T.muted}},"Vacant unit — no tenant on file")),
+      profileTab==="lease"&&React.createElement(Card,null,
+        React.createElement("div",{style:{fontSize:10,color:prop.color,fontWeight:900,letterSpacing:".1em",marginBottom:12}},"LEASE DOCUMENTS"),
+        [{name:"Lease Agreement 2024-2025.pdf",date:"Sep 1, 2024",status:"signed",size:"412 KB"},{name:"Move-In Inspection Report.pdf",date:"Sep 1, 2024",status:"signed",size:"1.2 MB"},{name:"Building Rules & Regulations.pdf",date:"Sep 1, 2024",status:"signed",size:"88 KB"},{name:"Lease Renewal Offer 2025-2026.pdf",date:"Mar 15, 2025",status:"pending",size:"380 KB"}].map((doc,i)=>React.createElement("div",{key:i,style:{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:`1px solid ${T.border}`}},
+          React.createElement("div",{style:{width:32,height:40,background:"#fff",borderRadius:4,boxShadow:"0 1px 4px rgba(0,0,0,.2)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",paddingBottom:4,position:"relative",flexShrink:0,border:"1px solid #e0e0e0"}},
+            React.createElement("div",{style:{position:"absolute",top:0,right:0,width:0,height:0,borderStyle:"solid",borderWidth:"8px 8px 0 0",borderColor:`${prop.color} transparent transparent transparent`}}),
+            React.createElement("span",{style:{fontSize:7,fontWeight:900,color:prop.color}},"PDF")),
+          React.createElement("div",{style:{flex:1,minWidth:0}},
+            React.createElement("div",{style:{fontSize:12,fontWeight:700,color:T.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},doc.name),
+            React.createElement("div",{style:{fontSize:10,color:T.muted,marginTop:2}},doc.date," \u00B7 ",doc.size)),
+          React.createElement("span",{style:{fontSize:10,fontWeight:700,color:doc.status==="signed"?T.green:T.gold,background:(doc.status==="signed"?T.green:T.gold)+"22",padding:"2px 8px",borderRadius:10,flexShrink:0}},doc.status==="signed"?"\u2713 Signed":"Pending")))),
+      profileTab==="vehicle"&&React.createElement(Card,null,
+        React.createElement("div",{style:{fontSize:10,color:prop.color,fontWeight:900,letterSpacing:".1em",marginBottom:12}},"REGISTERED VEHICLE"),
+        vehicle?[["Make",vehicle.make],["Model",vehicle.model],["Year",vehicle.year],["Color",vehicle.color],["License Plate",vehicle.plate],["State",vehicle.state],["Parking Spot","Assigned \u2014 Lot A"]].map(([l,v])=>React.createElement("div",{key:l,style:{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:`1px solid ${T.border}`}},React.createElement("span",{style:{fontSize:12,color:T.muted}},l),React.createElement("span",{style:{fontSize:12,fontWeight:600,color:T.text}},v))):React.createElement("div",{style:{textAlign:"center",padding:"20px",color:T.muted,fontSize:13}},"No vehicle registered for this unit")),
+      profileTab==="violations"&&React.createElement(React.Fragment,null,
+        violations.length===0?React.createElement(Card,null,React.createElement("div",{style:{textAlign:"center",padding:"20px",color:T.green,fontSize:13}},"\u2705 No violations on record")):
+        violations.map((v,i)=>React.createElement(Card,{key:i,style:{border:`1px solid ${v.status==="open"?T.red+"44":T.border}`}},
+          React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}},
+            React.createElement("div",null,React.createElement("div",{style:{fontSize:13,fontWeight:800,color:T.text}},v.type),React.createElement("div",{style:{fontSize:11,color:T.muted,marginTop:2}},v.date)),
+            React.createElement("span",{style:{fontSize:10,fontWeight:700,color:v.status==="open"?T.red:T.green,background:(v.status==="open"?T.red:T.green)+"22",padding:"2px 8px",borderRadius:10}},v.status==="open"?"Open":"\u2713 Resolved")),
+          React.createElement("div",{style:{fontSize:12,color:T.muted,lineHeight:1.6}},v.desc)))),
+      profileTab==="notes"&&React.createElement(Card,null,
+        React.createElement("div",{style:{fontSize:10,color:prop.color,fontWeight:900,letterSpacing:".1em",marginBottom:12}},"PROPERTY MANAGER NOTES"),
+        React.createElement("div",{style:{fontSize:13,color:T.text,lineHeight:1.8,fontFamily:"Georgia,serif",fontStyle:"italic"}},notes||"No notes for this unit."),
+        React.createElement("div",{style:{marginTop:12,paddingTop:12,borderTop:`1px solid ${T.border}`,fontSize:10,color:T.muted}},"Last updated Apr 15, 2025 \u00B7 Property Manager")));
+  }
+  return React.createElement(React.Fragment,null,
+    React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},"Units \u2014 ",prop.name),
+    floors.map(floor=>React.createElement("div",{key:floor},
+      React.createElement("div",{style:{fontSize:11,color:prop.color,fontWeight:700,letterSpacing:".12em",marginBottom:10,marginTop:4}},floorLabels[floor]||"Floor "+floor),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}},
+        units.filter(u=>unitCfg[u].floor===floor).map(unit=>{
+          const p=profiles[unit];const status=rentStatus[unit];
+          const sc=status==="paid"?T.green:status==="overdue"?T.red:status==="due"?T.gold:T.muted;
+          const colorIdx=units.indexOf(unit)%colors.length;
+          return React.createElement("div",{key:unit,onClick:()=>setSelUnit(unit),style:{background:p?prop.color+"18":T.card,border:`1.5px solid ${p?prop.color+"44":T.border}`,borderRadius:16,padding:"14px 12px",cursor:"pointer",transition:"all .18s"}},
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:10}},
+              React.createElement("div",{style:{width:44,height:44,borderRadius:12,flexShrink:0,background:p?`linear-gradient(135deg,${colors[colorIdx]},${colors[colorIdx]}bb)`:"#2A3F30",display:"flex",alignItems:"center",justifyContent:"center",fontSize:p?13:16,fontWeight:900,color:p?"#071a0e":T.muted,fontFamily:T.serif}},p?initials(`${p.firstName} ${p.lastName}`):unit),
+              React.createElement("div",null,React.createElement("div",{style:{fontSize:14,fontWeight:800,color:T.text,fontFamily:T.serif}},"Unit ",unit),React.createElement("div",{style:{fontSize:11,color:T.muted}},unitCfg[unit].type))),
+            p&&React.createElement("div",{style:{fontSize:13,fontWeight:600,color:T.text,marginBottom:8}},p.firstName," ",p.lastName),
+            React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
+              React.createElement("span",{style:{background:sc+"22",color:sc,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:12}},p?status==="paid"?"\u2713 Paid":status==="overdue"?"\u26A0 Overdue":status==="due"?"Due Soon":"Vacant":"Vacant"),
+              p&&React.createElement("span",{style:{fontSize:11,color:T.muted}},"$",unitCfg[unit].rent,"/mo")));
+        })))));
+}
+
+// ---- MgrMessages ----
+
+function MgrMessages({tenantInboxes,setTenantInboxes,units,profiles}){const[selUnit,setSelUnit]=useState(units[0]||"101");const[input,setInput]=useState("");const bottomRef=useRef();const msgs=tenantInboxes[selUnit]||[];useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});},[msgs,selUnit]);const send=()=>{if(!input.trim())return;const m={id:Date.now(),from:"manager",text:input,time:"Just now"};setTenantInboxes(prev=>({...prev,[selUnit]:[...(prev[selUnit]||[]),m]}));setInput("");};return React.createElement(React.Fragment,null,React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},"Messages"),React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8}},units.map(u=>React.createElement("button",{key:u,onClick:()=>setSelUnit(u),style:{padding:"8px 14px",borderRadius:10,border:`1px solid ${selUnit===u?T.green:T.border}`,background:selUnit===u?T.greenDim:"transparent",color:selUnit===u?T.green:T.muted,fontSize:13,fontWeight:700,cursor:"pointer"}},u))),React.createElement("div",{style:{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:".1em"}},"UNIT ",selUnit," \u2014 ",profiles[selUnit]?profiles[selUnit].firstName+" "+profiles[selUnit].lastName:"Vacant"),React.createElement(Card,null,React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10,maxHeight:300,overflowY:"auto",paddingBottom:4}},msgs.length===0&&React.createElement("div",{style:{textAlign:"center",color:T.muted,fontSize:13,padding:"20px 0"}},"No messages yet"),msgs.map(m=>React.createElement("div",{key:m.id,style:{display:"flex",justifyContent:m.from==="tenant"?"flex-end":"flex-start"}},React.createElement("div",{style:{maxWidth:"80%",background:m.from==="tenant"?`linear-gradient(135deg,${T.green},#2aaa72)`:T.surface,borderRadius:m.from==="tenant"?"14px 14px 4px 14px":"14px 14px 14px 4px",padding:"9px 13px",border:m.from==="manager"?`1px solid ${T.border}`:"none",fontSize:13,color:m.from==="tenant"?"#071a0e":T.text,lineHeight:1.5,fontWeight:m.from==="tenant"?600:400,whiteSpace:"pre-line"}},m.text))),React.createElement("div",{ref:bottomRef})),React.createElement("div",{style:{marginTop:10,display:"flex",gap:8,borderTop:`1px solid ${T.border}`,paddingTop:10}},React.createElement("input",{value:input,onChange:e=>setInput(e.target.value),onKeyDown:e=>e.key==="Enter"&&send(),placeholder:"Message tenant\u2026",style:{flex:1,background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"8px 12px",color:T.text,fontSize:13,outline:"none"}}),React.createElement("button",{onClick:send,disabled:!input.trim(),style:{background:`linear-gradient(135deg,${T.green},#2aaa72)`,border:"none",borderRadius:8,padding:"8px 14px",color:"#071a0e",fontWeight:700,fontSize:13,cursor:"pointer",opacity:input.trim()?1:0.4}},"Send"))));}
+
+
+// ---- TenantMoveOut ----
+
 // ---- ManagerDemo ----
 function ManagerDemo({onBack,workOrders,setWorkOrders,tenantInboxes,setTenantInboxes,reminders,setReminders,sharedDocs,setSharedDocs,applications,setApplications,pendingSigAlert,setPendingSigAlert,refreshState}){
   const[tab,setTab]=useState("overview");
