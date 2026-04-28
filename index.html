@@ -3017,7 +3017,8 @@ function App(){
   const sharedProps={workOrders,setWorkOrders,tenantInboxes,setTenantInboxes,sharedDocs,setSharedDocs,refreshState};
   const[mUnitCfg,setMUnitCfg]=useState(()=>JSON.parse(JSON.stringify(PROPERTY_UNIT_CONFIG)));
   const[mProfiles,setMProfiles]=useState(()=>JSON.parse(JSON.stringify(PROPERTY_PROFILES)));
-  const updUnit=(pid,unit,f,v)=>setMUnitCfg(p=>{const n=JSON.parse(JSON.stringify(p));n[pid][unit][f]=v;return n;});
+  useEffect(()=>{fbRead("cg_rent_overrides").then(v=>{if(v)setMUnitCfg(prev=>{const n=JSON.parse(JSON.stringify(prev));Object.entries(v).forEach(([pid,units])=>{Object.entries(units).forEach(([u,rent])=>{if(n[pid]&&n[pid][u])n[pid][u].rent=rent;});});return n;});});},[]);
+  const updUnit=(pid,unit,f,v)=>{setMUnitCfg(p=>{const n=JSON.parse(JSON.stringify(p));n[pid][unit][f]=v;if(f==="rent"){fbRead("cg_rent_overrides").then(existing=>{const overrides=existing||{};if(!overrides[pid])overrides[pid]={};overrides[pid][unit]=v;fbWrite("cg_rent_overrides",overrides);});}return n;});};
   const updProfile=(pid,unit,f,v)=>setMProfiles(p=>{const n=JSON.parse(JSON.stringify(p));if(!n[pid][unit])n[pid][unit]={};n[pid][unit][f]=v;return n;});
   if(vendorWoId){return React.createElement(VendorPortal,{woId:vendorWoId,workOrders:workOrders});}
   if(screen==="splash")return React.createElement(Splash,{onDone:()=>setScreen("landing")});
