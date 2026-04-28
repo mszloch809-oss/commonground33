@@ -2634,8 +2634,8 @@ function ManagerDemo({onBack,workOrders,setWorkOrders,tenantInboxes,setTenantInb
   const[mUnitCfg,setMUnitCfg]=mUnitCfgProp&&setMUnitCfgProp?[mUnitCfgProp,setMUnitCfgProp]:useState(()=>JSON.parse(JSON.stringify(PROPERTY_UNIT_CONFIG)));
   const unitCfg=mUnitCfg[propId];
   const profiles=mProfiles[propId];
-  const updProfile=updProfileProp||(pid,unit,f,v)=>setMProfiles(p=>{const n=JSON.parse(JSON.stringify(p));if(!n[pid][unit])n[pid][unit]={};n[pid][unit][f]=v;return n;});
-  const updUnit=updUnitProp||(pid,unit,f,v)=>setMUnitCfg(p=>{const n=JSON.parse(JSON.stringify(p));n[pid][unit][f]=v;return n;});
+  const updProfile=updProfileProp||((pid,unit,f,v)=>setMProfiles(p=>{const n=JSON.parse(JSON.stringify(p));if(!n[pid][unit])n[pid][unit]={};n[pid][unit][f]=v;return n;}));
+  const updUnit=updUnitProp||((pid,unit,f,v)=>setMUnitCfg(p=>{const n=JSON.parse(JSON.stringify(p));n[pid][unit][f]=v;return n;}));
   const baseRentStatus=PROPERTY_RENT_STATUS[propId];
   const rentStatus={...baseRentStatus,...(rentStatusOverrides[propId]||{})};
   const units=Object.keys(unitCfg);
