@@ -79,6 +79,11 @@ const TRADES={plumbing:{label:"Plumbing",icon:"\uD83D\uDEB0",color:"#5B9CF6"},el
 const API={reportIssue:"/api/report-issue",state:"/api/state",managerAgent:"/api/manager-agent"};
 
 // ---- Splash ----
+const EXPENSE_CATS=["Insurance","Taxes","Repairs","Utilities","Landscaping","Management","Legal","Other"];
+
+const CAT_COLORS={Insurance:"#1565c0",Taxes:"#6a1b9a",Repairs:"#e65100",Utilities:"#00695c",Landscaping:"#2e7d32",Management:"#4527a0",Legal:"#880e4f",Other:"#37474f"};
+
+
 function Splash({onDone}){const[p,setP]=useState(0);useEffect(()=>{const t1=setTimeout(()=>setP(1),300),t2=setTimeout(()=>setP(2),900),t3=setTimeout(()=>setP(3),1600),t4=setTimeout(()=>onDone(),2600);return()=>[t1,t2,t3,t4].forEach(clearTimeout);},[]);return React.createElement("div",{style:{position:"fixed",inset:0,zIndex:999,background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:20}},React.createElement("div",{style:{position:"absolute",width:320,height:320,borderRadius:"50%",background:T.greenGlow,filter:"blur(80px)",top:"25%",left:"50%",transform:"translate(-50%,-50%)",opacity:p>=1?1:0,transition:"opacity 1s"}}),React.createElement("div",{style:{opacity:p>=1?1:0,transform:p>=1?"scale(1)":"scale(.7)",transition:"all .6s cubic-bezier(.34,1.56,.64,1)"}},React.createElement(CGMark,{size:88})),React.createElement("div",{style:{opacity:p>=2?1:0,transform:p>=2?"translateY(0)":"translateY(12px)",transition:"all .5s ease",textAlign:"center"}},React.createElement(CGWordmark,{size:32}),React.createElement("div",{style:{fontSize:11,color:T.muted,letterSpacing:".18em",textTransform:"uppercase",marginTop:6}},"Connected Living"),React.createElement("div",{style:{marginTop:10,padding:"6px 18px",borderRadius:20,background:T.gold+"18",border:`1px solid ${T.gold}44`,display:"inline-block",fontSize:12,color:T.gold,fontWeight:700}},"\u2726 LIVE DEMO")),React.createElement("div",{style:{display:"flex",gap:6,marginTop:8,opacity:p>=3?1:0,transition:"opacity .4s"}},[0,1,2].map(i=>React.createElement("div",{key:i,style:{width:6,height:6,borderRadius:"50%",background:T.green,animation:"pulse 1s ease-in-out infinite",animationDelay:`${i*0.2}s`}}))));}
 
 // ---- Landing ----
