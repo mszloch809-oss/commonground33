@@ -945,7 +945,29 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
   const noi2025Annualized=Math.round((totalIncome-totalExpenses)/4*12);
   const capRate2025=((noi2025Annualized/propValue)*100).toFixed(2);
 
-  const addExpense=()=>{
+  const[expPhoto,setExpPhoto]=useState(null);
+  const[expParsing,setExpParsing]=useState(false);
+  const photoRef=useRef();
+  const handleExpPhoto=async(e)=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=async(ev)=>{
+      setExpPhoto(ev.target.result);
+      setExpParsing(true);
+      try{
+        const base64=ev.target.result.split(",")[1];
+        const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:file.type,data:base64}},{type:"text",text:"This is a bill, invoice, or receipt. Extract: description (what it's for), amount (number only), and best category from: Insurance, Taxes, Repairs, Utilities, Landscaping, Management, Legal, Other. Reply ONLY with JSON: {\"desc\":\"...\",\"amount\":\"...\",\"cat\":\"...\"}"}]}]})});
+        const data=await res.json();
+        const text=data.content?.[0]?.text||"";
+        const parsed=JSON.parse(text.replace(/```json|```/g,"").trim());
+        if(parsed.desc)setExpDesc(parsed.desc);
+        if(parsed.amount)setExpAmt(parsed.amount);
+        if(parsed.cat)setExpCat(parsed.cat);
+      }catch(err){console.log("parse err",err);}
+      setExpParsing(false);
+    };
+    reader.readAsDataURL(file);
+  };
     if(!expDesc.trim()||!expAmt)return;
     setExtraExp(prev=>[...prev,{id:Date.now(),propId:prop.id,year,date:expDate,desc:expDesc,cat:expCat,amount:parseFloat(expAmt),vendor:"Manual Entry",recurring:false}]);
     setExpDesc("");setExpAmt("");setAddExp(false);
@@ -1067,6 +1089,11 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
         React.createElement(Btn,{onClick:()=>setAddExp(!addExp),small:true,variant:"green",icon:React.createElement(Icon,{d:IC.plus,size:13,color:T.green})},"Add Expense")),
       addExp&&React.createElement(Card,{style:{border:`1px solid ${T.green}44`}},
         React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},
+          React.createElement("label",{style:{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"10px",borderRadius:10,border:`1.5px dashed ${T.green}55`,background:T.greenDim,cursor:"pointer"}},
+            expParsing?React.createElement("span",{style:{color:T.green,fontSize:12,fontWeight:700}},"🤖 AI Reading Bill..."):
+            expPhoto?React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},React.createElement("img",{src:expPhoto,style:{width:36,height:36,borderRadius:6,objectFit:"cover"}}),React.createElement("span",{style:{color:T.green,fontSize:12,fontWeight:700}},"✅ Bill scanned — fields filled below")):
+            React.createElement("span",{style:{color:T.green,fontSize:12,fontWeight:700}},"📷 Take Photo or Upload Bill / Invoice"),
+            React.createElement("input",{type:"file",accept:"image/*",capture:"environment",style:{display:"none"},onChange:handleExpPhoto})),
           React.createElement(Input,{value:expDate,onChange:setExpDate,placeholder:"Date"}),
           React.createElement(Input,{value:expDesc,onChange:setExpDesc,placeholder:"Description"}),
           React.createElement("select",{value:expCat,onChange:e=>setExpCat(e.target.value),style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 14px",color:T.text,fontSize:14,outline:"none"}},
@@ -1074,7 +1101,7 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
           React.createElement(Input,{value:expAmt,onChange:setExpAmt,placeholder:"Amount",type:"number"}),
           React.createElement("div",{style:{display:"flex",gap:8}},
             React.createElement(Btn,{onClick:addExpense,disabled:!expDesc.trim()||!expAmt,full:true},"Add"),
-            React.createElement(Btn,{onClick:()=>setAddExp(false),variant:"ghost"},"Cancel")))),
+            React.createElement(Btn,{onClick:()=>{setAddExp(false);setExpPhoto(null);},variant:"ghost"},"Cancel")))),
       React.createElement(Card,null,
         React.createElement("div",{style:{fontSize:11,color:T.red,fontWeight:700,letterSpacing:".1em",marginBottom:12}},year===2024?"EXPENSES — 2024 FULL YEAR":"EXPENSES — 2025 YTD"),
         allExpenses.map((e,i)=>React.createElement("div",{key:e.id,style:{display:"flex",alignItems:"flex-start",gap:10,padding:"10px 0",borderBottom:i<allExpenses.length-1?`1px solid ${T.border}`:"none"}},
