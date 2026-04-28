@@ -2644,7 +2644,7 @@ function ManagerDemo({onBack,workOrders,setWorkOrders,tenantInboxes,setTenantInb
   const propOrders=workOrders.filter(o=>o.propId===propId||(!o.propId&&propId==="cottage"));
   const openOrders=propOrders.filter(o=>o.status==="open"||o.status==="in_progress").length;
   const mgTabs=[{id:"overview",label:"Overview",icon:IC.grid,color:"#3EC98E"},{id:"units",label:"Units",icon:IC.home,color:"#5B9CF6"},{id:"tenants",label:"Tenants",icon:IC.person,color:"#7BCFB8"},{id:"maintenance",label:"Ops",icon:IC.wrench,color:"#F5A442",badge:openOrders||null},{id:"finance",label:"Finance",icon:IC.ledger,color:"#F5C542"},{id:"docs",label:"Docs",icon:IC.doc,color:"#A78BFA"},{id:"agent",label:"AI Agent",icon:IC.spark,color:"#3EC98E"}];
-  const propCtx={propId,prop,unitCfg,profiles,rentStatus,units,totalExpected};
+  const propCtx={propId,prop,unitCfg,profiles,rentStatus,units,totalExpected,updProfile,updUnit};
   return React.createElement("div",{style:{minHeight:"100vh",background:T.bg}},
     React.createElement("div",{style:{position:"sticky",top:0,zIndex:20,background:T.bg+"f8",backdropFilter:"blur(16px)",borderBottom:`1px solid ${T.border}`}},
       React.createElement("div",{style:{padding:"12px 16px",display:"flex",alignItems:"center",gap:10}},
@@ -2840,9 +2840,28 @@ function MgrTenantsHub({prop,units,unitCfg,profiles,rentStatus,applications,setA
 function MgrUnits({prop,unitCfg,profiles,rentStatus,units,setRentStatusOverrides,updProfile,updUnit}){
   const[selUnit,setSelUnit]=useState(null);
   const[profileTab,setProfileTab]=useState("info");
+  const[showAddTenant,setShowAddTenant]=useState(false);
+  const[newTenant,setNewTenant]=useState({firstName:"",lastName:"",phone:"",email:"",moveIn:"",leaseEnd:""});
   const colors=["#3EC98E","#5B9CF6","#A78BFA","#F5C542","#F76F6F","#7BCFB8","#F5A442","#E879A0"];
   const floors=[...new Set(Object.values(unitCfg).map(u=>u.floor))].sort();
   const floorLabels={1:"1st Floor",2:"2nd Floor",3:"3rd Floor"};
+  const removeTenant=(unit)=>{
+    if(!window.confirm("Remove tenant from Unit "+unit+"? This will mark the unit vacant."))return;
+    if(updProfile){
+      ["firstName","lastName","phone","email","moveIn","leaseEnd"].forEach(f=>updProfile(prop.id,unit,f,""));
+    }
+    if(setRentStatusOverrides)setRentStatusOverrides(prev=>{const n={...prev};const pid=prop.id;n[pid]={...(n[pid]||{}),[unit]:"vacant"};return n;});
+    setSelUnit(null);
+  };
+  const saveNewTenant=(unit)=>{
+    if(!newTenant.firstName.trim()||!newTenant.lastName.trim())return;
+    if(updProfile){
+      Object.entries(newTenant).forEach(([f,v])=>updProfile(prop.id,unit,f,v));
+    }
+    if(setRentStatusOverrides)setRentStatusOverrides(prev=>{const n={...prev};const pid=prop.id;n[pid]={...(n[pid]||{}),[unit]:"paid"};return n;});
+    setShowAddTenant(false);
+    setNewTenant({firstName:"",lastName:"",phone:"",email:"",moveIn:"",leaseEnd:""});
+  };
   const TENANT_VEHICLES={"101":{make:"Toyota",model:"Camry",year:"2021",color:"Silver",plate:"ABC-1234",state:"MA"},"102":{make:"Honda",model:"Civic",year:"2019",color:"Blue",plate:"XYZ-5678",state:"MA"},"201":{make:"Ford",model:"F-150",year:"2020",color:"Black",plate:"TRK-9012",state:"MA"},"202":{make:"Chevrolet",model:"Malibu",year:"2022",color:"White",plate:"MLB-3456",state:"MA"},"301":{make:"Nissan",model:"Altima",year:"2018",color:"Red",plate:"NIS-7890",state:"MA"},"1A":{make:"Toyota",model:"RAV4",year:"2020",color:"Gray",plate:"RAV-1111",state:"MA"},"2A":{make:"Honda",model:"Accord",year:"2021",color:"White",plate:"ACC-2222",state:"MA"},"1":{make:"Subaru",model:"Outback",year:"2019",color:"Green",plate:"OUT-3333",state:"MA"},"2":{make:"Mazda",model:"CX-5",year:"2022",color:"Red",plate:"MAZ-4444",state:"MA"}};
   const TENANT_NOTES={"101":"Long-term tenant. Very reliable, always pays on time. Renewed lease twice.","102":"Quiet tenant. Works night shifts — please schedule maintenance in afternoons.","201":"Rent consistently late. Issued written warning April 2025. Has cat (approved).","202":"New tenant as of Sep 2024. No issues to date.","301":"Due for renewal discussion. Has expressed interest in staying.","1A":"Excellent tenant. Referred two other tenants to the building.","2A":"Overdue balance from February. Payment plan agreed upon.","1":"Long-term tenant, 4 years. Has dog (approved, $50/mo pet fee).","2":"On month-to-month after lease expiry. Renewal pending."};
   const TENANT_VIOLATIONS={"201":[{date:"Mar 15, 2025",type:"Late Payment",desc:"Rent received 12 days after due date. $75 late fee assessed.",status:"resolved"}],"2A":[{date:"Feb 3, 2025",type:"Late Payment",desc:"February rent not received. Payment plan established.",status:"open"}],"202":[{date:"Jan 10, 2025",type:"Noise Complaint",desc:"Neighbor complaint about loud music after 11pm. Verbal warning issued.",status:"resolved"}]};
@@ -2863,8 +2882,19 @@ function MgrUnits({prop,unitCfg,profiles,rentStatus,units,setRentStatusOverrides
         React.createElement("span",{style:{background:sc+"22",color:sc,fontSize:11,fontWeight:700,padding:"4px 10px",borderRadius:12,flexShrink:0}},status==="paid"?"\u2713 Paid":status==="overdue"?"\u26A0 Overdue":status==="due"?"Due Soon":"Vacant")),
       React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none"}},
         PTABS.map(t=>React.createElement("button",{key:t.id,onClick:()=>setProfileTab(t.id),style:{flexShrink:0,display:"flex",alignItems:"center",gap:5,padding:"7px 14px",borderRadius:20,border:`1px solid ${profileTab===t.id?prop.color:T.border}`,background:profileTab===t.id?prop.color+"18":"transparent",color:profileTab===t.id?prop.color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer"}},t.icon," ",t.label,t.badge&&React.createElement("span",{style:{background:T.red,color:"#fff",fontSize:9,fontWeight:900,padding:"1px 5px",borderRadius:8,marginLeft:2}},t.badge)))),
-      profileTab==="info"&&p&&React.createElement(EditTenantInfo,{p,cfg,selUnit,prop,updProfile,updUnit}),
-      profileTab==="info"&&!p&&React.createElement(Card,null,React.createElement("div",{style:{textAlign:"center",padding:"20px",color:T.muted}},"Vacant unit — no tenant on file")),
+      profileTab==="info"&&p&&React.createElement(React.Fragment,null,
+        React.createElement(EditTenantInfo,{p,cfg,selUnit,prop,updProfile,updUnit}),
+        React.createElement("button",{onClick:()=>removeTenant(selUnit),style:{width:"100%",marginTop:8,padding:"11px",borderRadius:10,border:`1px solid ${T.red}44`,background:T.red+"12",color:T.red,fontWeight:700,fontSize:13,cursor:"pointer"}},"🗑 Remove Tenant from Unit")),
+      profileTab==="info"&&!p&&React.createElement(Card,null,
+        showAddTenant?React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10}},
+          React.createElement("div",{style:{fontSize:11,color:T.green,fontWeight:900,letterSpacing:".1em",marginBottom:4}},"ADD NEW TENANT"),
+          ...[["firstName","First Name"],["lastName","Last Name"],["phone","Phone"],["email","Email"],["moveIn","Move-In Date (MM/DD/YYYY)"],["leaseEnd","Lease End (MM/DD/YYYY)"]].map(([k,label])=>React.createElement("div",{key:k},React.createElement("div",{style:{fontSize:10,color:T.muted,fontWeight:700,marginBottom:3}}),React.createElement("input",{value:newTenant[k],onChange:e=>setNewTenant(f=>({...f,[k]:e.target.value})),placeholder:label,style:{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 12px",color:T.text,fontSize:13,outline:"none",boxSizing:"border-box"}}))),
+          React.createElement("div",{style:{display:"flex",gap:8}},
+            React.createElement("button",{onClick:()=>saveNewTenant(selUnit),disabled:!newTenant.firstName.trim()||!newTenant.lastName.trim(),style:{flex:1,padding:"11px",borderRadius:10,border:"none",background:newTenant.firstName.trim()&&newTenant.lastName.trim()?`linear-gradient(135deg,${T.green},#2aaa72)`:"#1a2e20",color:newTenant.firstName.trim()&&newTenant.lastName.trim()?"#071a0e":T.muted,fontWeight:800,fontSize:13,cursor:"pointer"}},"Add Tenant"),
+            React.createElement("button",{onClick:()=>setShowAddTenant(false),style:{padding:"11px 16px",borderRadius:10,border:`1px solid ${T.border}`,background:"transparent",color:T.muted,fontWeight:700,fontSize:13,cursor:"pointer"}},"Cancel"))):
+        React.createElement("div",{style:{textAlign:"center",padding:"20px",display:"flex",flexDirection:"column",gap:12,alignItems:"center"}},
+          React.createElement("div",{style:{fontSize:13,color:T.muted}},"Vacant unit — no tenant on file"),
+          React.createElement("button",{onClick:()=>setShowAddTenant(true),style:{padding:"10px 20px",borderRadius:10,border:"none",background:`linear-gradient(135deg,${T.green},#2aaa72)`,color:"#071a0e",fontWeight:800,fontSize:13,cursor:"pointer"}},"+ Add New Tenant"))),
       profileTab==="lease"&&React.createElement(Card,null,
         React.createElement("div",{style:{fontSize:10,color:prop.color,fontWeight:900,letterSpacing:".1em",marginBottom:12}},"LEASE DOCUMENTS"),
         [{name:"Lease Agreement 2024-2025.pdf",date:"Sep 1, 2024",status:"signed",size:"412 KB"},{name:"Move-In Inspection Report.pdf",date:"Sep 1, 2024",status:"signed",size:"1.2 MB"},{name:"Building Rules & Regulations.pdf",date:"Sep 1, 2024",status:"signed",size:"88 KB"},{name:"Lease Renewal Offer 2025-2026.pdf",date:"Mar 15, 2025",status:"pending",size:"380 KB"}].map((doc,i)=>React.createElement("div",{key:i,style:{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:`1px solid ${T.border}`}},
