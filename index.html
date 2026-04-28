@@ -2401,6 +2401,583 @@ function MgrApplications({applications,setApplications,prop,units,unitCfg}){
               React.createElement("span",{style:{fontSize:10,fontWeight:700,color:statusColor[app.status]||T.muted,background:(statusColor[app.status]||T.muted)+"22",padding:"2px 8px",borderRadius:10,flexShrink:0,marginLeft:8}},statusLabel[app.status]||app.status)),
             React.createElement("div",{style:{fontSize:11,color:T.muted}},"\uD83D\uDCBC ",app.employer," \u00B7 Income: ",app.form.annualIncome)))))));
 }
+function DocsTab({unit,prop,sharedDocs,setSharedDocs,onTenantSign,propId}){
+  const[viewing,setViewing]=useState(null);
+  const[signing,setSigning]=useState(false);
+  const[sentToLandlord,setSentToLandlord]=useState(null);
+  const[sigInput,setSigInput]=useState("");
+  const[signed,setSigned]=useState({});
+  const getLeaseContent=(unit,prop,profile,cfg)=>[
+    {heading:"RESIDENTIAL LEASE AGREEMENT",body:`This Lease Agreement is entered into as of September 1, 2024, between Upside Real Estate Development LLC ("Landlord") and ${profile?profile.firstName+" "+profile.lastName:"Tenant"} ("Tenant").`},
+    {heading:"1. PREMISES",body:`Landlord hereby leases to Tenant the residential unit located at ${prop.name}, Unit ${unit}, ${prop.city} ("Premises"), a ${cfg?cfg.type:"unit"}.`},
+    {heading:"2. TERM",body:`The lease term begins September 1, 2024 and ends ${profile?profile.leaseEnd:"August 31, 2025"}. This lease shall automatically terminate on the end date unless renewed in writing by both parties.`},
+    {heading:"3. RENT",body:`Tenant agrees to pay $${cfg?cfg.rent.toLocaleString():"1,590"} per month, due on the 1st of each month. Rent paid after the 5th of the month shall incur a late fee of $75. Payments are made through the CommonGround tenant portal.`},
+    {heading:"4. SECURITY DEPOSIT",body:`Tenant has paid a security deposit of $${cfg?(cfg.rent*2).toLocaleString():"3,180"}, equal to two months rent. The deposit will be returned within 30 days of move-out, less any deductions for damages beyond normal wear and tear.`},
+    {heading:"5. UTILITIES",body:"Tenant is responsible for: electricity, gas, internet, and cable. Landlord provides: water, sewer, trash removal, and building common area maintenance."},
+    {heading:"6. MAINTENANCE",body:"Tenant shall keep the Premises clean and notify Landlord promptly of any needed repairs via the CommonGround maintenance portal. Landlord shall respond to emergency repairs within 24 hours and non-emergency repairs within 7 business days."},
+    {heading:"7. PETS",body:"No pets are permitted without prior written consent from Landlord. Unauthorized pets will result in a $250 fee per month and may be grounds for lease termination."},
+    {heading:"8. SIGNATURES",body:`Landlord: Upside Real Estate Development LLC\nDate: September 1, 2024\n\nTenant: ${profile?profile.firstName+" "+profile.lastName:"___________________"}\nDate: September 1, 2024`}
+  ];
+  const getInspectionContent=(unit,prop,profile)=>[
+    {heading:"MOVE-IN INSPECTION REPORT",body:`Property: ${prop.name}, Unit ${unit}, ${prop.city}\nTenant: ${profile?profile.firstName+" "+profile.lastName:"N/A"}\nInspection Date: September 1, 2024\nInspector: Property Manager`},
+    {heading:"LIVING ROOM",body:"Walls: Good condition, minor scuff near entrance\nFlooring: Hardwood, good condition\nWindows: Clean, locks functioning\nLights: All working\nOutlets: All tested, working"},
+    {heading:"KITCHEN",body:"Cabinets: Good condition, all hinges intact\nCountertops: Clean, no damage\nRefrigerator: Clean, working, temperature verified\nStove/Oven: Clean, all burners working\nDishwasher: Working\nSink/Faucet: No leaks, good water pressure"},
+    {heading:"BATHROOM",body:"Toilet: Functioning, no leaks\nSink/Faucet: Working, no leaks\nShower/Tub: Clean, caulk in good condition\nExhaust Fan: Working\nMirror: No damage"},
+    {heading:"BEDROOM(S)",body:"Walls: Good condition\nCloset Doors: Working\nWindows: Functioning, locks working\nLighting: All working"},
+    {heading:"GENERAL",body:"Smoke Detectors: Tested, working (2 units)\nCarbon Monoxide Detector: Working\nEntry Door Lock: Working, 2 keys provided\nHVAC Filter: Recently replaced\nOverall Condition: Good"},
+    {heading:"TENANT ACKNOWLEDGMENT",body:`I, ${profile?profile.firstName+" "+profile.lastName:"Tenant"}, confirm the above accurately reflects the condition of the unit at move-in.\n\nSignature: ___________________\nDate: September 1, 2024`}
+  ];
+  const getRulesContent=()=>[
+    {heading:"BUILDING RULES & REGULATIONS",body:"These rules apply to all tenants and their guests. Violations may result in fines or lease termination. Last updated: January 15, 2024."},
+    {heading:"1. QUIET HOURS",body:"Quiet hours are 10:00 PM to 8:00 AM Sunday through Thursday, and 11:00 PM to 9:00 AM Friday and Saturday. Excessive noise at any time that disturbs neighbors is prohibited."},
+    {heading:"2. COMMON AREAS",body:"Common areas including hallways, laundry rooms, and entryways must be kept clean. Personal belongings may not be stored in hallways. Bicycles must be stored in designated areas only."},
+    {heading:"3. TRASH & RECYCLING",body:"Trash must be placed in designated bins only. Recycling must be sorted properly. Bulk items must be arranged for special pickup — do not leave in hallways or common areas. Trash pickup is Tuesday and Friday."},
+    {heading:"4. PARKING",body:"Each unit is assigned one parking space. Visitor parking is limited to 48 hours. No vehicle repairs, oil changes, or fluid draining in the parking lot. Unregistered vehicles will be towed at owner's expense."},
+    {heading:"5. LAUNDRY",body:"Laundry facilities are for tenants only. Please remove laundry promptly when done. Do not leave laundry unattended for more than 30 minutes. Report any machine malfunctions to management immediately."},
+    {heading:"6. SMOKING",body:"This is a smoke-free property. Smoking of any substance is prohibited in all units, common areas, and within 25 feet of any building entrance. Violations result in a $200 fine per occurrence."},
+    {heading:"7. GUESTS",body:"Guests may stay no longer than 7 consecutive days or 14 days total per year without written landlord approval. Tenants are responsible for their guests' behavior and compliance with these rules."},
+    {heading:"8. MAINTENANCE REQUESTS",body:"All maintenance requests must be submitted through the CommonGround portal. For emergencies (gas leak, flooding, no heat in winter), call 911 first then contact management immediately."},
+    {heading:"9. MOVE-OUT",body:"30 days written notice required before vacating. Unit must be returned in the same condition as move-in. Schedule a move-out inspection through the CommonGround portal at least one week before departure."}
+  ];
+  const profiles=PROPERTY_PROFILES[prop.id||"cottage"]||PROPERTY_PROFILES["cottage"];
+  const profile=profiles[unit];
+  const unitCfg=PROPERTY_UNIT_CONFIG[prop.id||"cottage"]||PROPERTY_UNIT_CONFIG["cottage"];
+  const cfg=unitCfg[unit];
+  const DOCS=[
+    {id:"lease",name:"Lease Agreement 2024-2025.pdf",cat:"Lease",color:"#2e7d32",date:"Sep 1, 2024",size:"412 KB",requiresSig:true},
+    {id:"inspection",name:"Move-In Inspection Report.pdf",cat:"Inspection",color:"#1565c0",date:"Sep 1, 2024",size:"1.2 MB",requiresSig:true},
+    {id:"rules",name:"Building Rules & Regulations.pdf",cat:"Rules",color:"#6a1b9a",date:"Jan 15, 2024",size:"88 KB",requiresSig:false}
+  ];
+  const uploadedDocs=(sharedDocs||[]).filter(d=>d.unit===unit||d.unit==="all");
+  const allDocs=[...DOCS,...uploadedDocs];
+  const getContent=(id)=>{
+    if(id==="lease")return getLeaseContent(unit,prop,profile,cfg);
+    if(id==="inspection")return getInspectionContent(unit,prop,profile);
+    if(id==="rules")return getRulesContent();
+    const ud=uploadedDocs.find(d=>d.id===id);
+    return ud?[{heading:ud.name,body:ud.description||"Document uploaded by property manager."}]:[];
+  };
+  const doc=allDocs.find(d=>d.id===viewing);
+  const isSigned=signed[viewing];
+  const handleSign=()=>{
+    if(!sigInput.trim())return;
+    const sigData={name:sigInput,date:new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}),time:new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})};
+    const doc=allDocs.find(d=>d.id===viewing);
+    setSigned(prev=>({...prev,[viewing]:sigData}));
+    setSigning(false);setSigInput("");
+    if(doc&&doc.requiresSig&&onTenantSign){
+      setSentToLandlord(doc.name);
+      onTenantSign(doc.id,doc.name,unit,propId||prop.id,sigData);
+    }
+  };
+  if(doc){
+    const sections=getContent(doc.id);
+    const sigData=signed[doc.id];
+    // Sent to landlord confirmation screen
+    if(sentToLandlord)return React.createElement("div",{style:{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"60vh",gap:16,textAlign:"center",padding:"20px"}},
+      React.createElement("div",{style:{width:80,height:80,borderRadius:"50%",background:"#e8f5e9",border:"2px solid #2e7d32",display:"flex",alignItems:"center",justifyContent:"center",fontSize:36}},"✅"),
+      React.createElement("div",{style:{fontFamily:T.serif,fontSize:24,fontWeight:900,color:T.text}},"Document Signed!"),
+      React.createElement("div",{style:{fontSize:13,color:T.muted,lineHeight:1.8,maxWidth:300}},
+        React.createElement("strong",null,sentToLandlord)," has been signed and sent to your landlord for countersignature."),
+      React.createElement("div",{style:{padding:"12px 18px",background:"#fff3e0",border:"1px solid #f5a623",borderRadius:10,fontSize:12,color:"#bf360c",fontWeight:600}},"\uD83D\uDD04 Switching to Manager Dashboard..."),
+      React.createElement("div",{style:{fontSize:11,color:T.muted}},"Your landlord will be notified to review and sign."));
+
+    // DocuSign-style overlay
+    if(signing)return React.createElement("div",{style:{position:"fixed",top:0,left:0,right:0,bottom:0,background:"#f4f4f4",zIndex:1000,display:"flex",flexDirection:"column",overflow:"hidden"}},
+      React.createElement("div",{style:{background:"#1f2937",padding:"12px 18px",display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}},
+        React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
+          React.createElement("div",{style:{width:28,height:28,borderRadius:6,background:"#f5a623",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}},"\u270D"),
+          React.createElement("div",null,
+            React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"#fff"}},"CommonGround eSign"),
+            React.createElement("div",{style:{fontSize:10,color:"rgba(255,255,255,.6)"}},doc.name))),
+        React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center"}},
+          React.createElement("div",{style:{fontSize:10,color:"rgba(255,255,255,.6)"}},"1 signature required"),
+          React.createElement("button",{onClick:()=>{setSigning(false);setSigInput("");},style:{padding:"6px 12px",borderRadius:6,border:"1px solid rgba(255,255,255,.3)",background:"transparent",color:"rgba(255,255,255,.8)",fontSize:11,cursor:"pointer"}},"Cancel"))),
+      React.createElement("div",{style:{flex:1,overflowY:"auto",padding:"20px 18px",display:"flex",flexDirection:"column",gap:14}},
+        React.createElement("div",{style:{background:"#fff",borderRadius:8,padding:"14px",boxShadow:"0 2px 12px rgba(0,0,0,.1)",borderLeft:"4px solid #f5a623"}},
+          React.createElement("div",{style:{fontSize:11,color:"#f5a623",fontWeight:800,letterSpacing:".08em",marginBottom:6}},"DOCUMENT DETAILS"),
+          [["Document",doc.name],["From","Upside Real Estate Dev."],["To",profiles[unit]?profiles[unit].firstName+" "+profiles[unit].lastName:"Tenant"],["Sent",doc.date]].map(([l,v])=>React.createElement("div",{key:l,style:{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid #f0f0f0",fontSize:12}},React.createElement("span",{style:{color:"#666"}},l),React.createElement("span",{style:{fontWeight:600,color:"#1f2937"}},v)))),
+        React.createElement("div",{style:{background:"#fff8f0",border:"2px dashed #f5a623",borderRadius:8,padding:"16px",position:"relative"}},
+          React.createElement("div",{style:{position:"absolute",top:-1,left:16,background:"#f5a623",color:"#fff",fontSize:9,fontWeight:900,padding:"2px 10px",borderRadius:"0 0 6px 6px",letterSpacing:".1em"}},"SIGN HERE"),
+          React.createElement("div",{style:{fontSize:11,color:"#5d4037",fontWeight:700,marginBottom:12}},"Type your full legal name to sign"),
+          React.createElement("input",{value:sigInput,onChange:e=>setSigInput(e.target.value),placeholder:"Full legal name",autoFocus:true,style:{width:"100%",background:"transparent",border:"none",borderBottom:"2px solid #1a237e",padding:"6px 4px",fontSize:20,fontFamily:"'Dancing Script',Pacifico,cursive",color:"#1a237e",outline:"none",boxSizing:"border-box"}}),
+          sigInput.trim()&&React.createElement("div",{style:{marginTop:12,padding:"12px",background:"#f3f4ff",borderRadius:6,border:"1px solid #c5cae9"}},
+            React.createElement("div",{style:{fontSize:8,color:"#5c6bc0",fontWeight:900,letterSpacing:".12em",marginBottom:6}},"SIGNATURE PREVIEW"),
+            React.createElement("div",{style:{fontFamily:"'Dancing Script',Pacifico,cursive",fontSize:38,color:"#1a237e",lineHeight:1.1}},sigInput),
+            React.createElement("div",{style:{borderTop:"1px solid #9fa8da",marginTop:8,paddingTop:4,display:"flex",justifyContent:"space-between",fontSize:9,color:"#9e9e9e"}},
+              React.createElement("span",null,sigInput),
+              React.createElement("span",null,new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}))))),
+        React.createElement("div",{style:{background:"#fff",borderRadius:8,padding:"12px 14px",fontSize:10,color:"#666",lineHeight:1.8,border:"1px solid #e0e0e0"}},
+          "\uD83D\uDD12 By clicking Adopt & Sign, I agree that my electronic signature is legally binding under the ESIGN Act and UETA. This document has the same legal force as a handwritten signature."),
+        React.createElement("div",{style:{display:"flex",gap:10}},
+          React.createElement("button",{onClick:()=>{setSigning(false);setSigInput("");},style:{flex:1,padding:"14px",borderRadius:8,border:"1px solid #e0e0e0",background:"#fff",color:"#666",fontWeight:700,fontSize:13,cursor:"pointer"}},"Decline"),
+          React.createElement("button",{onClick:handleSign,disabled:!sigInput.trim(),style:{flex:2,padding:"14px",borderRadius:8,border:"none",background:sigInput.trim()?"#2e7d32":"#e0e0e0",color:sigInput.trim()?"#fff":"#9e9e9e",fontWeight:800,fontSize:14,cursor:sigInput.trim()?"pointer":"default"}},sigInput.trim()?"Adopt & Sign":"Type your name above to continue")),
+        React.createElement("div",{style:{textAlign:"center",fontSize:10,color:"#9e9e9e",paddingBottom:8}},"\u26A1 CommonGround eSign \u00B7 Legally binding in all 50 states")));
+
+    return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:0,marginBottom:20}},
+      React.createElement("div",{style:{position:"sticky",top:0,zIndex:5,background:T.bg+"f8",backdropFilter:"blur(12px)",borderBottom:`1px solid ${T.border}`,padding:"10px 0",marginBottom:16,display:"flex",alignItems:"center",gap:10}},
+        React.createElement("button",{onClick:()=>{setViewing(null);setSigning(false);},style:{display:"flex",alignItems:"center",gap:6,background:"none",border:"none",color:T.green,cursor:"pointer",fontSize:13,fontWeight:700,padding:0}},React.createElement(Icon,{d:IC.back,size:16,color:T.green})," Docs"),
+        React.createElement("div",{style:{flex:1,fontSize:11,color:T.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},doc.name),
+        sigData&&React.createElement("span",{style:{fontSize:10,color:"#2e7d32",fontWeight:700,background:"#e8f5e9",padding:"3px 8px",borderRadius:10,flexShrink:0}},"\u2713 Signed")),
+      React.createElement("div",{style:{background:"#fff",borderRadius:16,overflow:"hidden",boxShadow:"0 8px 32px rgba(0,0,0,.35)",border:"1px solid rgba(0,0,0,.08)"}},
+        React.createElement("div",{style:{background:`linear-gradient(135deg,${doc.color},${doc.color}dd)`,padding:"18px 20px",display:"flex",alignItems:"center",gap:14}},
+          React.createElement("div",{style:{width:40,height:52,background:"rgba(255,255,255,.15)",borderRadius:6,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",paddingBottom:6,position:"relative",flexShrink:0}},
+            React.createElement("div",{style:{position:"absolute",top:0,right:0,width:0,height:0,borderStyle:"solid",borderWidth:"12px 12px 0 0",borderColor:`rgba(0,0,0,.2) transparent transparent transparent`}}),
+            React.createElement("span",{style:{fontSize:8,fontWeight:900,color:"#fff",letterSpacing:".05em"}},"PDF")),
+          React.createElement("div",{style:{flex:1,minWidth:0}},
+            React.createElement("div",{style:{fontSize:13,fontWeight:800,color:"#fff",lineHeight:1.3}},doc.name),
+            React.createElement("div",{style:{fontSize:10,color:"rgba(255,255,255,.75)",marginTop:4}},doc.date," \u00B7 ",doc.size))),
+        React.createElement("div",{style:{background:"#ffffff",padding:"24px 24px 8px",borderBottom:"1px solid #e0e0e0",display:"flex",justifyContent:"space-between",alignItems:"center"}},
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
+            React.createElement("div",{style:{width:32,height:32,borderRadius:8,background:doc.color,display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement(Icon,{d:IC.doc,size:15,color:"#fff"})),
+            React.createElement("div",null,
+              React.createElement("div",{style:{fontSize:11,fontWeight:800,color:"#1a1a1a"}},"CommonGround"),
+              React.createElement("div",{style:{fontSize:9,color:"#757575"}},"Property Management \u00B7 "+prop.name))),
+          React.createElement("div",{style:{textAlign:"right"}},
+            React.createElement("div",{style:{fontSize:9,color:"#9e9e9e"}},"CONFIDENTIAL"),
+            React.createElement("div",{style:{fontSize:9,color:"#9e9e9e"}},new Date().getFullYear()))),
+        React.createElement("div",{style:{background:"#ffffff",padding:"8px 24px 24px"}},
+          sections.map((s,i)=>React.createElement("div",{key:i,style:{borderBottom:i<sections.length-1?"1px solid #f0f0f0":"none",paddingTop:16,paddingBottom:16}},
+            React.createElement("div",{style:{fontSize:9,color:doc.color,fontWeight:900,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8,display:"flex",alignItems:"center",gap:6}},
+              React.createElement("div",{style:{width:3,height:12,background:doc.color,borderRadius:2}}),s.heading),
+            React.createElement("div",{style:{fontSize:12.5,color:"#212121",lineHeight:2,whiteSpace:"pre-line",fontFamily:"Georgia,serif"}},s.body))),
+          sigData?React.createElement("div",{style:{marginTop:20,paddingTop:16,borderTop:`2px solid ${doc.color}`,background:"#f9fbe7",borderRadius:8,padding:16}},
+            React.createElement("div",{style:{fontSize:9,color:doc.color,fontWeight:900,letterSpacing:".1em",marginBottom:12}},"ELECTRONIC SIGNATURE — LEGALLY BINDING"),
+            React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}},
+              React.createElement("div",null,
+                React.createElement("div",{style:{fontFamily:"'Dancing Script',Pacifico,cursive",fontSize:32,color:"#1a237e",lineHeight:1.1}},sigData.name),
+                React.createElement("div",{style:{borderTop:"1px solid #1a237e",marginTop:6,paddingTop:3,fontSize:9,color:"#9e9e9e"}},sigData.name)),
+              React.createElement("div",{style:{textAlign:"right"}},
+                React.createElement("div",{style:{background:"#e8f5e9",border:"1px solid #a5d6a7",borderRadius:6,padding:"5px 10px",fontSize:9}},
+                  React.createElement("div",{style:{color:"#2e7d32",fontWeight:900}},"✓ SIGNED"),
+                  React.createElement("div",{style:{color:"#616161",marginTop:2}},sigData.date),
+                  React.createElement("div",{style:{color:"#9e9e9e"}},"CommonGround eSign"))))):
+          doc.requiresSig&&React.createElement("div",{style:{marginTop:20,padding:16,background:"#fff8e1",borderRadius:8,border:"1px solid #ffe082"}},
+            React.createElement("div",{style:{fontSize:11,color:"#f57f17",fontWeight:700,marginBottom:4}},"\u270D Signature Required"),
+            React.createElement("div",{style:{fontSize:12,color:"#5d4037",marginBottom:12}},"This document requires your electronic signature before it becomes effective."),
+            signing?React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10}},
+              React.createElement("div",{style:{fontSize:12,color:"#424242",fontWeight:600,marginBottom:2}},"Type your full legal name to sign"),
+              React.createElement("div",{style:{fontSize:10,color:"#757575",marginBottom:8}},"By signing you agree this is legally equivalent to a handwritten signature (ESIGN Act)"),
+              React.createElement("input",{value:sigInput,onChange:e=>setSigInput(e.target.value),placeholder:"Full legal name",style:{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #ffe082",fontSize:14,outline:"none",fontFamily:"Georgia,serif",boxSizing:"border-box",color:"#1a237e"}}),
+              sigInput.trim()&&React.createElement("div",{style:{padding:"10px 14px",background:"#f3f4ff",borderRadius:8,border:"1px solid #c5cae9"}},
+                React.createElement("div",{style:{fontSize:9,color:"#5c6bc0",marginBottom:4,letterSpacing:".08em"}},"SIGNATURE PREVIEW"),
+                React.createElement("div",{style:{fontFamily:"'Dancing Script',Pacifico,cursive",fontSize:26,color:"#1a237e"}},sigInput)),
+              React.createElement("div",{style:{display:"flex",gap:8}},
+                React.createElement("button",{onClick:handleSign,disabled:!sigInput.trim(),style:{flex:1,padding:"11px",borderRadius:8,border:"none",background:sigInput.trim()?"#1a237e":"#e0e0e0",color:sigInput.trim()?"#fff":"#9e9e9e",fontWeight:800,fontSize:13,cursor:sigInput.trim()?"pointer":"default"}},"✓ Sign & Submit"),
+                React.createElement("button",{onClick:()=>{setSigning(false);setSigInput("");},style:{padding:"11px 16px",borderRadius:8,border:"1px solid #e0e0e0",background:"#fff",color:"#757575",fontWeight:700,fontSize:13,cursor:"pointer"}},"Cancel"))):
+            React.createElement("div",{style:{background:"#fff8f0",border:"2px solid #f5a623",borderRadius:8,overflow:"hidden"}},
+                React.createElement("div",{style:{background:"#f5a623",padding:"7px 14px",display:"flex",alignItems:"center",gap:8}},
+                  React.createElement("span",{style:{fontSize:13}},"\u270D"),
+                  React.createElement("span",{style:{fontSize:11,fontWeight:800,color:"#fff",letterSpacing:".04em"}},"SIGNATURE REQUIRED · CommonGround eSign")),
+                React.createElement("div",{style:{padding:"12px 14px",display:"flex",alignItems:"center",gap:12}},
+                  React.createElement("div",{style:{flex:1,fontSize:12,color:"#5d4037"}},"This document requires your electronic signature to become effective."),
+                  React.createElement("button",{onClick:()=>setSigning(true),style:{padding:"9px 16px",borderRadius:8,border:"none",background:"#f5a623",color:"#fff",fontWeight:800,fontSize:12,cursor:"pointer",flexShrink:0}},"Sign Now")))),
+          React.createElement("div",{style:{marginTop:16,paddingTop:12,borderTop:"1px solid #f0f0f0",display:"flex",justifyContent:"space-between",fontSize:9,color:"#bdbdbd"}},
+            React.createElement("span",null,"Page 1 of 1"),
+            React.createElement("span",null,"CommonGround \u00B7 Confidential")))));
+  }
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:14}},
+    React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},"My Documents"),
+    React.createElement("div",{style:{fontSize:12,color:T.muted,marginBottom:4}},"Tap any document to view or sign"),
+    allDocs.map((doc,i)=>{
+      const sigData=signed[doc.id];
+      const needsSig=doc.requiresSig&&!sigData;
+      return React.createElement(Card,{key:i,onClick:()=>setViewing(doc.id),style:{padding:0,cursor:"pointer",overflow:"hidden"}},
+        React.createElement("div",{style:{display:"flex",alignItems:"stretch"}},
+          React.createElement("div",{style:{width:6,background:doc.color,flexShrink:0}}),
+          React.createElement("div",{style:{flex:1,padding:"14px 14px 14px 16px",display:"flex",alignItems:"center",gap:12}},
+            React.createElement("div",{style:{width:44,height:56,background:"#fff",borderRadius:6,boxShadow:"0 2px 8px rgba(0,0,0,.15)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",paddingBottom:6,position:"relative",flexShrink:0,border:"1px solid #e0e0e0"}},
+              React.createElement("div",{style:{position:"absolute",top:0,right:0,width:0,height:0,borderStyle:"solid",borderWidth:"10px 10px 0 0",borderColor:`${doc.color} transparent transparent transparent`}}),
+              React.createElement("span",{style:{fontSize:8,fontWeight:900,color:doc.color,letterSpacing:".05em"}},"PDF")),
+            React.createElement("div",{style:{flex:1,minWidth:0}},
+              React.createElement("div",{style:{fontSize:13,fontWeight:700,color:T.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},doc.name),
+              React.createElement("div",{style:{fontSize:11,color:T.muted,marginTop:3}},doc.date," \u00B7 ",doc.size)),
+            React.createElement("div",{style:{flexShrink:0}},
+              sigData?React.createElement("span",{style:{fontSize:10,color:"#2e7d32",fontWeight:700,background:"#e8f5e9",padding:"3px 8px",borderRadius:10}},"✓ Signed"):
+              needsSig?React.createElement("span",{style:{fontSize:10,color:"#fff",fontWeight:800,background:"#f5a623",padding:"3px 10px",borderRadius:10}},"✍ Sign"):
+              React.createElement("span",{style:{fontSize:10,color:T.muted,fontWeight:600,background:T.faint,padding:"3px 8px",borderRadius:10}},"View")))));
+    }));}
+
+// ---- ManagerDemo ----
+
+
+function EditTenantInfo({p,cfg,selUnit,prop,updProfile,updUnit}){
+  const pid=prop.id;
+  const[ed,setEd]=useState(false);
+  const[f,setF]=useState({fn:p.firstName,ln:p.lastName,phone:p.phone,email:p.email,moveIn:p.moveIn,leaseEnd:p.leaseEnd,rent:cfg.rent});
+  const save=()=>{if(updProfile){updProfile(pid,selUnit,"firstName",f.fn);updProfile(pid,selUnit,"lastName",f.ln);updProfile(pid,selUnit,"phone",f.phone);updProfile(pid,selUnit,"email",f.email);updProfile(pid,selUnit,"moveIn",f.moveIn);updProfile(pid,selUnit,"leaseEnd",f.leaseEnd);}if(updUnit)updUnit(pid,selUnit,"rent",Number(f.rent));setEd(false);};
+  const row=(label,key,type)=>React.createElement("div",{key:label,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${T.border}`}},
+    React.createElement("span",{style:{fontSize:12,color:T.muted}},label),
+    ed?React.createElement("input",{type:type||"text",value:f[key]||"",onChange:e=>setF(x=>({...x,[key]:e.target.value})),style:{background:T.surface,border:`1px solid ${prop.color}55`,borderRadius:8,padding:"4px 8px",color:T.text,fontSize:12,fontWeight:600,textAlign:"right",outline:"none",width:160}})
+    :React.createElement("span",{style:{fontSize:12,fontWeight:600,color:T.text}},key==="rent"?"$"+Number(f[key]).toLocaleString():f[key]||"—"));
+  return React.createElement(Card,null,
+    React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}},
+      React.createElement("div",{style:{fontSize:10,color:prop.color,fontWeight:900,letterSpacing:".1em"}},"PERSONAL INFORMATION"),
+      React.createElement("div",{style:{display:"flex",gap:8}},
+        ed&&React.createElement("button",{onClick:()=>setEd(false),style:{padding:"5px 12px",borderRadius:20,border:`1px solid ${T.border}`,background:"transparent",color:T.muted,fontSize:11,cursor:"pointer"}},"Cancel"),
+        React.createElement("button",{onClick:()=>ed?save():setEd(true),style:{padding:"5px 14px",borderRadius:20,border:"none",background:ed?prop.color:prop.color+"22",color:ed?"#fff":prop.color,fontSize:11,fontWeight:700,cursor:"pointer"}},ed?"Save":"✏️ Edit"))),
+    row("First Name","fn"),row("Last Name","ln"),row("Phone","phone","tel"),row("Email","email","email"),row("Move-In","moveIn"),row("Lease End","leaseEnd"),row("Monthly Rent","rent","number"));}
+
+
+function ForumTab({unit,propId,prop,profile,unitCfg}){const[forums,setForums]=useState(()=>(PROPERTY_DEMO_FORUM[propId]||PROPERTY_DEMO_FORUM["cottage"]).map(p=>({...p,replies:[...p.replies]})));const[view,setView]=useState(null);const[showNew,setShowNew]=useState(false);const[newTitle,setNewTitle]=useState("");const[newBody,setNewBody]=useState("");const[reply,setReply]=useState("");const post=forums.find(p=>p.id===view);const addPost=()=>{if(!newTitle.trim()||!newBody.trim())return;const a=`${profile.firstName} ${profile.lastName[0]}.`;setForums(f=>[{id:Date.now(),author:a,unit,time:"Just now",title:newTitle,body:newBody,replies:[],likes:0},...f]);setNewTitle("");setNewBody("");setShowNew(false);};const addReply=()=>{if(!reply.trim())return;const a=`${profile.firstName} ${profile.lastName[0]}.`;setForums(f=>f.map(p=>p.id===view?{...p,replies:[...p.replies,{author:a,unit,text:reply,time:"Just now"}]}:p));setReply("");};if(post)return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},React.createElement("button",{onClick:()=>setView(null),style:{display:"flex",alignItems:"center",gap:6,background:"none",border:"none",color:T.green,cursor:"pointer",fontSize:13,fontWeight:700,padding:0}},React.createElement(Icon,{d:IC.back,size:16,color:T.green})," Back"),React.createElement(Card,null,React.createElement("div",{style:{fontFamily:T.serif,fontSize:18,fontWeight:900,color:T.text,marginBottom:6}},post.title),React.createElement("div",{style:{fontSize:11,color:T.muted,marginBottom:12}},post.author," \u00B7 Unit ",post.unit," \u00B7 ",post.time),React.createElement("div",{style:{fontSize:14,color:T.text,lineHeight:1.75}},post.body)),post.replies.map((r,i)=>React.createElement(Card,{key:i,style:{padding:14}},React.createElement("div",{style:{fontSize:11,color:T.green,fontWeight:700,marginBottom:4}},r.author," \u00B7 Unit ",r.unit," \u00B7 ",r.time),React.createElement("div",{style:{fontSize:14,color:T.text}},r.text))),React.createElement("div",{style:{display:"flex",gap:8}},React.createElement(Input,{value:reply,onChange:setReply,placeholder:"Write a reply\u2026",style:{flex:1}}),React.createElement(Btn,{onClick:addReply,disabled:!reply.trim(),small:true,icon:React.createElement(Icon,{d:IC.send,size:13,color:"#071a0e"})},"Reply")));return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},"Forum"),React.createElement(Btn,{onClick:()=>setShowNew(!showNew),small:true,variant:"green"},"New Post")),showNew&&React.createElement(Card,null,React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},React.createElement(Input,{value:newTitle,onChange:setNewTitle,placeholder:"Post title"}),React.createElement(Input,{value:newBody,onChange:setNewBody,placeholder:"What's on your mind?",multiline:true}),React.createElement("div",{style:{display:"flex",gap:8}},React.createElement(Btn,{onClick:addPost,disabled:!newTitle.trim()||!newBody.trim(),small:true},"Post"),React.createElement(Btn,{onClick:()=>setShowNew(false),small:true,variant:"ghost"},"Cancel")))),forums.map(p=>React.createElement(Card,{key:p.id,onClick:()=>setView(p.id),style:{cursor:"pointer"}},React.createElement("div",{style:{fontFamily:T.serif,fontSize:15,fontWeight:700,color:T.text,marginBottom:4}},p.title),React.createElement("div",{style:{fontSize:12,color:T.muted,marginBottom:10,lineHeight:1.6}},p.body.slice(0,80),"\u2026"),React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",{style:{fontSize:11,color:T.muted}},p.author," \u00B7 Unit ",p.unit," \u00B7 ",p.time),React.createElement("div",{style:{display:"flex",gap:10,fontSize:12,color:T.muted}},React.createElement("span",null,"\uD83D\uDCAC ",p.replies.length),React.createElement("span",null,"\uD83C\uDF31 ",p.likes))))));}
+
+// ---- DocsTab ----
+
+// ---- ManagerDemo ----
+
+function ManagerDemo({onBack,workOrders,setWorkOrders,tenantInboxes,setTenantInboxes,reminders,setReminders,sharedDocs,setSharedDocs,applications,setApplications,pendingSigAlert,setPendingSigAlert,refreshState}){
+  const[tab,setTab]=useState("overview");
+  const[propId,setPropId]=useState("cottage");
+  const[rentStatusOverrides,setRentStatusOverrides]=useState({});
+  const[globalExpenses,setGlobalExpenses]=useState({});
+  const prop=PROPERTIES[propId];
+  const[mProfiles,setMProfiles]=useState(()=>JSON.parse(JSON.stringify(PROPERTY_PROFILES)));
+  const[mUnitCfg,setMUnitCfg]=useState(()=>JSON.parse(JSON.stringify(PROPERTY_UNIT_CONFIG)));
+  const unitCfg=mUnitCfg[propId];
+  const profiles=mProfiles[propId];
+  const updProfile=(pid,unit,f,v)=>setMProfiles(p=>{const n=JSON.parse(JSON.stringify(p));if(!n[pid][unit])n[pid][unit]={};n[pid][unit][f]=v;return n;});
+  const updUnit=(pid,unit,f,v)=>setMUnitCfg(p=>{const n=JSON.parse(JSON.stringify(p));n[pid][unit][f]=v;return n;});
+  const baseRentStatus=PROPERTY_RENT_STATUS[propId];
+  const rentStatus={...baseRentStatus,...(rentStatusOverrides[propId]||{})};
+  const units=Object.keys(unitCfg);
+  const totalExpected=units.reduce((s,u)=>s+unitCfg[u].rent,0);
+  const activeReminders=reminders.filter(r=>!r.dismissed).length;
+  const propOrders=workOrders.filter(o=>o.propId===propId||(!o.propId&&propId==="cottage"));
+  const openOrders=propOrders.filter(o=>o.status==="open"||o.status==="in_progress").length;
+  const mgTabs=[{id:"overview",label:"Overview",icon:IC.grid,color:"#3EC98E"},{id:"units",label:"Units",icon:IC.home,color:"#5B9CF6"},{id:"tenants",label:"Tenants",icon:IC.person,color:"#7BCFB8"},{id:"maintenance",label:"Ops",icon:IC.wrench,color:"#F5A442",badge:openOrders||null},{id:"finance",label:"Finance",icon:IC.ledger,color:"#F5C542"},{id:"docs",label:"Docs",icon:IC.doc,color:"#A78BFA"},{id:"agent",label:"AI Agent",icon:IC.spark,color:"#3EC98E"}];
+  const propCtx={propId,prop,unitCfg,profiles,rentStatus,units,totalExpected};
+  return React.createElement("div",{style:{minHeight:"100vh",background:T.bg}},
+    React.createElement("div",{style:{position:"sticky",top:0,zIndex:20,background:T.bg+"f8",backdropFilter:"blur(16px)",borderBottom:`1px solid ${T.border}`}},
+      React.createElement("div",{style:{padding:"12px 16px",display:"flex",alignItems:"center",gap:10}},
+        React.createElement(CGMark,{size:30}),
+        React.createElement("div",{style:{flex:1}},
+          React.createElement("div",{style:{fontFamily:T.serif,fontSize:15,fontWeight:900,color:T.text}},prop.name),
+          React.createElement("div",{style:{fontSize:10,color:T.muted}},prop.type," \u00B7 ",prop.city)),
+        React.createElement("button",{onClick:onBack,style:{background:T.faint,border:`1px solid ${T.border}`,borderRadius:8,padding:"5px 10px",cursor:"pointer",fontSize:11,fontWeight:700,color:T.muted}},"\u2190 Back")),
+      React.createElement("div",{style:{display:"flex",overflowX:"auto",background:T.surface,borderTop:`1px solid ${T.border}`,borderBottom:`1px solid ${T.border}`,scrollbarWidth:"none",padding:"8px 10px",gap:4,justifyContent:"space-between"}},
+        mgTabs.map(t=>{const active=tab===t.id;const col=t.color||T.green;return React.createElement("button",{key:t.id,onClick:()=>setTab(t.id),style:{flex:1,display:"flex",flexDirection:"row",alignItems:"center",justifyContent:"center",gap:5,padding:active?"8px 10px":"8px 8px",background:active?col:T.card,border:"1.5px solid "+(active?col:T.green+"55"),borderRadius:50,cursor:"pointer",whiteSpace:"nowrap",transition:"all .18s",boxShadow:active?"0 2px 8px "+col+"55":"none",minWidth:0}},React.createElement("div",{style:{position:"relative",display:"flex",alignItems:"center"}},React.createElement(Icon,{d:t.icon,size:16,color:active?"#fff":col}),t.badge&&React.createElement("div",{style:{position:"absolute",top:-6,right:-8,width:15,height:15,borderRadius:"50%",background:"#F76F6F",color:"#fff",fontSize:8,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center"}},t.badge)),);})),
+      React.createElement("div",{style:{padding:"6px 12px",display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none",borderTop:`1px solid ${T.border}`}},Object.values(PROPERTIES).map(p=>React.createElement("button",{key:p.id,onClick:()=>setPropId(p.id),style:{flexShrink:0,display:"flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:20,border:`1px solid ${propId===p.id?p.color:T.border}`,background:propId===p.id?p.color+"18":"transparent",cursor:"pointer",transition:"all .2s"}},React.createElement("span",{style:{fontSize:14}},p.emoji),React.createElement("span",{style:{fontSize:11,fontWeight:700,color:propId===p.id?p.color:T.muted}},p.name))))),
+    React.createElement("div",{key:propId,style:{maxWidth:480,margin:"0 auto",padding:"16px 16px 40px",display:"flex",flexDirection:"column",gap:14}},
+      React.createElement(DemoBanner,null),
+      pendingSigAlert&&React.createElement("div",{style:{background:"linear-gradient(135deg,#fff3e0,#ffe0b2)",border:"2px solid #f5a623",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"flex-start",gap:12,animation:"popIn .4s ease"}},
+        React.createElement("div",{style:{width:40,height:40,borderRadius:10,background:"#f5a623",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}},"\u270D"),
+        React.createElement("div",{style:{flex:1}},
+          React.createElement("div",{style:{fontSize:13,fontWeight:900,color:"#bf360c",marginBottom:3}},"\uD83D\uDD14 Signature Required — Action Needed"),
+          React.createElement("div",{style:{fontSize:12,color:"#5d4037",marginBottom:10,lineHeight:1.6}},"Tenant has signed ",React.createElement("strong",null,pendingSigAlert.docName),". Your countersignature is required before this document is fully executed."),
+          React.createElement("div",{style:{display:"flex",gap:8}},
+            React.createElement("button",{onClick:()=>{setTab("docs");setPendingSigAlert(null);},style:{padding:"8px 16px",borderRadius:8,border:"none",background:"#f5a623",color:"#fff",fontWeight:800,fontSize:12,cursor:"pointer"}},"\u270D Sign Now"),
+            React.createElement("button",{onClick:()=>setPendingSigAlert(null),style:{padding:"8px 12px",borderRadius:8,border:"1px solid #ffcc80",background:"transparent",color:"#f57c00",fontWeight:600,fontSize:11,cursor:"pointer"}},"Dismiss")))),
+      tab==="overview"&&React.createElement(MgrOverview,{...propCtx,reminders,setTab,workOrders}),
+      tab==="units"&&React.createElement(MgrUnits,{...propCtx}),
+      tab==="newTenant"&&React.createElement(MgrNewTenant,{prop,units,unitCfg,applications,setApplications}),tab==="rentSplit"&&React.createElement(MgrRentSplit,{prop,units,unitCfg,profiles,rentStatus}),tab==="moveOut"&&React.createElement(MgrMoveOut,{prop,units,unitCfg,profiles}),tab==="lender"&&React.createElement(MgrLenderPackage,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses}),tab==="applications"&&React.createElement(MgrApplications,{applications,setApplications,prop,units,unitCfg}),
+      tab==="messages"&&React.createElement(MgrMessages,{tenantInboxes,setTenantInboxes,...propCtx}),
+      tab==="orders"&&React.createElement(MgrWorkOrders,{workOrders,setWorkOrders,...propCtx}),
+      tab==="vendors"&&React.createElement(MgrVendors,null),
+      tab==="reminders"&&React.createElement(MgrReminders,{reminders,setReminders,prop,units,unitCfg,profiles,rentStatus,workOrders}),tab==="finance"&&React.createElement(MgrFinance,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses}),tab==="docs"&&React.createElement(MgrDocs,{sharedDocs,setSharedDocs,units,profiles,prop,unitCfg}),tab==="tenants"&&React.createElement(MgrTenantsHub,{prop,units,unitCfg,profiles,rentStatus,applications,setApplications,tenantInboxes,setTenantInboxes}),
+      tab==="maintenance"&&React.createElement(MgrMaintenanceHub,{workOrders,setWorkOrders,...propCtx}),
+      tab==="finance"&&React.createElement(MgrFinanceHub,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses}),
+      tab==="docs"&&React.createElement(MgrDocsHub,{sharedDocs,setSharedDocs,units,profiles,prop,unitCfg,reminders,setReminders,rentStatus,workOrders}),
+      tab==="agent"&&React.createElement(MgrAgent,{prop,units,unitCfg,profiles,rentStatus,workOrders,setWorkOrders,tenantInboxes,setTenantInboxes,reminders,setReminders,setPropId,setTab,setRentStatusOverrides,globalExpenses,setGlobalExpenses})));}
+
+
+
+// ---- MgrTenantsHub ----
+
+
+function MgrDocsHub({sharedDocs,setSharedDocs,units,profiles,prop,unitCfg,reminders,setReminders,rentStatus,workOrders}){
+  const[sub,setSub]=useState("docs");
+  const subs=[{id:"docs",label:"Documents",color:"#A78BFA"},{id:"reminders",label:"Reminders",color:"#F76F6F"}];
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:14}},
+    React.createElement("div",{style:{display:"flex",gap:6,paddingBottom:2}},
+      subs.map(s=>React.createElement("button",{key:s.id,onClick:()=>setSub(s.id),style:{flexShrink:0,padding:"6px 14px",borderRadius:20,border:"1px solid "+(sub===s.id?s.color:T.border),background:sub===s.id?s.color+"22":"transparent",color:sub===s.id?s.color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer"}},s.label))
+    ),
+    sub==="docs"&&React.createElement(MgrDocs,{sharedDocs,setSharedDocs,units,profiles,prop,unitCfg}),
+    sub==="reminders"&&React.createElement(MgrReminders,{reminders,setReminders,prop,units,unitCfg,profiles,rentStatus,workOrders})
+  );
+}
+
+// ---- MgrZRentAnalytics ----
+
+
+function MgrFinanceHub({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses}){
+  const[sub,setSub]=useState("analytics");
+  const subs=[{id:"analytics",label:"ZRent Analytics",color:"#F5C542"},{id:"smartRent",label:"Smart Pricing",color:"#3EC98E"},{id:"finance",label:"Tax & Finance",color:"#A78BFA"},{id:"lender",label:"Lender Package",color:"#5B9CF6"}];
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:14}},
+    React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none",paddingBottom:2}},
+      subs.map(s=>React.createElement("button",{key:s.id,onClick:()=>setSub(s.id),style:{flexShrink:0,padding:"6px 14px",borderRadius:20,border:"1px solid "+(sub===s.id?s.color:T.border),background:sub===s.id?s.color+"22":"transparent",color:sub===s.id?s.color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}},s.label))
+    ),
+    sub==="analytics"&&React.createElement(MgrZRentAnalytics,{prop,units,unitCfg,profiles,rentStatus,workOrders}),
+    sub==="smartRent"&&React.createElement(MgrSmartRent,{prop,units,unitCfg,rentStatus}),
+    sub==="finance"&&React.createElement(MgrFinance,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses}),
+    sub==="lender"&&React.createElement(MgrLenderPackage,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses})
+  );
+}
+
+// ---- MgrDocsHub ----
+
+
+function MgrMaintenanceHub({workOrders,setWorkOrders,propCtx,...rest}){
+  const[sub,setSub]=useState("orders");
+  const prop=rest.prop;const units=rest.units;const unitCfg=rest.unitCfg;const profiles=rest.profiles;const rentStatus=rest.rentStatus;const propId=rest.propId;
+  const openCount=(workOrders||[]).filter(o=>o.status==="open"||o.status==="in_progress").length;
+  const subs=[{id:"orders",label:"Work Orders"+(openCount?` (${openCount})`:""),color:"#F5A442"},{id:"vendors",label:"Vendors",color:"#F76F6F"},{id:"vacancies",label:"Vacancies",color:"#5B9CF6"}];
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:14}},
+    React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none",paddingBottom:2}},
+      subs.map(s=>React.createElement("button",{key:s.id,onClick:()=>setSub(s.id),style:{flexShrink:0,padding:"6px 14px",borderRadius:20,border:"1px solid "+(sub===s.id?s.color:T.border),background:sub===s.id?s.color+"22":"transparent",color:sub===s.id?s.color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}},s.label))
+    ),
+    sub==="orders"&&React.createElement(MgrWorkOrders,{workOrders,setWorkOrders,prop,units,unitCfg,profiles,rentStatus,propId}),
+    sub==="vendors"&&React.createElement(MgrVendors,null),
+    sub==="vacancies"&&React.createElement(MgrVacancy,{prop,units,unitCfg,profiles,rentStatus})
+  );
+}
+
+// ---- MgrFinanceHub ----
+
+
+function MgrMessages({tenantInboxes,setTenantInboxes,units,profiles}){const[selUnit,setSelUnit]=useState(units[0]||"101");const[input,setInput]=useState("");const bottomRef=useRef();const msgs=tenantInboxes[selUnit]||[];useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});},[msgs,selUnit]);const send=()=>{if(!input.trim())return;const m={id:Date.now(),from:"manager",text:input,time:"Just now"};setTenantInboxes(prev=>({...prev,[selUnit]:[...(prev[selUnit]||[]),m]}));setInput("");};return React.createElement(React.Fragment,null,React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},"Messages"),React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8}},units.map(u=>React.createElement("button",{key:u,onClick:()=>setSelUnit(u),style:{padding:"8px 14px",borderRadius:10,border:`1px solid ${selUnit===u?T.green:T.border}`,background:selUnit===u?T.greenDim:"transparent",color:selUnit===u?T.green:T.muted,fontSize:13,fontWeight:700,cursor:"pointer"}},u))),React.createElement("div",{style:{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:".1em"}},"UNIT ",selUnit," \u2014 ",profiles[selUnit]?profiles[selUnit].firstName+" "+profiles[selUnit].lastName:"Vacant"),React.createElement(Card,null,React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10,maxHeight:300,overflowY:"auto",paddingBottom:4}},msgs.length===0&&React.createElement("div",{style:{textAlign:"center",color:T.muted,fontSize:13,padding:"20px 0"}},"No messages yet"),msgs.map(m=>React.createElement("div",{key:m.id,style:{display:"flex",justifyContent:m.from==="tenant"?"flex-end":"flex-start"}},React.createElement("div",{style:{maxWidth:"80%",background:m.from==="tenant"?`linear-gradient(135deg,${T.green},#2aaa72)`:T.surface,borderRadius:m.from==="tenant"?"14px 14px 4px 14px":"14px 14px 14px 4px",padding:"9px 13px",border:m.from==="manager"?`1px solid ${T.border}`:"none",fontSize:13,color:m.from==="tenant"?"#071a0e":T.text,lineHeight:1.5,fontWeight:m.from==="tenant"?600:400,whiteSpace:"pre-line"}},m.text))),React.createElement("div",{ref:bottomRef})),React.createElement("div",{style:{marginTop:10,display:"flex",gap:8,borderTop:`1px solid ${T.border}`,paddingTop:10}},React.createElement("input",{value:input,onChange:e=>setInput(e.target.value),onKeyDown:e=>e.key==="Enter"&&send(),placeholder:"Message tenant\u2026",style:{flex:1,background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"8px 12px",color:T.text,fontSize:13,outline:"none"}}),React.createElement("button",{onClick:send,disabled:!input.trim(),style:{background:`linear-gradient(135deg,${T.green},#2aaa72)`,border:"none",borderRadius:8,padding:"8px 14px",color:"#071a0e",fontWeight:700,fontSize:13,cursor:"pointer",opacity:input.trim()?1:0.4}},"Send"))));}
+
+
+// ---- TenantMoveOut ----
+
+
+function MgrOverview({propId,prop,unitCfg,profiles,rentStatus,units,totalExpected,reminders,setTab,workOrders}){
+  const paid=Object.values(rentStatus).filter(s=>s==="paid").length;
+  const overdue=Object.values(rentStatus).filter(s=>s==="overdue").length;
+  const propOrders=(workOrders||[]).filter(o=>o.propId===propId||(!o.propId&&propId==="cottage"));
+  const openOrders=propOrders.filter(o=>o.status==="open"||o.status==="in_progress");
+  const urgent=reminders?reminders.filter(r=>!r.dismissed&&(r.type==="rent"||r.daysOut<0||r.daysOut<=14)):[];
+  const vacantUnits=units.filter(u=>!profiles[u]);
+  const vacantRentLost=vacantUnits.reduce((s,u)=>s+(unitCfg[u]?.rent||0),0);
+  const[vacTick,setVacTick]=useState(0);
+  useEffect(()=>{if(!vacantRentLost)return;const t=setInterval(()=>setVacTick(p=>p+1),1000);return()=>clearInterval(t);},[vacantRentLost]);
+  const lostPerSecond=vacantRentLost/(30*24*3600);
+  const lostToday=Math.round(lostPerSecond*86400*100)/100;
+  return React.createElement(React.Fragment,null,
+    React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},prop.name),
+    React.createElement("div",{style:{fontSize:12,color:T.muted,marginTop:-10}},prop.type," \u00B7 ",prop.city),
+    vacantUnits.length>0&&React.createElement("div",{style:{background:"linear-gradient(135deg,#1a0a0a,#120506)",border:"1px solid "+T.red+"44",borderRadius:14,padding:"14px 16px",marginTop:10,display:"flex",justifyContent:"space-between",alignItems:"center"}},
+      React.createElement("div",null,
+        React.createElement("div",{style:{fontSize:10,color:T.red,fontWeight:700,letterSpacing:".1em",marginBottom:4}},"\uD83D\uDD34 VACANCY COST CLOCK"),
+        React.createElement("div",{style:{fontFamily:T.serif,fontSize:26,fontWeight:900,color:T.red}},"-$"+lostToday.toFixed(2),React.createElement("span",{style:{fontSize:12,color:T.muted,fontWeight:400}},"/today")),
+        React.createElement("div",{style:{fontSize:11,color:T.muted,marginTop:2}},vacantUnits.length+" vacant unit"+(vacantUnits.length>1?"s":"")+": "+vacantUnits.join(", "))
+      ),
+      React.createElement("div",{style:{textAlign:"right"}},
+        React.createElement("div",{style:{fontSize:10,color:T.muted,fontWeight:700,marginBottom:4}},"MONTHLY LOSS"),
+        React.createElement("div",{style:{fontFamily:T.serif,fontSize:18,fontWeight:900,color:T.red}},"$"+vacantRentLost.toLocaleString())
+      )
+    ),
+    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}},[{label:"Total Units",v:units.length.toString(),s:prop.name,c:prop.color},{label:"Monthly Expected",v:"$"+totalExpected.toLocaleString(),s:"all units",c:T.green},{label:"Paid This Month",v:`${paid}/${units.length}`,s:"units paid",c:T.green},{label:"Overdue",v:overdue.toString(),s:"need attention",c:overdue>0?T.red:T.green}].map(s=>React.createElement(Card,{key:s.label,style:{padding:14}},React.createElement("div",{style:{fontSize:10,color:T.muted,fontWeight:700,letterSpacing:".1em",marginBottom:4}},s.label.toUpperCase()),React.createElement("div",{style:{fontSize:22,fontWeight:900,color:s.c,fontFamily:T.serif}},s.v),React.createElement("div",{style:{fontSize:11,color:T.muted}},s.s)))),
+    openOrders.length>0&&React.createElement("div",{onClick:()=>setTab("orders"),style:{padding:12,borderRadius:12,background:T.blue+"12",border:`1px solid ${T.blue}33`,cursor:"pointer",display:"flex",alignItems:"center",gap:10}},React.createElement(Icon,{d:IC.orders,size:18,color:T.blue}),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontSize:13,fontWeight:700,color:T.blue}},openOrders.length," Active Work Order",openOrders.length>1?"s":""),React.createElement("div",{style:{fontSize:11,color:T.muted}},openOrders[0].title," \u2014 Unit ",openOrders[0].unit,openOrders[0].eta?` \u00B7 ETA: ${openOrders[0].eta}`:" \u00B7 Awaiting vendor"))),
+    urgent.length>0&&React.createElement("div",{onClick:()=>setTab("reminders"),style:{padding:12,borderRadius:12,background:"#F76F6F12",border:"1px solid #F76F6F33",cursor:"pointer",display:"flex",alignItems:"center",gap:10}},React.createElement(Icon,{d:IC.bell,size:18,color:T.red}),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontSize:13,fontWeight:700,color:T.red}},urgent.length," Urgent Reminder",urgent.length>1?"s":""),React.createElement("div",{style:{fontSize:11,color:T.muted}},urgent[0].title))),
+    React.createElement(Card,null,React.createElement("div",{style:{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:".1em",marginBottom:14}},"RENT STATUS"),units.map(u=>{const p=profiles[u];const status=rentStatus[u];const sc=status==="paid"?T.green:status==="overdue"?T.red:status==="due"?T.gold:T.muted;return React.createElement("div",{key:u,style:{display:"flex",alignItems:"center",gap:12,padding:"11px 0",borderBottom:`1px solid ${T.border}`}},React.createElement("div",{style:{width:38,height:38,borderRadius:10,background:p?T.greenDim:T.faint,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900,color:p?T.green:T.muted,fontFamily:T.serif,flexShrink:0}},u),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontSize:13,fontWeight:700,color:T.text}},p?`${p.firstName} ${p.lastName}`:"Vacant"),React.createElement("div",{style:{fontSize:11,color:T.muted}},unitCfg[u].type," \u00B7 $",unitCfg[u].rent.toLocaleString(),"/mo")),React.createElement("span",{style:{background:sc+"22",color:sc,fontSize:11,fontWeight:700,padding:"4px 10px",borderRadius:12,border:`1px solid ${sc}44`}},status==="paid"?"\u2713 Paid":status==="overdue"?"\u26A0 Overdue":status==="due"?"Due Soon":"Vacant"));})));}
+
+// ---- MgrUnits ----
+
+
+function MgrSmartRent({prop,units,unitCfg,rentStatus}){
+  const marketRates={"1BR":2450,"2BR":3100,"3BR":3800,"Studio":1850};
+  const unitData=units.map(u=>{const cfg=unitCfg[u];const type=cfg.type||"2BR";const market=marketRates[type]||2800;const current=cfg.rent;const diff=market-current;const pct=Math.round((diff/market)*100);return{unit:u,type,current,market,diff,pct,status:rentStatus[u]||"vacant"};});
+  const totalOpportunity=unitData.reduce((s,u)=>s+Math.max(0,u.diff),0);
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:14}},
+    React.createElement("div",null,
+      React.createElement("div",{style:{fontFamily:T.serif,fontSize:20,fontWeight:900,color:T.text}},"Smart Rent Pricing"),
+      React.createElement("div",{style:{fontSize:12,color:T.muted,marginTop:2}},"AI-powered market analysis · "+prop.name)
+    ),
+    totalOpportunity>0&&React.createElement(Card,{style:{background:"linear-gradient(135deg,#0a1f0d,#071510)",border:"1px solid "+T.green+"44"}},
+      React.createElement("div",{style:{fontSize:11,color:T.green,fontWeight:700,letterSpacing:".1em",marginBottom:4}},"💡 REVENUE OPPORTUNITY"),
+      React.createElement("div",{style:{fontFamily:T.serif,fontSize:28,fontWeight:900,color:T.green}},"$"+totalOpportunity.toLocaleString()+"/mo"),
+      React.createElement("div",{style:{fontSize:12,color:T.muted,marginTop:4}},"Additional monthly revenue available at current market rates")
+    ),
+    React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10}},
+      unitData.map(u=>{const aboveMarket=u.diff<0;const atMarket=Math.abs(u.diff)<50;const col=aboveMarket?T.green:atMarket?T.gold:T.red;return React.createElement(Card,{key:u.unit,style:{border:"1px solid "+col+"33"}},
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}},
+          React.createElement("div",null,
+            React.createElement("div",{style:{fontSize:14,fontWeight:800,color:T.text}},"Unit "+u.unit+" · "+u.type),
+            React.createElement("div",{style:{fontSize:11,color:T.muted}},"Current: $"+u.current.toLocaleString()+"/mo")
+          ),
+          React.createElement("div",{style:{textAlign:"right"}},
+            React.createElement("div",{style:{fontSize:16,fontWeight:900,color:col,fontFamily:T.serif}},"$"+u.market.toLocaleString()),
+            React.createElement("div",{style:{fontSize:10,color:col,fontWeight:700}},"Market rate")
+          )
+        ),
+        React.createElement("div",{style:{background:T.surface,borderRadius:8,height:6,overflow:"hidden",marginBottom:6}},
+          React.createElement("div",{style:{width:Math.min(100,Math.round((u.current/u.market)*100))+"%",height:"100%",background:aboveMarket?T.green:col,borderRadius:8,transition:"width .5s"}})
+        ),
+        React.createElement("div",{style:{fontSize:11,fontWeight:700,color:col}},
+          aboveMarket?"✓ Above market by $"+Math.abs(u.diff).toLocaleString()+"/mo":
+          atMarket?"≈ At market rate":
+          "↑ $"+u.diff.toLocaleString()+"/mo opportunity at next renewal ("+u.pct+"% below market)"
+        )
+      );})
+    ),
+    React.createElement(Card,{style:{background:T.surface}},
+      React.createElement("div",{style:{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:".1em",marginBottom:6}},"DATA SOURCES"),
+      React.createElement("div",{style:{fontSize:12,color:T.muted,lineHeight:1.7}},"Market rates sourced from Zillow Rental Manager, Rentometer, and MLS comps for "+prop.city+". Updated monthly. AI adjusts for unit size, floor, amenities, and lease term.")
+    )
+  );
+}
+
+// ---- MgrOverview ----
+
+
+function MgrTenantsHub({prop,units,unitCfg,profiles,rentStatus,applications,setApplications,tenantInboxes,setTenantInboxes}){
+  const[sub,setSub]=useState("applications");
+  const subs=[{id:"applications",label:"Applications",color:"#7BCFB8"},{id:"newTenant",label:"New Tenant",color:"#3EC98E"},{id:"rentSplit",label:"Rent Split",color:"#F5C542"},{id:"moveOut",label:"Move-Out",color:"#F5A442"},{id:"messages",label:"Messages",color:"#5B9CF6"}];
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:14}},
+    React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none",paddingBottom:2}},
+      subs.map(s=>React.createElement("button",{key:s.id,onClick:()=>setSub(s.id),style:{flexShrink:0,padding:"6px 14px",borderRadius:20,border:"1px solid "+(sub===s.id?s.color:T.border),background:sub===s.id?s.color+"22":"transparent",color:sub===s.id?s.color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}},s.label))
+    ),
+    sub==="applications"&&React.createElement(MgrApplications,{applications,setApplications,prop,units,unitCfg}),
+    sub==="newTenant"&&React.createElement(MgrNewTenant,{prop,units,unitCfg,applications,setApplications}),
+    sub==="rentSplit"&&React.createElement(MgrRentSplit,{prop,units,unitCfg,profiles,rentStatus}),
+    sub==="moveOut"&&React.createElement(MgrMoveOut,{prop,units,unitCfg,profiles}),
+    sub==="messages"&&React.createElement(MgrMessages,{tenantInboxes,setTenantInboxes,prop,units,unitCfg,profiles,rentStatus})
+  );
+}
+
+// ---- MgrMaintenanceHub ----
+
+
+function MgrUnits({prop,unitCfg,profiles,rentStatus,units,setRentStatusOverrides,updProfile,updUnit}){
+  const[selUnit,setSelUnit]=useState(null);
+  const[profileTab,setProfileTab]=useState("info");
+  const colors=["#3EC98E","#5B9CF6","#A78BFA","#F5C542","#F76F6F","#7BCFB8","#F5A442","#E879A0"];
+  const floors=[...new Set(Object.values(unitCfg).map(u=>u.floor))].sort();
+  const floorLabels={1:"1st Floor",2:"2nd Floor",3:"3rd Floor"};
+  const TENANT_VEHICLES={"101":{make:"Toyota",model:"Camry",year:"2021",color:"Silver",plate:"ABC-1234",state:"MA"},"102":{make:"Honda",model:"Civic",year:"2019",color:"Blue",plate:"XYZ-5678",state:"MA"},"201":{make:"Ford",model:"F-150",year:"2020",color:"Black",plate:"TRK-9012",state:"MA"},"202":{make:"Chevrolet",model:"Malibu",year:"2022",color:"White",plate:"MLB-3456",state:"MA"},"301":{make:"Nissan",model:"Altima",year:"2018",color:"Red",plate:"NIS-7890",state:"MA"},"1A":{make:"Toyota",model:"RAV4",year:"2020",color:"Gray",plate:"RAV-1111",state:"MA"},"2A":{make:"Honda",model:"Accord",year:"2021",color:"White",plate:"ACC-2222",state:"MA"},"1":{make:"Subaru",model:"Outback",year:"2019",color:"Green",plate:"OUT-3333",state:"MA"},"2":{make:"Mazda",model:"CX-5",year:"2022",color:"Red",plate:"MAZ-4444",state:"MA"}};
+  const TENANT_NOTES={"101":"Long-term tenant. Very reliable, always pays on time. Renewed lease twice.","102":"Quiet tenant. Works night shifts — please schedule maintenance in afternoons.","201":"Rent consistently late. Issued written warning April 2025. Has cat (approved).","202":"New tenant as of Sep 2024. No issues to date.","301":"Due for renewal discussion. Has expressed interest in staying.","1A":"Excellent tenant. Referred two other tenants to the building.","2A":"Overdue balance from February. Payment plan agreed upon.","1":"Long-term tenant, 4 years. Has dog (approved, $50/mo pet fee).","2":"On month-to-month after lease expiry. Renewal pending."};
+  const TENANT_VIOLATIONS={"201":[{date:"Mar 15, 2025",type:"Late Payment",desc:"Rent received 12 days after due date. $75 late fee assessed.",status:"resolved"}],"2A":[{date:"Feb 3, 2025",type:"Late Payment",desc:"February rent not received. Payment plan established.",status:"open"}],"202":[{date:"Jan 10, 2025",type:"Noise Complaint",desc:"Neighbor complaint about loud music after 11pm. Verbal warning issued.",status:"resolved"}]};
+  const riskScore=(unit)=>{const st=rentStatus[unit];const violations=({"201":[1],"2A":[1]})[unit]||[];const base=st==="paid"?90:st==="due"?72:st==="overdue"?45:50;return Math.max(20,base-violations.length*15+(profiles[unit]?0:-20));};
+  if(selUnit){
+    const p=profiles[selUnit];const cfg=unitCfg[selUnit];const status=rentStatus[selUnit];
+    const sc=status==="paid"?T.green:status==="overdue"?T.red:status==="due"?T.gold:T.muted;
+    const colorIdx=units.indexOf(selUnit)%colors.length;
+    const vehicle=TENANT_VEHICLES[selUnit];const notes=TENANT_NOTES[selUnit];const violations=TENANT_VIOLATIONS[selUnit]||[];
+    const PTABS=[{id:"info",label:"Info",icon:"\uD83D\uDC64"},{id:"lease",label:"Lease",icon:"\uD83D\uDCCB"},{id:"vehicle",label:"Vehicle",icon:"\uD83D\uDE97"},{id:"violations",label:"Violations",icon:"\u26A0\uFE0F",badge:violations.filter(v=>v.status==="open").length||null},{id:"notes",label:"Notes",icon:"\uD83D\uDCDD"}];
+    return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
+      React.createElement("button",{onClick:()=>{setSelUnit(null);setProfileTab("info");},style:{display:"flex",alignItems:"center",gap:6,background:"none",border:"none",color:T.green,cursor:"pointer",fontSize:13,fontWeight:700,padding:0}},React.createElement(Icon,{d:IC.back,size:16,color:T.green})," All Units"),
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:14,padding:"14px 16px",background:T.card,borderRadius:14,border:`1px solid ${T.border}`}},
+        React.createElement("div",{style:{width:56,height:56,borderRadius:16,flexShrink:0,background:p?`linear-gradient(135deg,${colors[colorIdx]},${colors[colorIdx]}bb)`:"#2A3F30",display:"flex",alignItems:"center",justifyContent:"center",fontSize:p?18:22,fontWeight:900,color:p?"#071a0e":T.muted,fontFamily:T.serif}},p?initials(`${p.firstName} ${p.lastName}`):selUnit),
+        React.createElement("div",{style:{flex:1}},
+          React.createElement("div",{style:{fontFamily:T.serif,fontSize:20,fontWeight:900,color:T.text}},p?p.firstName+" "+p.lastName:"Vacant"),
+          React.createElement("div",{style:{fontSize:12,color:prop.color,marginTop:2,fontWeight:600}},"Unit ",selUnit," \u00B7 ",cfg.type," \u00B7 $",cfg.rent.toLocaleString(),"/mo")),
+        React.createElement("span",{style:{background:sc+"22",color:sc,fontSize:11,fontWeight:700,padding:"4px 10px",borderRadius:12,flexShrink:0}},status==="paid"?"\u2713 Paid":status==="overdue"?"\u26A0 Overdue":status==="due"?"Due Soon":"Vacant")),
+      React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none"}},
+        PTABS.map(t=>React.createElement("button",{key:t.id,onClick:()=>setProfileTab(t.id),style:{flexShrink:0,display:"flex",alignItems:"center",gap:5,padding:"7px 14px",borderRadius:20,border:`1px solid ${profileTab===t.id?prop.color:T.border}`,background:profileTab===t.id?prop.color+"18":"transparent",color:profileTab===t.id?prop.color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer"}},t.icon," ",t.label,t.badge&&React.createElement("span",{style:{background:T.red,color:"#fff",fontSize:9,fontWeight:900,padding:"1px 5px",borderRadius:8,marginLeft:2}},t.badge)))),
+      profileTab==="info"&&p&&React.createElement(EditTenantInfo,{p,cfg,selUnit,prop,updProfile,updUnit}),
+      profileTab==="info"&&!p&&React.createElement(Card,null,React.createElement("div",{style:{textAlign:"center",padding:"20px",color:T.muted}},"Vacant unit — no tenant on file")),
+      profileTab==="lease"&&React.createElement(Card,null,
+        React.createElement("div",{style:{fontSize:10,color:prop.color,fontWeight:900,letterSpacing:".1em",marginBottom:12}},"LEASE DOCUMENTS"),
+        [{name:"Lease Agreement 2024-2025.pdf",date:"Sep 1, 2024",status:"signed",size:"412 KB"},{name:"Move-In Inspection Report.pdf",date:"Sep 1, 2024",status:"signed",size:"1.2 MB"},{name:"Building Rules & Regulations.pdf",date:"Sep 1, 2024",status:"signed",size:"88 KB"},{name:"Lease Renewal Offer 2025-2026.pdf",date:"Mar 15, 2025",status:"pending",size:"380 KB"}].map((doc,i)=>React.createElement("div",{key:i,style:{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:`1px solid ${T.border}`}},
+          React.createElement("div",{style:{width:32,height:40,background:"#fff",borderRadius:4,boxShadow:"0 1px 4px rgba(0,0,0,.2)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",paddingBottom:4,position:"relative",flexShrink:0,border:"1px solid #e0e0e0"}},
+            React.createElement("div",{style:{position:"absolute",top:0,right:0,width:0,height:0,borderStyle:"solid",borderWidth:"8px 8px 0 0",borderColor:`${prop.color} transparent transparent transparent`}}),
+            React.createElement("span",{style:{fontSize:7,fontWeight:900,color:prop.color}},"PDF")),
+          React.createElement("div",{style:{flex:1,minWidth:0}},
+            React.createElement("div",{style:{fontSize:12,fontWeight:700,color:T.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},doc.name),
+            React.createElement("div",{style:{fontSize:10,color:T.muted,marginTop:2}},doc.date," \u00B7 ",doc.size)),
+          React.createElement("span",{style:{fontSize:10,fontWeight:700,color:doc.status==="signed"?T.green:T.gold,background:(doc.status==="signed"?T.green:T.gold)+"22",padding:"2px 8px",borderRadius:10,flexShrink:0}},doc.status==="signed"?"\u2713 Signed":"Pending")))),
+      profileTab==="vehicle"&&React.createElement(Card,null,
+        React.createElement("div",{style:{fontSize:10,color:prop.color,fontWeight:900,letterSpacing:".1em",marginBottom:12}},"REGISTERED VEHICLE"),
+        vehicle?[["Make",vehicle.make],["Model",vehicle.model],["Year",vehicle.year],["Color",vehicle.color],["License Plate",vehicle.plate],["State",vehicle.state],["Parking Spot","Assigned \u2014 Lot A"]].map(([l,v])=>React.createElement("div",{key:l,style:{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:`1px solid ${T.border}`}},React.createElement("span",{style:{fontSize:12,color:T.muted}},l),React.createElement("span",{style:{fontSize:12,fontWeight:600,color:T.text}},v))):React.createElement("div",{style:{textAlign:"center",padding:"20px",color:T.muted,fontSize:13}},"No vehicle registered for this unit")),
+      profileTab==="violations"&&React.createElement(React.Fragment,null,
+        violations.length===0?React.createElement(Card,null,React.createElement("div",{style:{textAlign:"center",padding:"20px",color:T.green,fontSize:13}},"\u2705 No violations on record")):
+        violations.map((v,i)=>React.createElement(Card,{key:i,style:{border:`1px solid ${v.status==="open"?T.red+"44":T.border}`}},
+          React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}},
+            React.createElement("div",null,React.createElement("div",{style:{fontSize:13,fontWeight:800,color:T.text}},v.type),React.createElement("div",{style:{fontSize:11,color:T.muted,marginTop:2}},v.date)),
+            React.createElement("span",{style:{fontSize:10,fontWeight:700,color:v.status==="open"?T.red:T.green,background:(v.status==="open"?T.red:T.green)+"22",padding:"2px 8px",borderRadius:10}},v.status==="open"?"Open":"\u2713 Resolved")),
+          React.createElement("div",{style:{fontSize:12,color:T.muted,lineHeight:1.6}},v.desc)))),
+      profileTab==="notes"&&React.createElement(Card,null,
+        React.createElement("div",{style:{fontSize:10,color:prop.color,fontWeight:900,letterSpacing:".1em",marginBottom:12}},"PROPERTY MANAGER NOTES"),
+        React.createElement("div",{style:{fontSize:13,color:T.text,lineHeight:1.8,fontFamily:"Georgia,serif",fontStyle:"italic"}},notes||"No notes for this unit."),
+        React.createElement("div",{style:{marginTop:12,paddingTop:12,borderTop:`1px solid ${T.border}`,fontSize:10,color:T.muted}},"Last updated Apr 15, 2025 \u00B7 Property Manager")));
+  }
+  return React.createElement(React.Fragment,null,
+    React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},"Units \u2014 ",prop.name),
+    floors.map(floor=>React.createElement("div",{key:floor},
+      React.createElement("div",{style:{fontSize:11,color:prop.color,fontWeight:700,letterSpacing:".12em",marginBottom:10,marginTop:4}},floorLabels[floor]||"Floor "+floor),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}},
+        units.filter(u=>unitCfg[u].floor===floor).map(unit=>{
+          const p=profiles[unit];const status=rentStatus[unit];
+          const sc=status==="paid"?T.green:status==="overdue"?T.red:status==="due"?T.gold:T.muted;
+          const colorIdx=units.indexOf(unit)%colors.length;
+          return React.createElement("div",{key:unit,onClick:()=>setSelUnit(unit),style:{background:p?prop.color+"18":T.card,border:`1.5px solid ${p?prop.color+"44":T.border}`,borderRadius:16,padding:"14px 12px",cursor:"pointer",transition:"all .18s"}},
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:10}},
+              React.createElement("div",{style:{width:44,height:44,borderRadius:12,flexShrink:0,background:p?`linear-gradient(135deg,${colors[colorIdx]},${colors[colorIdx]}bb)`:"#2A3F30",display:"flex",alignItems:"center",justifyContent:"center",fontSize:p?13:16,fontWeight:900,color:p?"#071a0e":T.muted,fontFamily:T.serif}},p?initials(`${p.firstName} ${p.lastName}`):unit),
+              React.createElement("div",null,React.createElement("div",{style:{fontSize:14,fontWeight:800,color:T.text,fontFamily:T.serif}},"Unit ",unit),React.createElement("div",{style:{fontSize:11,color:T.muted}},unitCfg[unit].type))),
+            p&&React.createElement("div",{style:{fontSize:13,fontWeight:600,color:T.text,marginBottom:8}},p.firstName," ",p.lastName),
+            React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
+              React.createElement("span",{style:{background:sc+"22",color:sc,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:12}},p?status==="paid"?"\u2713 Paid":status==="overdue"?"\u26A0 Overdue":status==="due"?"Due Soon":"Vacant":"Vacant"),
+              p&&React.createElement("span",{style:{fontSize:11,color:T.muted}},"$",unitCfg[unit].rent,"/mo")));
+        })))));
+}
+
+// ---- MgrMessages ----
+
+
+function MgrZRentAnalytics({prop,units,unitCfg,profiles,rentStatus,workOrders}){
+  const totalRent=Object.values(unitCfg).reduce((s,u)=>s+u.rent,0);
+  const paid=Object.values(rentStatus).filter(v=>v==="paid").length;
+  const overdue=Object.values(rentStatus).filter(v=>v==="overdue").length;
+  const vacant=units.filter(u=>!profiles[u]).length;
+  const collectionRate=Math.round((paid/Math.max(units.length-vacant,1))*100);
+  const months=["Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar","Apr"];
+  const collected=months.map((_,i)=>Math.round(totalRent*(0.82+Math.random()*0.15)));
+  const avgCollection=Math.round(collected.reduce((a,b)=>a+b,0)/collected.length);
+  const woExpenses=(workOrders||[]).filter(o=>o.invoiceAmount).reduce((s,o)=>s+o.invoiceAmount,0)||2840;
+  const noi=totalRent-woExpenses/12;
+  const stats=[
+    {label:"Monthly Gross Rent",value:"$"+totalRent.toLocaleString(),sub:"All units combined",color:T.green},
+    {label:"Collection Rate",value:collectionRate+"%",sub:paid+" of "+(units.length-vacant)+" paid this month",color:collectionRate>=90?T.green:collectionRate>=75?T.gold:T.red},
+    {label:"Avg Monthly Collected",value:"$"+avgCollection.toLocaleString(),sub:"Last 10 months via ZRent",color:T.blue},
+    {label:"Est. Monthly NOI",value:"$"+Math.round(noi).toLocaleString(),sub:"After avg maintenance costs",color:T.gold},
+  ];
+  const paymentHistory=[
+    {tenant:"Sarah M.",unit:"101",amount:1850,date:"Apr 1",status:"paid",method:"ZRent ACH"},
+    {tenant:"James T.",unit:"102",amount:2100,date:"Apr 1",status:"paid",method:"ZRent ACH"},
+    {tenant:"Maria L.",unit:"201",amount:1950,date:"Apr 3",status:"paid",method:"ZRent ACH"},
+    {tenant:"Robert K.",unit:"202",amount:2200,date:"Mar 28",status:"overdue",method:"Pending"},
+    {tenant:"—",unit:"301",amount:2400,date:"—",status:"vacant",method:"—"},
+  ];
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:14}},
+    React.createElement("div",null,
+      React.createElement("div",{style:{fontFamily:T.serif,fontSize:20,fontWeight:900,color:T.text}},"ZRent Payment Analytics"),
+      React.createElement("div",{style:{fontSize:12,color:T.muted,marginTop:2}},"Powered by Northern Bank ZRent · "+prop.name)
+    ),
+    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}},
+      stats.map(s=>React.createElement(Card,{key:s.label,style:{border:"1px solid "+s.color+"33"}},
+        React.createElement("div",{style:{fontSize:10,color:T.muted,fontWeight:700,letterSpacing:".1em",marginBottom:4}},s.label.toUpperCase()),
+        React.createElement("div",{style:{fontSize:22,fontWeight:900,color:s.color,fontFamily:T.serif}},s.value),
+        React.createElement("div",{style:{fontSize:11,color:T.muted,marginTop:2}},s.sub)
+      ))
+    ),
+    React.createElement(Card,null,
+      React.createElement("div",{style:{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:".1em",marginBottom:10}},"COLLECTION TREND — LAST 10 MONTHS"),
+      React.createElement("div",{style:{display:"flex",alignItems:"flex-end",gap:4,height:80}},
+        collected.map((v,i)=>{const max=Math.max(...collected);const h=Math.round((v/max)*72);const isLast=i===collected.length-1;return React.createElement("div",{key:i,style:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3}},
+          React.createElement("div",{style:{width:"100%",height:h,background:isLast?T.green:T.green+"44",borderRadius:"3px 3px 0 0",transition:"height .3s"}}),
+          React.createElement("div",{style:{fontSize:7,color:T.muted}},months[i])
+        );})
+      )
+    ),
+    React.createElement(Card,null,
+      React.createElement("div",{style:{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:".1em",marginBottom:10}},"PAYMENT LEDGER — APRIL"),
+      paymentHistory.map((p,i)=>{const sc=p.status==="paid"?T.green:p.status==="overdue"?T.red:T.muted;return React.createElement("div",{key:i,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid "+T.border}},
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontSize:13,fontWeight:700,color:T.text}},p.tenant+" · Unit "+p.unit),
+          React.createElement("div",{style:{fontSize:10,color:T.muted}},p.date+" · "+p.method)
+        ),
+        React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
+          React.createElement("span",{style:{fontSize:13,fontWeight:800,color:T.text,fontFamily:T.serif}},p.status==="vacant"?"Vacant":"$"+p.amount.toLocaleString()),
+          React.createElement("span",{style:{background:sc+"22",color:sc,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:12}},p.status==="paid"?"✓ Paid":p.status==="overdue"?"⚠ Overdue":"Vacant")
+        )
+      );})
+    )
+  );
+}
+
+// ---- MgrSmartRent ----
+
+
 function App(){
   // Vendor portal routing
   const urlParams=new URLSearchParams(window.location.search);
