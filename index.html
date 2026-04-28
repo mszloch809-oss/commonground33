@@ -968,6 +968,7 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
     };
     reader.readAsDataURL(file);
   };
+  const addExpense=()=>{
     if(!expDesc.trim()||!expAmt)return;
     setExtraExp(prev=>[...prev,{id:Date.now(),propId:prop.id,year,date:expDate,desc:expDesc,cat:expCat,amount:parseFloat(expAmt),vendor:"Manual Entry",recurring:false}]);
     setExpDesc("");setExpAmt("");setAddExp(false);
