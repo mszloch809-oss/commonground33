@@ -838,7 +838,7 @@ function MgrVendors(){const[vendors]=useState(INITIAL_VENDORS);const[filter,setF
 
 // ---- MgrLedger ----
 const LEDGER_EXPENSES={cottage:{2025:[],2024:[]},main:{2025:[],2024:[]},elm:{2025:[],2024:[]}};
-function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses,initView,onGoToK1}){
+function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses,initView,onGoToK1,updUnit}){
   const[view,setView]=useState(initView||"summary");
   const[year,setYear]=useState(2025);
   const[addExp,setAddExp]=useState(false);
@@ -847,7 +847,6 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
   const[expCat,setExpCat]=useState("Repairs");
   const[expDate,setExpDate]=useState(new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}));
   const[extraExp,setExtraExp]=useState([]);
-  const[incomeOverrides,setIncomeOverrides]=useState({});
   const[editingIncome,setEditingIncome]=useState(null);
   const[editIncomeVal,setEditIncomeVal]=useState("");
 
@@ -859,7 +858,7 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
   // Income by year
   const monthlyRent=units.reduce((s,u)=>s+unitCfg[u].rent,0);
   const occupiedUnits=units.filter(u=>profiles[u]);
-  const occupiedRent=occupiedUnits.reduce((s,u)=>s+(incomeOverrides[u]!==undefined?incomeOverrides[u]:unitCfg[u].rent),0);
+  const occupiedRent=occupiedUnits.reduce((s,u)=>s+unitCfg[u].rent,0);
   const months2024=12;
   const months2025=4; // Jan-Apr YTD
   const months=year===2024?months2024:months2025;
@@ -993,8 +992,8 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
         React.createElement("div",{style:{fontSize:10,color:T.muted}},"Tap ✏️ to edit")),
       units.map(u=>{
         const occupied=!!profiles[u];
-        const baseRent=incomeOverrides[u]!==undefined?incomeOverrides[u]:unitCfg[u].rent;
-        const amt=year===2024?Math.round(baseRent*12*0.95):baseRent*months2025;
+        const rent=unitCfg[u].rent;
+        const amt=year===2024?Math.round(rent*12*0.95):rent*months2025;
         const isEditing=editingIncome===u;
         return React.createElement("div",{key:u,style:{padding:"10px 0",borderBottom:`1px solid ${T.border}`}},
           React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
@@ -1004,11 +1003,11 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
                 React.createElement("span",{style:{fontSize:11,color:T.muted}},"$"),
                 React.createElement("input",{value:editIncomeVal,onChange:e=>setEditIncomeVal(e.target.value),type:"number",autoFocus:true,style:{width:80,background:T.surface,border:`1px solid ${T.green}`,borderRadius:6,padding:"4px 8px",color:T.text,fontSize:13,outline:"none"}}),
                 React.createElement("span",{style:{fontSize:11,color:T.muted}},"/mo"),
-                React.createElement("button",{onClick:()=>{setIncomeOverrides(p=>({...p,[u]:parseFloat(editIncomeVal)||unitCfg[u].rent}));setEditingIncome(null);},style:{padding:"3px 10px",borderRadius:6,border:"none",background:T.green,color:"#071a0e",fontSize:11,fontWeight:800,cursor:"pointer"}},"Save"),
+                React.createElement("button",{onClick:()=>{if(updUnit)updUnit(prop.id,u,"rent",parseFloat(editIncomeVal)||rent);setEditingIncome(null);},style:{padding:"3px 10px",borderRadius:6,border:"none",background:T.green,color:"#071a0e",fontSize:11,fontWeight:800,cursor:"pointer"}},"Save"),
                 React.createElement("button",{onClick:()=>setEditingIncome(null),style:{padding:"3px 8px",borderRadius:6,border:`1px solid ${T.border}`,background:"transparent",color:T.muted,fontSize:11,cursor:"pointer"}},"✕")):
-              React.createElement("div",{style:{fontSize:11,color:T.muted}},"$",baseRent.toLocaleString(),"/mo \u00B7 ",year===2024?"12 months":"4 months YTD",incomeOverrides[u]!==undefined?" (edited)":"")),
+              React.createElement("div",{style:{fontSize:11,color:T.muted}},"$",rent.toLocaleString(),"/mo \u00B7 ",year===2024?"12 months":"4 months YTD")),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
-              !isEditing&&React.createElement("button",{onClick:()=>{setEditingIncome(u);setEditIncomeVal(String(baseRent));},style:{background:"none",border:"none",cursor:"pointer",fontSize:13,padding:0}},"✏️"),
+              !isEditing&&React.createElement("button",{onClick:()=>{setEditingIncome(u);setEditIncomeVal(String(rent));},style:{background:"none",border:"none",cursor:"pointer",fontSize:13,padding:0}},"✏️"),
               React.createElement("div",{style:{textAlign:"right"}},
                 React.createElement("div",{style:{fontFamily:T.serif,fontSize:15,fontWeight:900,color:occupied?T.green:T.muted}},"$",amt.toLocaleString()),
                 React.createElement("div",{style:{fontSize:9,color:occupied?T.green:T.muted,fontWeight:700}},occupied?"\u2713 Occupied":"Vacant")))));
@@ -1321,7 +1320,7 @@ function MgrW9(){
 }
 
 // ---- MgrFinance ----
-function MgrFinance({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses}){
+function MgrFinance({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses,updUnit}){
   const[sub,setSub]=useState("ledger");
   const tabs=[{id:"ledger",label:"\uD83D\uDCCA Ledger"},{id:"k1",label:"\uD83D\uDCCB K-1 / 1031"},{id:"w9",label:"\uD83D\uDCC4 W-9s & 1099s"},{id:"tax",label:"\uD83D\uDCC5 Tax Summary"}];
   return React.createElement(React.Fragment,null,
@@ -1331,10 +1330,10 @@ function MgrFinance({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExp
         React.createElement("div",{style:{fontSize:11,color:prop.color,fontWeight:600,marginTop:2}},prop.emoji," ",prop.name))),
     React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
       tabs.map(t=>React.createElement("button",{key:t.id,onClick:()=>setSub(t.id),style:{padding:"10px 8px",borderRadius:12,border:`1.5px solid ${sub===t.id?prop.color:T.border}`,background:sub===t.id?prop.color+"18":"transparent",color:sub===t.id?prop.color:T.muted,fontSize:12,fontWeight:700,cursor:"pointer"}},t.label))),
-    sub==="ledger"&&React.createElement(MgrLedger,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses,onGoToK1:()=>setSub("k1")}),
+    sub==="ledger"&&React.createElement(MgrLedger,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses,updUnit,onGoToK1:()=>setSub("k1")}),
     sub==="k1"&&React.createElement(MgrExchange,{prop,units,unitCfg}),
     sub==="w9"&&React.createElement(MgrW9,null),
-    sub==="tax"&&React.createElement(MgrLedger,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses,initView:"tax"}));
+    sub==="tax"&&React.createElement(MgrLedger,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses,updUnit,initView:"tax"}));
 }
 
 
@@ -2673,7 +2672,7 @@ function ManagerDemo({onBack,workOrders,setWorkOrders,tenantInboxes,setTenantInb
       tab==="messages"&&React.createElement(MgrMessages,{tenantInboxes,setTenantInboxes,...propCtx}),
       tab==="orders"&&React.createElement(MgrWorkOrders,{workOrders,setWorkOrders,...propCtx}),
       tab==="vendors"&&React.createElement(MgrVendors,null),
-      tab==="reminders"&&React.createElement(MgrReminders,{reminders,setReminders,prop,units,unitCfg,profiles,rentStatus,workOrders}),tab==="finance"&&React.createElement(MgrFinance,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses}),tab==="docs"&&React.createElement(MgrDocs,{sharedDocs,setSharedDocs,units,profiles,prop,unitCfg}),tab==="tenants"&&React.createElement(MgrTenantsHub,{prop,units,unitCfg,profiles,rentStatus,applications,setApplications,tenantInboxes,setTenantInboxes}),
+      tab==="reminders"&&React.createElement(MgrReminders,{reminders,setReminders,prop,units,unitCfg,profiles,rentStatus,workOrders}),tab==="finance"&&React.createElement(MgrFinance,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses,updUnit}),tab==="docs"&&React.createElement(MgrDocs,{sharedDocs,setSharedDocs,units,profiles,prop,unitCfg}),tab==="tenants"&&React.createElement(MgrTenantsHub,{prop,units,unitCfg,profiles,rentStatus,applications,setApplications,tenantInboxes,setTenantInboxes}),
       tab==="maintenance"&&React.createElement(MgrMaintenanceHub,{workOrders,setWorkOrders,...propCtx}),
       tab==="finance"&&React.createElement(MgrFinanceHub,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses}),
       tab==="docs"&&React.createElement(MgrDocsHub,{sharedDocs,setSharedDocs,units,profiles,prop,unitCfg,reminders,setReminders,rentStatus,workOrders}),
@@ -2708,7 +2707,7 @@ function MgrFinanceHub({prop,units,unitCfg,profiles,rentStatus,workOrders,global
     ),
     sub==="analytics"&&React.createElement(MgrZRentAnalytics,{prop,units,unitCfg,profiles,rentStatus,workOrders}),
     sub==="smartRent"&&React.createElement(MgrSmartRent,{prop,units,unitCfg,rentStatus}),
-    sub==="finance"&&React.createElement(MgrFinance,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses}),
+    sub==="finance"&&React.createElement(MgrFinance,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses,updUnit}),
     sub==="lender"&&React.createElement(MgrLenderPackage,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses})
   );
 }
