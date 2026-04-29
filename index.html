@@ -856,6 +856,8 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
   const[expVendor,setExpVendor]=useState("");
   const[expPhoto,setExpPhoto]=useState(null);
   const[expPhotoName,setExpPhotoName]=useState("");
+  const[expAnalyzing,setExpAnalyzing]=useState(false);
+  const[expDragOver,setExpDragOver]=useState(false);
 
   const propExpData=LEDGER_EXPENSES[prop.id]||LEDGER_EXPENSES.cottage;
   const baseExpenses=propExpData[year]||[];
@@ -896,10 +898,28 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
     setExtraExp(prev=>[...prev,{id:Date.now(),propId:prop.id,year,date:expDate,desc:finalDesc,cat:expCat,amount:finalAmt,vendor:expVendor||"Manual Entry",recurring:false,photo:expPhoto,photoName:expPhotoName}]);
     setExpDesc("");setExpAmt("");setExpVendor("");setExpPhoto(null);setExpPhotoName("");setAddExp(false);
   };
-  const handleExpPhoto=(e)=>{const file=e.target.files[0];if(!file)return;setExpPhotoName(file.name);const reader=new FileReader();reader.onload=ev=>setExpPhoto(ev.target.result);reader.readAsDataURL(file);};
-  const expEmailSubject=encodeURIComponent("Invoice - "+prop.name+" - "+expCat);
-  const expEmailBody=encodeURIComponent("Property: "+prop.name+"\nCategory: "+expCat+"\nDescription: "+expDesc+"\nAmount: $"+expAmt+"\nVendor: "+expVendor+"\nDate: "+expDate+"\n\nAttach invoice photo to this email.");
-  const invoiceMailto="mailto:invoices@commongroundai.com?subject="+expEmailSubject+"&body="+expEmailBody;
+  const EXPENSE_CATS_LIST=["Repairs","Insurance","Taxes","Utilities","Landscaping","Management","Mortgage","Supplies","Other"];
+  const analyzeInvoice=async(dataUrl,fileName)=>{
+    setExpPhoto(dataUrl);setExpPhotoName(fileName);setExpAnalyzing(true);
+    try{
+      const base64=dataUrl.split(",")[1];
+      const mediaType=dataUrl.split(";")[0].split(":")[1]||"image/jpeg";
+      const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:mediaType,data:base64}},{type:"text",text:"This is an invoice or receipt. Extract the following and respond ONLY with valid JSON, no markdown:\n{\"vendor\":\"...\",\"amount\":0.00,\"date\":\"...\",\"description\":\"...\",\"category\":\"...\"}\nFor category, pick the best match from: "+EXPENSE_CATS_LIST.join(", ")+". For amount, return a number only. For date, use format like Apr 15, 2025. If unsure about any field, make a reasonable guess."}]}]})});
+      const data=await res.json();
+      const text=data.content?.[0]?.text||"{}";
+      const clean=text.replace(/```json|```/g,"").trim();
+      const parsed=JSON.parse(clean);
+      if(parsed.vendor)setExpVendor(parsed.vendor);
+      if(parsed.amount&&parsed.amount>0)setExpAmt(String(parsed.amount));
+      if(parsed.date)setExpDate(parsed.date);
+      if(parsed.description)setExpDesc(parsed.description);
+      if(parsed.category&&EXPENSE_CATS_LIST.includes(parsed.category))setExpCat(parsed.category);
+    }catch(err){console.error("Invoice AI error:",err);}
+    setExpAnalyzing(false);
+  };
+  const handleExpPhoto=(e)=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>analyzeInvoice(ev.target.result,file.name);reader.readAsDataURL(file);};
+  const handleExpDrop=(e)=>{e.preventDefault();setExpDragOver(false);const file=e.dataTransfer.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>analyzeInvoice(ev.target.result,file.name);reader.readAsDataURL(file);};
+
 
   const yearLabel=year===2025?"2025 YTD (Jan-Apr)":"2024 Full Year";
 
@@ -1039,20 +1059,26 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
             EXPENSE_CATS.map(c=>React.createElement("option",{key:c,value:c},c))),
           React.createElement(Input,{value:expVendor,onChange:setExpVendor,placeholder:"Vendor / Payee"}),
           React.createElement(Input,{value:expAmt,onChange:setExpAmt,placeholder:"Amount ($)",type:"number"}),
-          React.createElement("label",{style:{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8,padding:"20px 14px",background:expPhoto?T.greenDim:T.surface,border:"2px dashed "+(expPhoto?T.green:T.border),borderRadius:14,cursor:"pointer",textAlign:"center",minHeight:80}},
-            expPhoto?React.createElement(React.Fragment,null,
-              React.createElement("img",{src:expPhoto,alt:"invoice preview",style:{width:"100%",maxHeight:200,objectFit:"cover",borderRadius:10,border:"1px solid "+T.green+"44",marginBottom:4}}),
-              React.createElement("div",{style:{fontSize:12,color:T.green,fontWeight:700}},"✓ "+expPhotoName+" — tap to change")
+          React.createElement("div",{
+            onDragOver:function(e){e.preventDefault();setExpDragOver(true);},
+            onDragLeave:function(){setExpDragOver(false);},
+            onDrop:handleExpDrop,
+            style:{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8,padding:"20px 14px",background:expDragOver?"#0a2a1a":expAnalyzing?"#071020":expPhoto?T.greenDim:T.surface,border:"2px dashed "+(expDragOver?T.green:expAnalyzing?T.blue:expPhoto?T.green:T.border),borderRadius:14,textAlign:"center",minHeight:100,transition:"all .2s",position:"relative"}},
+            React.createElement("label",{style:{position:"absolute",inset:0,cursor:"pointer",borderRadius:14}},
+              React.createElement("input",{type:"file",accept:"image/*,application/pdf",capture:"environment",style:{display:"none"},onChange:handleExpPhoto})),
+            expAnalyzing?React.createElement(React.Fragment,null,
+              React.createElement("div",{style:{width:38,height:38,borderRadius:"50%",border:"3px solid "+T.blue+"33",borderTop:"3px solid "+T.blue,animation:"spin .9s linear infinite"}}),
+              React.createElement("div",{style:{fontSize:14,fontWeight:800,color:T.blue,marginTop:4}},"AI reading invoice..."),
+              React.createElement("div",{style:{fontSize:11,color:T.muted}},"Extracting vendor, amount & category")
+            ):expPhoto?React.createElement(React.Fragment,null,
+              React.createElement("img",{src:expPhoto,alt:"invoice",style:{width:"100%",maxHeight:200,objectFit:"cover",borderRadius:10,border:"1px solid "+T.green+"44",marginBottom:4,pointerEvents:"none"}}),
+              React.createElement("div",{style:{fontSize:12,color:T.green,fontWeight:700}},"✓ "+expPhotoName+" — tap to replace")
             ):React.createElement(React.Fragment,null,
               React.createElement("div",{style:{fontSize:36}},"������"),
-              React.createElement("div",{style:{fontSize:15,fontWeight:800,color:T.text}},"Tap to take invoice photo"),
-              React.createElement("div",{style:{fontSize:12,color:T.muted}},"Camera · Photos · PDF — photo alone is enough to save")
-            ),
-            React.createElement("input",{type:"file",accept:"image/*,application/pdf",capture:"environment",style:{display:"none"},onChange:handleExpPhoto})),
-          React.createElement("div",{style:{padding:"10px 14px",background:"#0a1a0a",border:`1px solid ${T.gold}33`,borderRadius:10}},
-            React.createElement("div",{style:{fontSize:11,color:T.gold,fontWeight:700,marginBottom:4}},"������ Or email your invoice"),
-            React.createElement("a",{href:invoiceMailto,style:{fontSize:12,color:T.blue,fontWeight:600,textDecoration:"none",display:"block"}},"Tap to email invoice to CommonGround →"),
-            React.createElement("div",{style:{fontSize:10,color:T.muted,marginTop:3}},"Attach invoice photo to the email — it logs to this property")),
+              React.createElement("div",{style:{fontSize:15,fontWeight:800,color:T.text}},"Snap or drag invoice here"),
+              React.createElement("div",{style:{fontSize:12,color:T.muted,lineHeight:1.7}},"Mobile: tap for camera · Desktop: drag & drop"),
+              React.createElement("div",{style:{fontSize:11,color:T.green,fontWeight:700}},"✨ AI auto-fills vendor, amount & category")
+            )),
           React.createElement("div",{style:{display:"flex",gap:8}},
             React.createElement(Btn,{onClick:addExpense,disabled:!expPhoto&&(!expDesc.trim()||!expAmt),full:true},"Save Expense"),
             React.createElement(Btn,{onClick:()=>{setAddExp(false);setExpPhoto(null);setExpPhotoName("");},variant:"ghost"},"Cancel")))),
