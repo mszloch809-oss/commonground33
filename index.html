@@ -73,8 +73,6 @@ const INITIAL_VENDORS=[{id:1,name:"Doherty Plumbing",trade:"plumbing",phone:"(61
 const WO_CATS={plumbing:{label:"Plumbing",icon:"\uD83D\uDEB0",color:"#5B9CF6"},electrical:{label:"Electrical",icon:"\u26A1",color:"#F5C542"},hvac:{label:"HVAC",icon:"\uD83C\uDF21",color:"#F76F6F"},appliance:{label:"Appliance",icon:"\uD83C\uDFE0",color:"#A78BFA"},structural:{label:"Structural",icon:"\uD83E\uDDF1",color:"#F5A442"},general:{label:"General",icon:"\uD83D\uDD27",color:"#7BCFB8"}};
 const WO_STATUSES={open:{label:"Open",color:"#F5C542"},in_progress:{label:"In Progress",color:"#5B9CF6"},resolved:{label:"Resolved",color:"#3EC98E"},closed:{label:"Closed",color:"#3EC98E"}};
 const WO_PRIORITIES={low:{label:"Low",color:T.muted},medium:{label:"Medium",color:"#F5C542"},high:{label:"High",color:"#F76F6F"}};
-const EXPENSE_CATS=["Repairs","Insurance","Taxes","Utilities","Landscaping","Management","Mortgage","Supplies","Other"];
-const CAT_COLORS={"Repairs":"#F76F6F","Insurance":"#5B9CF6","Taxes":"#A78BFA","Utilities":"#F5C542","Landscaping":"#3EC98E","Management":"#7BCFB8","Mortgage":"#F5A442","Supplies":"#E879A0","Other":"#6A8070"};
 const TRADES={plumbing:{label:"Plumbing",icon:"\uD83D\uDEB0",color:"#5B9CF6"},electrical:{label:"Electrical",icon:"\u26A1",color:"#F5C542"},hvac:{label:"HVAC",icon:"\uD83C\uDF21",color:"#F76F6F"},landscaping:{label:"Landscaping",icon:"\uD83C\uDF3F",color:"#3EC98E"},general:{label:"General",icon:"\uD83D\uDD27",color:"#7BCFB8"}};
 
 // ---- API ----
@@ -853,6 +851,9 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
   const[extraExp,setExtraExp]=useState([]);
   const[editingIncome,setEditingIncome]=useState(null);
   const[editIncomeVal,setEditIncomeVal]=useState("");
+  const[expVendor,setExpVendor]=useState("");
+  const[expPhoto,setExpPhoto]=useState(null);
+  const[expPhotoName,setExpPhotoName]=useState("");
 
   const propExpData=LEDGER_EXPENSES[prop.id]||LEDGER_EXPENSES.cottage;
   const baseExpenses=propExpData[year]||[];
@@ -888,9 +889,13 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
 
   const addExpense=()=>{
     if(!expDesc.trim()||!expAmt)return;
-    setExtraExp(prev=>[...prev,{id:Date.now(),propId:prop.id,year,date:expDate,desc:expDesc,cat:expCat,amount:parseFloat(expAmt),vendor:"Manual Entry",recurring:false}]);
-    setExpDesc("");setExpAmt("");setAddExp(false);
+    setExtraExp(prev=>[...prev,{id:Date.now(),propId:prop.id,year,date:expDate,desc:expDesc,cat:expCat,amount:parseFloat(expAmt),vendor:expVendor||"Manual Entry",recurring:false,photo:expPhoto,photoName:expPhotoName}]);
+    setExpDesc("");setExpAmt("");setExpVendor("");setExpPhoto(null);setExpPhotoName("");setAddExp(false);
   };
+  const handleExpPhoto=(e)=>{const file=e.target.files[0];if(!file)return;setExpPhotoName(file.name);const reader=new FileReader();reader.onload=ev=>setExpPhoto(ev.target.result);reader.readAsDataURL(file);};
+  const expEmailSubject=encodeURIComponent("Invoice - "+prop.name+" - "+expCat);
+  const expEmailBody=encodeURIComponent("Property: "+prop.name+"\nCategory: "+expCat+"\nDescription: "+expDesc+"\nAmount: $"+expAmt+"\nVendor: "+expVendor+"\nDate: "+expDate+"\n\nAttach invoice photo to this email.");
+  const invoiceMailto="mailto:invoices@commongroundai.com?subject="+expEmailSubject+"&body="+expEmailBody;
 
   const yearLabel=year===2025?"2025 YTD (Jan-Apr)":"2024 Full Year";
 
@@ -1024,14 +1029,26 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
         React.createElement(Btn,{onClick:()=>setAddExp(!addExp),small:true,variant:"green",icon:React.createElement(Icon,{d:IC.plus,size:13,color:T.green})},"Add Expense")),
       addExp&&React.createElement(Card,{style:{border:`1px solid ${T.green}44`}},
         React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},
-          React.createElement(Input,{value:expDate,onChange:setExpDate,placeholder:"Date"}),
+          React.createElement(Input,{value:expDate,onChange:setExpDate,placeholder:"Date (e.g. Apr 15, 2025)"}),
           React.createElement(Input,{value:expDesc,onChange:setExpDesc,placeholder:"Description"}),
           React.createElement("select",{value:expCat,onChange:e=>setExpCat(e.target.value),style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 14px",color:T.text,fontSize:14,outline:"none"}},
             EXPENSE_CATS.map(c=>React.createElement("option",{key:c,value:c},c))),
-          React.createElement(Input,{value:expAmt,onChange:setExpAmt,placeholder:"Amount",type:"number"}),
+          React.createElement(Input,{value:expVendor,onChange:setExpVendor,placeholder:"Vendor / Payee"}),
+          React.createElement(Input,{value:expAmt,onChange:setExpAmt,placeholder:"Amount ($)",type:"number"}),
+          React.createElement("label",{style:{display:"flex",alignItems:"center",gap:10,padding:"11px 14px",background:T.surface,border:`1px solid ${expPhoto?T.green:T.border}`,borderRadius:10,cursor:"pointer"}},
+            React.createElement("span",{style:{fontSize:20}},"������"),
+            React.createElement("div",{style:{flex:1}},
+              React.createElement("div",{style:{fontSize:13,fontWeight:700,color:expPhoto?T.green:T.text}},expPhoto?"Invoice attached: "+expPhotoName:"Attach Invoice Photo"),
+              React.createElement("div",{style:{fontSize:11,color:T.muted,marginTop:2}},"Tap to take photo or choose file")),
+            React.createElement("input",{type:"file",accept:"image/*,application/pdf",capture:"environment",style:{display:"none"},onChange:handleExpPhoto})),
+          expPhoto&&React.createElement("img",{src:expPhoto,alt:"invoice preview",style:{width:"100%",maxHeight:180,objectFit:"cover",borderRadius:10,border:`1px solid ${T.green}44`}}),
+          React.createElement("div",{style:{padding:"10px 14px",background:"#0a1a0a",border:`1px solid ${T.gold}33`,borderRadius:10}},
+            React.createElement("div",{style:{fontSize:11,color:T.gold,fontWeight:700,marginBottom:4}},"������ Or email your invoice"),
+            React.createElement("a",{href:invoiceMailto,style:{fontSize:12,color:T.blue,fontWeight:600,textDecoration:"none",display:"block"}},"Tap to email invoice to CommonGround →"),
+            React.createElement("div",{style:{fontSize:10,color:T.muted,marginTop:3}},"Attach invoice photo to the email — it logs to this property")),
           React.createElement("div",{style:{display:"flex",gap:8}},
-            React.createElement(Btn,{onClick:addExpense,disabled:!expDesc.trim()||!expAmt,full:true},"Add"),
-            React.createElement(Btn,{onClick:()=>setAddExp(false),variant:"ghost"},"Cancel")))),
+            React.createElement(Btn,{onClick:addExpense,disabled:!expDesc.trim()||!expAmt,full:true},"Save Expense"),
+            React.createElement(Btn,{onClick:()=>{setAddExp(false);setExpPhoto(null);setExpPhotoName("");},variant:"ghost"},"Cancel")))),
       React.createElement(Card,null,
         React.createElement("div",{style:{fontSize:11,color:T.red,fontWeight:700,letterSpacing:".1em",marginBottom:12}},year===2024?"EXPENSES — 2024 FULL YEAR":"EXPENSES — 2025 YTD"),
         allExpenses.map((e,i)=>React.createElement("div",{key:e.id,style:{display:"flex",alignItems:"flex-start",gap:10,padding:"10px 0",borderBottom:i<allExpenses.length-1?`1px solid ${T.border}`:"none"}},
@@ -1039,7 +1056,9 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
           React.createElement("div",{style:{flex:1,minWidth:0}},
             React.createElement("div",{style:{fontSize:12,fontWeight:700,color:T.text}},e.desc),
             React.createElement("div",{style:{fontSize:10,color:T.muted,marginTop:2}},e.date," \u00B7 ",React.createElement("span",{style:{color:CAT_COLORS[e.cat]||T.muted,fontWeight:700}},e.cat)," \u00B7 ",e.vendor)),
-          React.createElement("div",{style:{fontFamily:T.serif,fontSize:13,fontWeight:800,color:T.red,flexShrink:0}},"$",e.amount.toLocaleString()))),
+          React.createElement("div",{style:{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4,flexShrink:0}},
+            React.createElement("div",{style:{fontFamily:T.serif,fontSize:13,fontWeight:800,color:T.red}},"$",e.amount.toLocaleString()),
+            e.photo&&React.createElement("img",{src:e.photo,alt:"invoice",onClick:()=>window.open(e.photo,"_blank"),style:{width:38,height:38,borderRadius:6,objectFit:"cover",border:`1px solid ${T.green}44`,cursor:"pointer",marginTop:2}})))),
         React.createElement("div",{style:{display:"flex",justifyContent:"space-between",padding:"12px 0 0",borderTop:`2px solid ${T.red}`,marginTop:4}},
           React.createElement("span",{style:{fontSize:13,fontWeight:800,color:T.text}},"Total"),
           React.createElement("span",{style:{fontFamily:T.serif,fontSize:18,fontWeight:900,color:T.red}},"$",totalExpenses.toLocaleString())))),
