@@ -850,7 +850,6 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
   const[expAmt,setExpAmt]=useState("");
   const[expCat,setExpCat]=useState("Repairs");
   const[expDate,setExpDate]=useState(new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}));
-  const[extraExp,setExtraExp]=useState([]);
   const[editingIncome,setEditingIncome]=useState(null);
   const[editIncomeVal,setEditIncomeVal]=useState("");
   const[expVendor,setExpVendor]=useState("");
@@ -861,7 +860,9 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
 
   const propExpData=LEDGER_EXPENSES[prop.id]||LEDGER_EXPENSES.cottage;
   const baseExpenses=propExpData[year]||[];
-  const allExpenses=[...baseExpenses,...extraExp.filter(e=>e.propId===prop.id&&e.year===year)];
+  const expKey=prop.id+"-"+year;
+  const savedExpenses=(globalExpenses&&globalExpenses[expKey])||[];
+  const allExpenses=[...baseExpenses,...savedExpenses];
   const totalExpenses=allExpenses.reduce((s,e)=>s+e.amount,0);
 
   // Income by year
@@ -895,7 +896,15 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
     if(!expPhoto&&(!expDesc.trim()||!expAmt))return;
     const finalDesc=expDesc.trim()||("Invoice - "+expCat+(expVendor?" - "+expVendor:""));
     const finalAmt=expAmt?parseFloat(expAmt):0;
-    setExtraExp(prev=>[...prev,{id:Date.now(),propId:prop.id,year,date:expDate,desc:finalDesc,cat:expCat,amount:finalAmt,vendor:expVendor||"Manual Entry",recurring:false,photo:expPhoto,photoName:expPhotoName}]);
+    const newExp={id:Date.now(),propId:prop.id,year,date:expDate,desc:finalDesc,cat:expCat,amount:finalAmt,vendor:expVendor||"Manual Entry",recurring:false,photo:expPhoto,photoName:expPhotoName};
+    if(setGlobalExpenses){
+      setGlobalExpenses(prev=>{
+        const key=prop.id+"-"+year;
+        const updated={...prev,[key]:[...(prev[key]||[]),newExp]};
+        try{localStorage.setItem("cg_expenses",JSON.stringify(updated));}catch(e){}
+        return updated;
+      });
+    }
     setExpDesc("");setExpAmt("");setExpVendor("");setExpPhoto(null);setExpPhotoName("");setAddExp(false);
   };
   const EXPENSE_CATS_LIST=["Repairs","Insurance","Taxes","Utilities","Landscaping","Management","Mortgage","Supplies","Other"];
@@ -2680,11 +2689,14 @@ function ForumTab({unit,propId,prop,profile,unitCfg}){const[forums,setForums]=us
 
 // ---- ManagerDemo ----
 
-function ManagerDemo({onBack,workOrders,setWorkOrders,tenantInboxes,setTenantInboxes,reminders,setReminders,sharedDocs,setSharedDocs,applications,setApplications,pendingSigAlert,setPendingSigAlert,refreshState,mUnitCfg:mUnitCfgProp,setMUnitCfg:setMUnitCfgProp,mProfiles:mProfilesProp,setMProfiles:setMProfilesProp,updUnit:updUnitProp,updProfile:updProfileProp}){
+function ManagerDemo({onBack,workOrders,setWorkOrders,tenantInboxes,setTenantInboxes,reminders,setReminders,sharedDocs,setSharedDocs,applications,setApplications,pendingSigAlert,setPendingSigAlert,refreshState,mUnitCfg:mUnitCfgProp,setMUnitCfg:setMUnitCfgProp,mProfiles:mProfilesProp,setMProfiles:setMProfilesProp,updUnit:updUnitProp,updProfile:updProfileProp,managerPin,saveManagerPin}){
   const[tab,setTab]=useState("overview");
   const[propId,setPropId]=useState("cottage");
   const[rentStatusOverrides,setRentStatusOverrides]=useState({});
-  const[globalExpenses,setGlobalExpenses]=useState({});
+  const[globalExpenses,setGlobalExpenses]=useState(()=>{
+    try{const s=localStorage.getItem("cg_expenses");return s?JSON.parse(s):{};}
+    catch(e){return {};}
+  });
   const prop=PROPERTIES[propId];
   const[mProfiles,setMProfiles]=mProfilesProp&&setMProfilesProp?[mProfilesProp,setMProfilesProp]:useState(()=>JSON.parse(JSON.stringify(PROPERTY_PROFILES)));
   const[mUnitCfg,setMUnitCfg]=mUnitCfgProp&&setMUnitCfgProp?[mUnitCfgProp,setMUnitCfgProp]:useState(()=>JSON.parse(JSON.stringify(PROPERTY_UNIT_CONFIG)));
@@ -2708,7 +2720,15 @@ function ManagerDemo({onBack,workOrders,setWorkOrders,tenantInboxes,setTenantInb
         React.createElement("div",{style:{flex:1}},
           React.createElement("div",{style:{fontFamily:T.serif,fontSize:15,fontWeight:900,color:T.text}},prop.name),
           React.createElement("div",{style:{fontSize:10,color:T.muted}},prop.type," \u00B7 ",prop.city)),
-        React.createElement("button",{onClick:onBack,style:{background:T.faint,border:`1px solid ${T.border}`,borderRadius:8,padding:"5px 10px",cursor:"pointer",fontSize:11,fontWeight:700,color:T.muted}},"\u2190 Back")),
+        React.createElement("div",{style:{display:"flex",gap:6,alignItems:"center"}},
+              React.createElement("button",{onClick:()=>{
+                if(window.confirm("Change manager PIN?\n\nEnter your new 4-digit PIN:")){
+                  const newPin=window.prompt("New 4-digit PIN (current: "+managerPin+"):");
+                  if(newPin&&/^\d{4}$/.test(newPin)){saveManagerPin&&saveManagerPin(newPin);alert("PIN changed to "+newPin+" — use this next time you log in.");}
+                  else if(newPin!==null){alert("PIN must be exactly 4 digits.");}
+                }
+              },style:{background:T.faint,border:`1px solid ${T.border}`,borderRadius:8,padding:"5px 9px",cursor:"pointer",fontSize:11,fontWeight:700,color:T.muted},title:"Change manager PIN"},"������"),
+              React.createElement("button",{onClick:onBack,style:{background:T.faint,border:`1px solid ${T.border}`,borderRadius:8,padding:"5px 10px",cursor:"pointer",fontSize:11,fontWeight:700,color:T.muted}},"← Back"))),
       React.createElement("div",{style:{display:"flex",overflowX:"auto",background:T.surface,borderTop:`1px solid ${T.border}`,borderBottom:`1px solid ${T.border}`,scrollbarWidth:"none",padding:"8px 10px",gap:4,justifyContent:"space-between"}},
         mgTabs.map(t=>{const active=tab===t.id;const col=t.color||T.green;return React.createElement("button",{key:t.id,onClick:()=>setTab(t.id),style:{flex:1,display:"flex",flexDirection:"row",alignItems:"center",justifyContent:"center",gap:5,padding:active?"8px 10px":"8px 8px",background:active?col:T.card,border:"1.5px solid "+(active?col:T.green+"55"),borderRadius:50,cursor:"pointer",whiteSpace:"nowrap",transition:"all .18s",boxShadow:active?"0 2px 8px "+col+"55":"none",minWidth:0}},React.createElement("div",{style:{position:"relative",display:"flex",alignItems:"center"}},React.createElement(Icon,{d:t.icon,size:16,color:active?"#fff":col}),t.badge&&React.createElement("div",{style:{position:"absolute",top:-6,right:-8,width:15,height:15,borderRadius:"50%",background:"#F76F6F",color:"#fff",fontSize:8,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center"}},t.badge)),);})),
       React.createElement("div",{style:{padding:"6px 12px",display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none",borderTop:`1px solid ${T.border}`}},Object.values(PROPERTIES).map(p=>React.createElement("button",{key:p.id,onClick:()=>setPropId(p.id),style:{flexShrink:0,display:"flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:20,border:`1px solid ${propId===p.id?p.color:T.border}`,background:propId===p.id?p.color+"18":"transparent",cursor:"pointer",transition:"all .2s"}},React.createElement("span",{style:{fontSize:14}},p.emoji),React.createElement("span",{style:{fontSize:11,fontWeight:700,color:propId===p.id?p.color:T.muted}},p.name))))),
@@ -3061,11 +3081,47 @@ function MgrZRentAnalytics({prop,units,unitCfg,profiles,rentStatus,workOrders}){
 // ---- MgrSmartRent ----
 
 
+function ManagerPinScreen({onSuccess,onBack,managerPin}){
+  const[entered,setEntered]=useState("");
+  const[shake,setShake]=useState(false);
+  const[error,setError]=useState(false);
+  const handle=(k)=>{
+    if(shake)return;
+    if(k==="back"){setEntered(e=>e.slice(0,-1));setError(false);return;}
+    const next=entered+k;
+    if(next.length>4)return;
+    setEntered(next);
+    if(next.length===4){
+      if(next===managerPin){onSuccess();}
+      else{setShake(true);setError(true);setTimeout(()=>{setShake(false);setEntered("");setError(false);},700);}
+    }
+  };
+  const keys=[["1","2","3"],["4","5","6"],["7","8","9"],["","0","back"]];
+  return React.createElement("div",{style:{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",position:"relative"}},
+    React.createElement("button",{onClick:onBack,style:{position:"absolute",top:20,left:20,background:"none",border:"none",color:T.muted,fontSize:13,fontWeight:700,cursor:"pointer"}},"← Back"),
+    React.createElement("div",{style:{textAlign:"center",marginBottom:36}},
+      React.createElement(CGMark,{size:52}),
+      React.createElement("div",{style:{marginTop:14,fontSize:16,fontWeight:800,color:T.text}},"Manager Dashboard"),
+      React.createElement("div",{style:{fontSize:13,color:T.muted,marginTop:4}},"Enter your manager PIN to continue")
+    ),
+    React.createElement("div",{style:{display:"flex",gap:16,marginBottom:8,animation:shake?"shake .5s ease":"none"}},
+      ...[0,1,2,3].map(i=>React.createElement("div",{key:i,style:{width:18,height:18,borderRadius:"50%",background:entered.length>i?(error?T.red:T.gold):"#1E3024",transition:"background .15s"}}))
+    ),
+    error?React.createElement("div",{style:{color:T.red,fontSize:12,fontWeight:700,marginBottom:24,marginTop:8}},"Incorrect PIN — try again"):React.createElement("div",{style:{height:32}}),
+    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,72px)",gap:12}},
+      ...keys.flat().map((k,i)=>k===""?React.createElement("div",{key:"empty-"+i}):React.createElement("button",{key:k+i,onClick:()=>handle(k),style:{height:72,borderRadius:16,border:"1px solid "+T.border,background:k==="back"?T.surface:T.card,color:k==="back"?T.muted:T.text,fontSize:k==="back"?20:26,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}},k==="back"?"⌫":k))
+    )
+  );
+}
+
+
 function App(){
   // Vendor portal routing
   const urlParams=new URLSearchParams(window.location.search);
   const vendorWoId=urlParams.get("vendor");
   const[screen,setScreen]=useState("landing");
+  const[managerPin,setManagerPin]=useState(()=>{try{return localStorage.getItem("cg_mgr_pin")||"2580";}catch(e){return "2580";}});
+  const saveManagerPin=(pin)=>{setManagerPin(pin);try{localStorage.setItem("cg_mgr_pin",pin);}catch(e){}};
   const[fees,setFees]=useState(DEFAULT_FEES);
   useEffect(()=>{fbRead("cg_fees").then(v=>{if(v)setFees({...DEFAULT_FEES,...v});});},[]);useEffect(()=>{fbWrite("cg_tenant_profiles",{__migrated__:true});},[]); useEffect(()=>{const propIds=["cottage"];propIds.forEach(pid=>{const units=Object.keys(PROPERTY_UNIT_CONFIG[pid]||{});units.forEach(u=>{fbRead("cg_profiles_"+pid+"_"+u).then(v=>{if(v!==undefined&&v!==null)setMProfiles(prev=>{const n=JSON.parse(JSON.stringify(prev));if(n[pid])n[pid][u]=v;return n;});else if(v===null)setMProfiles(prev=>{const n=JSON.parse(JSON.stringify(prev));if(n[pid])n[pid][u]=null;return n;});});});});},[]);
   const updateFees=async(nf)=>{const m={...fees,...nf};setFees(m);await fbWrite("cg_fees",m);};
@@ -3106,13 +3162,14 @@ function App(){
   const updProfile=(pid,unit,f,v)=>setMProfiles(p=>{const n=JSON.parse(JSON.stringify(p));if(f==="__clear__"){n[pid][unit]=null;fbWrite("cg_profiles_"+pid+"_"+unit,{__cleared__:true});return n;}if(!n[pid][unit])n[pid][unit]={};n[pid][unit][f]=v;fbWrite("cg_profiles_"+pid+"_"+unit,n[pid][unit]);return n;});
   if(vendorWoId){return React.createElement(VendorPortal,{woId:vendorWoId,workOrders:workOrders});}
   if(screen==="splash")return React.createElement(Splash,{onDone:()=>setScreen("landing")});
-  if(screen==="landing")return React.createElement(Landing,{onExplore:()=>setScreen("units"),onManager:()=>setScreen("manager"),onApply:()=>setScreen("apply"),onMarket:()=>setScreen("marketplace")});
+  if(screen==="landing")return React.createElement(Landing,{onExplore:()=>setScreen("units"),onManager:()=>setScreen("manager-pin"),onApply:()=>setScreen("apply"),onMarket:()=>setScreen("marketplace")});
   if(screen==="forum")return React.createElement(LandlordForum,{onBack:()=>setScreen("landing")});
-  if(screen==="marketplace")return React.createElement(Marketplace,{onBack:(tab)=>{if(tab==="exchange"){setScreen("manager");}else{setScreen("landing");}}});
+  if(screen==="marketplace")return React.createElement(Marketplace,{onBack:(tab)=>{if(tab==="exchange"){setScreen("manager-pin");}else{setScreen("landing");}}});
   if(screen==="apply")return React.createElement(TenantApplication,{onBack:()=>setScreen("landing"),onSubmit:(app)=>setApplications(prev=>[...prev,app])});
-  if(screen==="units")return React.createElement(UnitSelect,{onSelect:(propId,unit)=>{setSelectedPropId(propId);setSelectedUnit(unit);setScreen("tenant");},onManagerDemo:()=>setScreen("manager"),unitCfgOverride:mUnitCfg,profilesOverride:mProfiles});
+  if(screen==="units")return React.createElement(UnitSelect,{onSelect:(propId,unit)=>{setSelectedPropId(propId);setSelectedUnit(unit);setScreen("tenant");},onManagerDemo:()=>setScreen("manager-pin"),unitCfgOverride:mUnitCfg,profilesOverride:mProfiles});
   if(screen==="tenant"&&selectedUnit){const tCfg=mUnitCfg[selectedPropId]||PROPERTY_UNIT_CONFIG[selectedPropId];return React.createElement(TenantApp,{unit:selectedUnit,propId:selectedPropId,onBack:()=>setScreen("units"),tenantSignedDocs,onTenantSign,fees,unitCfgOverride:tCfg,updProfile,profilesOverride:mProfiles[selectedPropId],...sharedProps});}
-  if(screen==="manager")return React.createElement(ManagerDemo,{onBack:()=>setScreen("landing"),reminders,setReminders,applications,setApplications,pendingSigAlert,setPendingSigAlert,fees,updateFees,mUnitCfg,setMUnitCfg,mProfiles,setMProfiles,updUnit,updProfile,...sharedProps});
+  if(screen==="manager-pin")return React.createElement(ManagerPinScreen,{onSuccess:()=>setScreen("manager"),onBack:()=>setScreen("landing"),managerPin});
+  if(screen==="manager")return React.createElement(ManagerDemo,{onBack:()=>setScreen("landing"),managerPin,saveManagerPin,reminders,setReminders,applications,setApplications,pendingSigAlert,setPendingSigAlert,fees,updateFees,mUnitCfg,setMUnitCfg,mProfiles,setMProfiles,updUnit,updProfile,...sharedProps});
   return null;
 }
 
