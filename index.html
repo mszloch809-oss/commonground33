@@ -947,7 +947,7 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
   const startEditExpense=(e)=>{
     setEditingExpId(e.id);
     setExpDesc(e.desc||"");
-    setExpAmt(String(e.amount||""));
+    setExpAmt(e.amount!=null?String(e.amount):"");
     setExpVendor(e.vendor||"");
     setExpDate(e.date||"");
     setExpCat(e.cat||"Repairs");
@@ -1188,7 +1188,7 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
             React.createElement(Input,{value:expVendor,onChange:setExpVendor,placeholder:"Vendor / Payee"}),
             React.createElement(Input,{value:expAmt,onChange:setExpAmt,placeholder:"Amount ($)",type:"number"}),
             React.createElement("div",{style:{display:"flex",gap:8}},
-              React.createElement(Btn,{onClick:saveEditExpense,disabled:!expDesc.trim()||!expAmt,full:true},"Save Changes"),
+              React.createElement(Btn,{onClick:saveEditExpense,disabled:!expDesc.trim()||expAmt==="",full:true},"Save Changes"),
               React.createElement(Btn,{onClick:cancelEdit,variant:"ghost"},"Cancel"))))),
         React.createElement("div",{style:{display:"flex",justifyContent:"space-between",padding:"12px 0 0",borderTop:`2px solid ${T.red}`,marginTop:4}},
           React.createElement("span",{style:{fontSize:13,fontWeight:800,color:T.text}},"Total"),
