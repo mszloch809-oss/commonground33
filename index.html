@@ -869,6 +869,7 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
   const[expAnalyzing,setExpAnalyzing]=useState(false);
   const[expDragOver,setExpDragOver]=useState(false);
   const[editingExpId,setEditingExpId]=useState(null);
+  const[lightboxSrc,setLightboxSrc]=useState(null);
 
   const propExpData=LEDGER_EXPENSES[prop.id]||LEDGER_EXPENSES.cottage;
   const baseExpenses=propExpData[year]||[];
@@ -1178,7 +1179,7 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
                 React.createElement("button",{onClick:()=>deleteExpense(e.id),style:{fontSize:10,fontWeight:700,color:T.red,background:T.red+"15",border:"1px solid "+T.red+"33",borderRadius:6,padding:"2px 10px",cursor:"pointer"}},"\uD83D\uDDD1 Delete"))),
             React.createElement("div",{style:{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4,flexShrink:0}},
               React.createElement("div",{style:{fontFamily:T.serif,fontSize:13,fontWeight:800,color:T.red}},"$",e.amount.toLocaleString()),
-              getExpPhoto(e)&&React.createElement("img",{src:getExpPhoto(e),alt:"invoice",onClick:()=>window.open(getExpPhoto(e),"_blank"),style:{width:38,height:38,borderRadius:6,objectFit:"cover",border:`1px solid ${T.green}44`,cursor:"pointer",marginTop:2}}))),
+              getExpPhoto(e)&&React.createElement("img",{src:getExpPhoto(e),alt:"invoice",onClick:()=>setLightboxSrc(getExpPhoto(e)),style:{width:38,height:38,borderRadius:6,objectFit:"cover",border:`1px solid ${T.green}44`,cursor:"pointer",marginTop:2}}))),
           editingExpId===e.id&&React.createElement("div",{className:"expense-edit-form",style:{marginTop:10,display:"flex",flexDirection:"column",gap:8}},
             React.createElement("div",{style:{fontSize:10,color:T.green,fontWeight:800,letterSpacing:".1em",marginBottom:2}},"EDITING EXPENSE"),
             React.createElement(Input,{value:expDate,onChange:setExpDate,placeholder:"Date"}),
@@ -1351,8 +1352,8 @@ function LandlordForum({onBack,embedded}){
                     React.createElement("span",{style:{fontSize:11,color:T.muted}},p.author," \u00B7 ",p.time)),
                   React.createElement("div",{style:{display:"flex",gap:10}},
                     React.createElement("span",{style:{fontSize:11,color:T.muted}},"\uD83E\uDD0D ",p.likes),
-                    React.createElement("span",{style:{fontSize:11,color:T.muted}},"\uD83D\uDCAC ",p.replies.length))))));
-        }))));
+                    React.createElement("span",{style:{fontSize:11,color:T.muted}},"\uD83D\uDCAC ",p.replies.length)))))),
+    lightboxSrc&&React.createElement("div",{onClick:()=>setLightboxSrc(null),style:{position:"fixed",inset:0,zIndex:9999,background:"rgba(0,0,0,.93)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"20px",cursor:"zoom-out"}},React.createElement("div",{style:{fontSize:12,color:"#aaa",marginBottom:10}},"Tap anywhere to close"),React.createElement("img",{src:lightboxSrc,alt:"invoice",onClick:function(ev){ev.stopPropagation();},style:{maxWidth:"100%",maxHeight:"78vh",borderRadius:12,cursor:"default"}}),React.createElement("div",{style:{display:"flex",gap:12,marginTop:16}},React.createElement("a",{href:lightboxSrc,download:"invoice.jpg",onClick:function(ev){ev.stopPropagation();},style:{padding:"10px 22px",borderRadius:10,background:"#3EC98E",color:"#071a0e",fontWeight:800,fontSize:13,textDecoration:"none",display:"inline-block"}},"Download"),React.createElement("button",{onClick:()=>setLightboxSrc(null),style:{padding:"10px 22px",borderRadius:10,border:"1px solid #333",background:"transparent",color:"#aaa",fontWeight:700,fontSize:13,cursor:"pointer"}},"Close"))));
 }
 
 function Marketplace({onBack}){
