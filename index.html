@@ -3097,6 +3097,9 @@ function ManagerDemo({onBack,workOrders,setWorkOrders,tenantInboxes,setTenantInb
     });
     // Load manager PIN from Firebase
     fbRead("mgr_pin").then(v=>{if(v&&/^\d{4}$/.test(v))saveManagerPin(v);});
+    // Clean up stale __cleared__ markers so hardcoded tenant data shows
+    const units=Object.keys(PROPERTY_UNIT_CONFIG["cottage"]||{});
+    units.forEach(u=>{fbRead("cg_profiles_cottage_"+u).then(v=>{if(v&&v.__cleared__)fbWrite("cg_profiles_cottage_"+u,null);});});
   },[]);
   const prop=PROPERTIES[propId];
   const[mProfiles,setMProfiles]=mProfilesProp&&setMProfilesProp?[mProfilesProp,setMProfilesProp]:useState(()=>JSON.parse(JSON.stringify(PROPERTY_PROFILES)));
@@ -3524,7 +3527,7 @@ function App(){
   const[managerPin,setManagerPin]=useState(()=>{try{return localStorage.getItem("cg_mgr_pin")||"2580";}catch(e){return "2580";}});
   const saveManagerPin=(pin)=>{setManagerPin(pin);try{localStorage.setItem("cg_mgr_pin",pin);}catch(e){}fbWrite("mgr_pin",pin);};;
   const[fees,setFees]=useState(DEFAULT_FEES);
-  useEffect(()=>{fbRead("cg_fees").then(v=>{if(v)setFees({...DEFAULT_FEES,...v});});},[]);useEffect(()=>{const propIds=["cottage"];propIds.forEach(pid=>{const units=Object.keys(PROPERTY_UNIT_CONFIG[pid]||{});units.forEach(u=>{fbRead("cg_profiles_"+pid+"_"+u).then(v=>{if(v&&!v.__cleared__&&v.firstName)setMProfiles(prev=>{const n=JSON.parse(JSON.stringify(prev));if(n[pid])n[pid][u]={...(PROPERTY_PROFILES[pid]?.[u]||{}),...v};return n;});else if(v&&v.__cleared__)setMProfiles(prev=>{const n=JSON.parse(JSON.stringify(prev));if(n[pid])n[pid][u]=null;return n;});});});});},[]);
+  useEffect(()=>{fbRead("cg_fees").then(v=>{if(v)setFees({...DEFAULT_FEES,...v});});},[]);useEffect(()=>{const propIds=["cottage"];propIds.forEach(pid=>{const units=Object.keys(PROPERTY_UNIT_CONFIG[pid]||{});units.forEach(u=>{fbRead("cg_profiles_"+pid+"_"+u).then(v=>{if(v&&v.firstName&&!v.__cleared__)setMProfiles(prev=>{const n=JSON.parse(JSON.stringify(prev));if(n[pid])n[pid][u]={...(PROPERTY_PROFILES[pid]?.[u]||{}),...v};return n;});});});});},[]);
   const updateFees=async(nf)=>{const m={...fees,...nf};setFees(m);await fbWrite("cg_fees",m);};
   const[selectedUnit,setSelectedUnit]=useState(null);
   const[selectedPropId,setSelectedPropId]=useState("cottage");
@@ -3557,7 +3560,7 @@ function App(){
 
   const sharedProps={workOrders,setWorkOrders,tenantInboxes,setTenantInboxes,sharedDocs,setSharedDocs,refreshState};
   const[mUnitCfg,setMUnitCfg]=useState(()=>JSON.parse(JSON.stringify(PROPERTY_UNIT_CONFIG)));
-  const[mProfiles,setMProfiles]=useState(()=>JSON.parse(JSON.stringify(PROPERTY_PROFILES)));useEffect(()=>{const pids=["cottage"];pids.forEach(pid=>{const units=Object.keys(PROPERTY_UNIT_CONFIG[pid]||{});units.forEach(unit=>{fbRead("cg_profiles_"+pid+"_"+unit).then(v=>{if(v&&v.__cleared__)setMProfiles(p=>{const n=JSON.parse(JSON.stringify(p));n[pid][unit]=null;return n;});else if(v&&v.firstName)setMProfiles(p=>{const n=JSON.parse(JSON.stringify(p));n[pid][unit]={...(PROPERTY_PROFILES[pid]?.[unit]||{}),...v};return n;});});});});},[]);
+  const[mProfiles,setMProfiles]=useState(()=>JSON.parse(JSON.stringify(PROPERTY_PROFILES)));useEffect(()=>{const pids=["cottage"];pids.forEach(pid=>{const units=Object.keys(PROPERTY_UNIT_CONFIG[pid]||{});units.forEach(unit=>{fbRead("cg_profiles_"+pid+"_"+unit).then(v=>{if(v&&v.firstName&&!v.__cleared__)setMProfiles(p=>{const n=JSON.parse(JSON.stringify(p));n[pid][unit]={...(PROPERTY_PROFILES[pid]?.[unit]||{}),...v};return n;});});});});},[]);
   useEffect(()=>{fbRead("cg_rent_overrides").then(v=>{if(v)setMUnitCfg(prev=>{const n=JSON.parse(JSON.stringify(prev));Object.entries(v).forEach(([pid,units])=>{Object.entries(units).forEach(([u,rent])=>{if(n[pid]&&n[pid][u])n[pid][u].rent=rent;});});return n;});});},[]);
   const updUnit=(pid,unit,f,v)=>{setMUnitCfg(p=>{const n=JSON.parse(JSON.stringify(p));n[pid][unit][f]=v;if(f==="rent"){fbRead("cg_rent_overrides").then(existing=>{const overrides=existing||{};if(!overrides[pid])overrides[pid]={};overrides[pid][unit]=v;fbWrite("cg_rent_overrides",overrides);});}return n;});};
   const updProfile=(pid,unit,f,v)=>setMProfiles(p=>{const n=JSON.parse(JSON.stringify(p));if(f==="__clear__"){n[pid][unit]=null;fbWrite("cg_profiles_"+pid+"_"+unit,{__cleared__:true});return n;}if(!n[pid][unit])n[pid][unit]={};n[pid][unit][f]=v;fbWrite("cg_profiles_"+pid+"_"+unit,n[pid][unit]);return n;});
