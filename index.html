@@ -57,6 +57,17 @@ const DemoBanner=()=>null;
 const RTDB="https://commonground-71e64-default-rtdb.firebaseio.com";
 async function fbWrite(key,val){try{await fetch(`${RTDB}/cg/${key}.json`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({v:JSON.stringify(val),t:Date.now()})});}catch(e){}}
 async function fbRead(key){try{const r=await fetch(`${RTDB}/cg/${key}.json`);if(!r.ok)return null;const d=await r.json();return d?.v?JSON.parse(d.v):null;}catch(e){return null;}}
+// Compress image to base64 under ~400KB for Firebase storage
+async function compressImage(dataUrl,maxW=800,quality=0.6){return new Promise(resolve=>{const img=new Image();img.onload=()=>{const scale=Math.min(1,maxW/Math.max(img.width,img.height));const canvas=document.createElement("canvas");canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL("image/jpeg",quality));};img.onerror=()=>resolve(dataUrl);img.src=dataUrl;});}
+// Write expenses for a specific key to Firebase
+async function fbWriteExpenses(key,expenses){
+  // Strip photos from the list — photos stored separately to stay under Firebase 10MB limit
+  const meta=expenses.map(e=>{const{photo,...rest}=e;return rest;});
+  await fbWrite("expenses_"+key,meta);
+}
+async function fbReadExpenses(key){return fbRead("expenses_"+key);}
+async function fbWriteExpensePhoto(expId,photoData){await fbWrite("expense_photo_"+expId,photoData);}
+async function fbReadExpensePhoto(expId){return fbRead("expense_photo_"+expId);}
 const DEFAULT_FEES={parking:75,pet:50,violation:100,late:50};
 
 const PROPERTIES={cottage:{id:"cottage",name:"33 Cottage St",city:"Rutland, VT 05701",type:"Residential \u00B7 7 Units",color:T.green,emoji:"\uD83C\uDFE0"}};
@@ -892,22 +903,45 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
   const noi2025Annualized=Math.round((totalIncome-totalExpenses)/4*12);
   const capRate2025=((noi2025Annualized/propValue)*100).toFixed(2);
 
-  const addExpense=()=>{
+  const addExpense=async()=>{
     if(!expPhoto&&(!expDesc.trim()||!expAmt))return;
     const finalDesc=expDesc.trim()||("Invoice - "+expCat+(expVendor?" - "+expVendor:""));
     const finalAmt=expAmt?parseFloat(expAmt):0;
-    const newExp={id:Date.now(),propId:prop.id,year,date:expDate,desc:finalDesc,cat:expCat,amount:finalAmt,vendor:expVendor||"Manual Entry",recurring:false,photo:expPhoto,photoName:expPhotoName};
+    const expId=Date.now();
+    // Compress photo before storing
+    let storedPhoto=expPhoto;
+    if(expPhoto){
+      try{storedPhoto=await compressImage(expPhoto,900,0.65);}catch(e){}
+    }
+    const newExp={id:expId,propId:prop.id,year,date:expDate,desc:finalDesc,cat:expCat,amount:finalAmt,vendor:expVendor||"Manual Entry",recurring:false,photo:storedPhoto,photoName:expPhotoName};
     if(setGlobalExpenses){
       setGlobalExpenses(prev=>{
         const key=prop.id+"-"+year;
         const updated={...prev,[key]:[...(prev[key]||[]),newExp]};
-        try{localStorage.setItem("cg_expenses",JSON.stringify(updated));}catch(e){}
+        // Save metadata to Firebase (no photo)
+        const key2=prop.id+"-"+year;
+        fbWriteExpenses(key2,updated[key2]);
+        // Save photo separately
+        if(storedPhoto)fbWriteExpensePhoto(expId,{data:storedPhoto,name:expPhotoName,expId});
+        // Also update localStorage as backup
+        try{const forLS=JSON.parse(JSON.stringify(updated));localStorage.setItem("cg_expenses",JSON.stringify(forLS));}catch(e){}
         return updated;
       });
     }
     setExpDesc("");setExpAmt("");setExpVendor("");setExpPhoto(null);setExpPhotoName("");setAddExp(false);
   };
   const EXPENSE_CATS_LIST=["Repairs","Insurance","Taxes","Utilities","Landscaping","Management","Mortgage","Supplies","Other"];
+  const[expPhotos,setExpPhotos]=useState({});
+  // Lazy-load photos from Firebase for any expense that has no inline photo
+  useEffect(()=>{
+    const missing=allExpenses.filter(e=>e.id&&!e.photo&&!expPhotos[e.id]);
+    missing.forEach(e=>{
+      fbReadExpensePhoto(e.id).then(p=>{
+        if(p&&p.data)setExpPhotos(prev=>({...prev,[e.id]:p.data}));
+      });
+    });
+  },[allExpenses.length]);
+  const getExpPhoto=(e)=>e.photo||expPhotos[e.id]||null;
   const analyzeInvoice=async(dataUrl,fileName)=>{
     setExpPhoto(dataUrl);setExpPhotoName(fileName);setExpAnalyzing(true);
     try{
@@ -1100,7 +1134,7 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
             React.createElement("div",{style:{fontSize:10,color:T.muted,marginTop:2}},e.date," \u00B7 ",React.createElement("span",{style:{color:CAT_COLORS[e.cat]||T.muted,fontWeight:700}},e.cat)," \u00B7 ",e.vendor)),
           React.createElement("div",{style:{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4,flexShrink:0}},
             React.createElement("div",{style:{fontFamily:T.serif,fontSize:13,fontWeight:800,color:T.red}},"$",e.amount.toLocaleString()),
-            e.photo&&React.createElement("img",{src:e.photo,alt:"invoice",onClick:()=>window.open(e.photo,"_blank"),style:{width:38,height:38,borderRadius:6,objectFit:"cover",border:`1px solid ${T.green}44`,cursor:"pointer",marginTop:2}})))),
+            getExpPhoto(e)&&React.createElement("img",{src:getExpPhoto(e),alt:"invoice",onClick:()=>window.open(getExpPhoto(e),"_blank"),style:{width:38,height:38,borderRadius:6,objectFit:"cover",border:`1px solid ${T.green}44`,cursor:"pointer",marginTop:2}})))),
         React.createElement("div",{style:{display:"flex",justifyContent:"space-between",padding:"12px 0 0",borderTop:`2px solid ${T.red}`,marginTop:4}},
           React.createElement("span",{style:{fontSize:13,fontWeight:800,color:T.text}},"Total"),
           React.createElement("span",{style:{fontFamily:T.serif,fontSize:18,fontWeight:900,color:T.red}},"$",totalExpenses.toLocaleString())))),
@@ -2693,10 +2727,22 @@ function ManagerDemo({onBack,workOrders,setWorkOrders,tenantInboxes,setTenantInb
   const[tab,setTab]=useState("overview");
   const[propId,setPropId]=useState("cottage");
   const[rentStatusOverrides,setRentStatusOverrides]=useState({});
-  const[globalExpenses,setGlobalExpenses]=useState(()=>{
-    try{const s=localStorage.getItem("cg_expenses");return s?JSON.parse(s):{};}
-    catch(e){return {};}
-  });
+  const[globalExpenses,setGlobalExpenses]=useState({});
+  const[expensesLoaded,setExpensesLoaded]=useState(false);
+  useEffect(()=>{
+    // Load expenses from Firebase on mount
+    const EXPENSE_KEYS=["cottage-2025","cottage-2024","main-2025","main-2024","elm-2025","elm-2024"];
+    Promise.all(EXPENSE_KEYS.map(k=>fbReadExpenses(k).then(v=>({k,v})))).then(results=>{
+      const loaded={};
+      results.forEach(({k,v})=>{if(v&&v.length)loaded[k]=v;});
+      // Merge with any localStorage fallback
+      try{const s=localStorage.getItem("cg_expenses");if(s){const ls=JSON.parse(s);Object.entries(ls).forEach(([k,v])=>{if(v&&v.length&&!loaded[k])loaded[k]=v;});}}catch(e){}
+      setGlobalExpenses(loaded);
+      setExpensesLoaded(true);
+    });
+    // Load manager PIN from Firebase
+    fbRead("mgr_pin").then(v=>{if(v&&/^\d{4}$/.test(v))saveManagerPin(v);});
+  },[]);
   const prop=PROPERTIES[propId];
   const[mProfiles,setMProfiles]=mProfilesProp&&setMProfilesProp?[mProfilesProp,setMProfilesProp]:useState(()=>JSON.parse(JSON.stringify(PROPERTY_PROFILES)));
   const[mUnitCfg,setMUnitCfg]=mUnitCfgProp&&setMUnitCfgProp?[mUnitCfgProp,setMUnitCfgProp]:useState(()=>JSON.parse(JSON.stringify(PROPERTY_UNIT_CONFIG)));
@@ -3121,7 +3167,7 @@ function App(){
   const vendorWoId=urlParams.get("vendor");
   const[screen,setScreen]=useState("landing");
   const[managerPin,setManagerPin]=useState(()=>{try{return localStorage.getItem("cg_mgr_pin")||"2580";}catch(e){return "2580";}});
-  const saveManagerPin=(pin)=>{setManagerPin(pin);try{localStorage.setItem("cg_mgr_pin",pin);}catch(e){}};
+  const saveManagerPin=(pin)=>{setManagerPin(pin);try{localStorage.setItem("cg_mgr_pin",pin);}catch(e){}fbWrite("mgr_pin",pin);};;
   const[fees,setFees]=useState(DEFAULT_FEES);
   useEffect(()=>{fbRead("cg_fees").then(v=>{if(v)setFees({...DEFAULT_FEES,...v});});},[]);useEffect(()=>{fbWrite("cg_tenant_profiles",{__migrated__:true});},[]); useEffect(()=>{const propIds=["cottage"];propIds.forEach(pid=>{const units=Object.keys(PROPERTY_UNIT_CONFIG[pid]||{});units.forEach(u=>{fbRead("cg_profiles_"+pid+"_"+u).then(v=>{if(v!==undefined&&v!==null)setMProfiles(prev=>{const n=JSON.parse(JSON.stringify(prev));if(n[pid])n[pid][u]=v;return n;});else if(v===null)setMProfiles(prev=>{const n=JSON.parse(JSON.stringify(prev));if(n[pid])n[pid][u]=null;return n;});});});});},[]);
   const updateFees=async(nf)=>{const m={...fees,...nf};setFees(m);await fbWrite("cg_fees",m);};
