@@ -706,11 +706,24 @@ function MgrVacancy({prop,units,unitCfg,profiles,rentStatus}){
 function MgrWorkOrders({workOrders,setWorkOrders,prop,unitCfg,profiles}){
   const[selOrder,setSelOrder]=useState(null);
   const[filter,setFilter]=useState("all");
+  const[addingWO,setAddingWO]=useState(false);
+  const WO_BLANK={title:"",unit:Object.keys(unitCfg||{})[0]||"101",cat:"general",priority:"medium",assignee:"",desc:""};
+  const[woForm,setWoForm]=useState(WO_BLANK);
+
+  const saveNewWO=()=>{
+    if(!woForm.title.trim()){alert("Title required.");return;}
+    const newWO={id:Date.now(),propId:prop.id,unit:woForm.unit,title:woForm.title,cat:woForm.cat,priority:woForm.priority,status:"open",desc:woForm.desc,assignee:woForm.assignee,date:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),notes:"",eta:null,vendorPhone:""};
+    setWorkOrders(prev=>[newWO,...prev]);
+    fbWrite("cg_wo_new_"+newWO.id,{status:"open",title:newWO.title,unit:newWO.unit});
+    setAddingWO(false);setWoForm(WO_BLANK);
+  };
   const propOrders=workOrders.filter(o=>o.propId===prop.id||(!o.propId&&prop.id==="cottage"));
   const activeCount=propOrders.filter(o=>o.status==="open"||o.status==="in_progress").length;
   const filtered=filter==="all"?propOrders:filter==="closed"?propOrders.filter(o=>o.status==="closed"||o.status==="resolved"):propOrders.filter(o=>o.status===filter);
   const order=propOrders.find(o=>o.id===selOrder);
-  const updateOrder=(id,fields)=>setWorkOrders(prev=>prev.map(o=>o.id===id?{...o,...fields}:o));
+  const updateOrder=(id,fields)=>{setWorkOrders(prev=>prev.map(o=>{if(o.id!==id)return o;const updated={...o,...fields};fbWrite("cg_wo_status_"+String(id),{status:updated.status,closedDate:updated.closedDate||null});return updated;}));};
+  const closeOrder=(e,id)=>{e.stopPropagation();const closedDate=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});updateOrder(id,{status:"closed",closedDate});};
+  const reopenOrder=(e,id)=>{e.stopPropagation();updateOrder(id,{status:"open",closedDate:undefined});};
   const isClosed=o=>o.status==="closed"||o.status==="resolved";
   const woNum=id=>"WO-"+String(id).padStart(4,"0");
 
@@ -810,9 +823,28 @@ function MgrWorkOrders({workOrders,setWorkOrders,prop,unitCfg,profiles}){
       React.createElement("div",null,
         React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},"Work Orders"),
         React.createElement("div",{style:{fontSize:11,color:prop.color,fontWeight:600,marginTop:2}},prop.emoji," ",prop.name)),
-      React.createElement("div",{style:{textAlign:"right"}},
-        React.createElement("div",{style:{fontFamily:T.serif,fontSize:20,fontWeight:900,color:activeCount>0?T.red:T.green}},activeCount),
-        React.createElement("div",{style:{fontSize:10,color:T.muted}},"active"))),
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
+        React.createElement("div",{style:{textAlign:"right"}},
+          React.createElement("div",{style:{fontFamily:T.serif,fontSize:20,fontWeight:900,color:activeCount>0?T.red:T.green}},activeCount),
+          React.createElement("div",{style:{fontSize:10,color:T.muted}},"active")),
+        React.createElement("button",{onClick:()=>setAddingWO(p=>!p),style:{padding:"8px 14px",borderRadius:10,border:"none",background:`linear-gradient(135deg,${T.green},#2aaa72)`,color:"#071a0e",fontSize:12,fontWeight:800,cursor:"pointer"}},"+ Add"))),
+    addingWO&&React.createElement(Card,{style:{border:`1px solid ${T.green}44`,marginBottom:8}},
+      React.createElement("div",{style:{fontSize:10,color:T.green,fontWeight:700,letterSpacing:".1em",marginBottom:10}},"NEW WORK ORDER"),
+      React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},
+        React.createElement("input",{value:woForm.title,onChange:e=>setWoForm(p=>({...p,title:e.target.value})),placeholder:"Issue title",style:{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 12px",color:T.text,fontSize:13,outline:"none",boxSizing:"border-box"}}),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
+          React.createElement("select",{value:woForm.unit,onChange:e=>setWoForm(p=>({...p,unit:e.target.value})),style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none"}},
+            Object.keys(unitCfg||{}).map(u=>React.createElement("option",{key:u,value:u},"Unit "+u))),
+          React.createElement("select",{value:woForm.cat,onChange:e=>setWoForm(p=>({...p,cat:e.target.value})),style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none"}},
+            Object.entries(WO_CATS).map(([k,v])=>React.createElement("option",{key:k,value:k},v.icon+" "+v.label)))),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
+          React.createElement("select",{value:woForm.priority,onChange:e=>setWoForm(p=>({...p,priority:e.target.value})),style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none"}},
+            Object.entries(WO_PRIORITIES).map(([k,v])=>React.createElement("option",{key:k,value:k},v.label+" Priority"))),
+          React.createElement("input",{value:woForm.assignee,onChange:e=>setWoForm(p=>({...p,assignee:e.target.value})),placeholder:"Assign vendor (optional)",style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none",boxSizing:"border-box"}})),
+        React.createElement("textarea",{value:woForm.desc,onChange:e=>setWoForm(p=>({...p,desc:e.target.value})),placeholder:"Description of issue...",rows:2,style:{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 12px",color:T.text,fontSize:12,resize:"none",outline:"none",boxSizing:"border-box",fontFamily:"'DM Sans',sans-serif"}}),
+        React.createElement("div",{style:{display:"flex",gap:8}},
+          React.createElement("button",{onClick:saveNewWO,style:{flex:1,padding:"10px",borderRadius:8,border:"none",background:`linear-gradient(135deg,${T.green},#2aaa72)`,color:"#071a0e",fontSize:13,fontWeight:800,cursor:"pointer"}},"Create Work Order"),
+          React.createElement("button",{onClick:()=>setAddingWO(false),style:{padding:"10px 16px",borderRadius:8,border:`1px solid ${T.border}`,background:"transparent",color:T.muted,fontSize:13,fontWeight:700,cursor:"pointer"}},"Cancel")))),
     React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none"}},
       [["all","All ("+propOrders.length+")"],["open","Open"],["in_progress","In Progress"],["closed","Closed"]].map(([v,l])=>React.createElement("button",{key:v,onClick:()=>setFilter(v),style:{flexShrink:0,padding:"7px 14px",borderRadius:20,border:`1px solid ${filter===v?prop.color:T.border}`,background:filter===v?prop.color+"18":"transparent",color:filter===v?prop.color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer"}},l))),
     filtered.length===0&&React.createElement("div",{style:{textAlign:"center",padding:"40px 20px",color:T.muted,fontSize:13}},React.createElement("div",{style:{fontSize:32,marginBottom:8}},"\u2705"),React.createElement("div",{style:{fontWeight:700,color:T.text,marginBottom:4}},"No ",filter==="all"?"":filter.replace("_"," ")," work orders")),
@@ -836,6 +868,10 @@ function MgrWorkOrders({workOrders,setWorkOrders,prop,unitCfg,profiles}){
                 o.assignee?React.createElement("span",{style:{color:closed?T.green:T.muted}},"\uD83D\uDC77 ",o.assignee):"Unassigned")),
             closed&&o.closedDate&&React.createElement("div",{style:{fontSize:10,color:T.green,marginTop:4}},"\u2713 Completed ",o.closedDate),
             o.eta&&!closed&&React.createElement("div",{style:{fontSize:10,color:T.blue,marginTop:4}},"\uD83D\uDD52 ETA: ",o.eta),
+            React.createElement("div",{style:{marginTop:10,display:"flex",gap:8}},
+              !closed&&React.createElement("button",{onClick:(e)=>closeOrder(e,o.id),style:{flex:1,padding:"7px 12px",borderRadius:8,border:"1px solid "+T.green+"44",background:T.greenDim,color:T.green,fontSize:12,fontWeight:800,cursor:"pointer"}},"\u2713 Close Work Order"),
+              closed&&React.createElement("button",{onClick:(e)=>reopenOrder(e,o.id),style:{flex:1,padding:"7px 12px",borderRadius:8,border:"1px solid "+T.gold+"44",background:T.gold+"15",color:T.gold,fontSize:12,fontWeight:800,cursor:"pointer"}},"\u21BA Reopen")
+            ),
             !closed&&React.createElement("div",{style:{marginTop:8,padding:"8px 10px",background:"#0a0f0b",borderRadius:8,border:"1px solid #1E3024"}},
               React.createElement("div",{style:{fontSize:9,color:T.muted,fontWeight:700,letterSpacing:".1em",marginBottom:4}},"VENDOR PORTAL LINK"),
               React.createElement("div",{style:{fontSize:10,color:T.blue,fontFamily:"monospace",marginBottom:6,wordBreak:"break-all"}},"getcommongroundai.com/demo.html?vendor="+o.id),
@@ -850,8 +886,38 @@ function MgrWorkOrders({workOrders,setWorkOrders,prop,unitCfg,profiles}){
 
 // ---- MgrVendors ----
 function MgrVendors(){
-  const[vendors]=useState(INITIAL_VENDORS);
+  const[vendors,setVendors]=useState(INITIAL_VENDORS);
   const[filter,setFilter]=useState("all");
+  const[addingVendor,setAddingVendor]=useState(false);
+  const[editingVendor,setEditingVendor]=useState(null);
+  const VBLANK={name:"",trade:"general",phone:"",email:"",rate:"",preferred:false,notes:""};
+  const[vForm,setVForm]=useState(VBLANK);
+  const[vsaving,setVsaving]=useState(false);
+
+  useEffect(()=>{fbRead("cg_vendors").then(v=>{if(v&&Array.isArray(v)&&v.length>0)setVendors(v);});},[]);
+
+  const saveVendor=async()=>{
+    if(!vForm.name.trim()){alert("Vendor name required.");return;}
+    setVsaving(true);
+    let updated;
+    if(editingVendor!==null){
+      updated=vendors.map((v,i)=>i===editingVendor?{...v,...vForm}:v);
+    } else {
+      updated=[...vendors,{...vForm,id:Date.now()}];
+    }
+    setVendors(updated);
+    await fbWrite("cg_vendors",updated);
+    setAddingVendor(false);setEditingVendor(null);setVForm(VBLANK);setVsaving(false);
+  };
+
+  const deleteVendor=async(i)=>{
+    if(!confirm("Delete this vendor?"))return;
+    const updated=vendors.filter((_,idx)=>idx!==i);
+    setVendors(updated);
+    await fbWrite("cg_vendors",updated);
+  };
+
+  const startEditVendor=(v,i)=>{setVForm({name:v.name,trade:v.trade,phone:v.phone||"",email:v.email||"",rate:v.rate||"",preferred:!!v.preferred,notes:v.notes||""});setEditingVendor(i);setAddingVendor(true);};
   const[expanded,setExpanded]=useState(null);
   const[vendorInvoices,setVendorInvoices]=useState({});
   const[addingFor,setAddingFor]=useState(null);
@@ -896,7 +962,26 @@ function MgrVendors(){
   const filtered=filter==="all"?vendors:vendors.filter(v=>v.trade===filter);
 
   return React.createElement(React.Fragment,null,
-    React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},"Vendors"),
+    React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}},
+      React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},"Vendors"),
+      React.createElement("button",{onClick:()=>{setVForm(VBLANK);setEditingVendor(null);setAddingVendor(true);},style:{padding:"8px 16px",borderRadius:10,border:"none",background:`linear-gradient(135deg,${T.green},#2aaa72)`,color:"#071a0e",fontSize:12,fontWeight:800,cursor:"pointer"}},"+ Add Vendor")),
+    addingVendor&&React.createElement(Card,{style:{border:`1px solid ${T.green}44`}},
+      React.createElement("div",{style:{fontSize:10,color:T.green,fontWeight:700,letterSpacing:".1em",marginBottom:10}},editingVendor!==null?"EDIT VENDOR":"NEW VENDOR"),
+      React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},
+        React.createElement("input",{value:vForm.name,onChange:e=>setVForm(p=>({...p,name:e.target.value})),placeholder:"Vendor / Company name",style:{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 12px",color:T.text,fontSize:13,outline:"none",boxSizing:"border-box"}}),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
+          React.createElement("select",{value:vForm.trade,onChange:e=>setVForm(p=>({...p,trade:e.target.value})),style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none"}},
+            Object.entries(TRADES).map(([k,v])=>React.createElement("option",{key:k,value:k},v.label))),
+          React.createElement("input",{value:vForm.rate,onChange:e=>setVForm(p=>({...p,rate:e.target.value})),placeholder:"Rate (e.g. $95/hr)",style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none",boxSizing:"border-box"}})),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
+          React.createElement("input",{value:vForm.phone,onChange:e=>setVForm(p=>({...p,phone:e.target.value})),placeholder:"Phone",style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none",boxSizing:"border-box"}}),
+          React.createElement("input",{value:vForm.email,onChange:e=>setVForm(p=>({...p,email:e.target.value})),placeholder:"Email",style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none",boxSizing:"border-box"}})),
+        React.createElement("input",{value:vForm.notes,onChange:e=>setVForm(p=>({...p,notes:e.target.value})),placeholder:"Notes (contact name, specialties...)",style:{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 12px",color:T.text,fontSize:12,outline:"none",boxSizing:"border-box"}}),
+        React.createElement("label",{style:{display:"flex",alignItems:"center",gap:8,fontSize:13,color:T.text,cursor:"pointer"}},
+          React.createElement("input",{type:"checkbox",checked:vForm.preferred,onChange:e=>setVForm(p=>({...p,preferred:e.target.checked})}),"⭐ Mark as Preferred"),),
+        React.createElement("div",{style:{display:"flex",gap:8}},
+          React.createElement("button",{onClick:saveVendor,disabled:vsaving,style:{flex:1,padding:"10px",borderRadius:8,border:"none",background:`linear-gradient(135deg,${T.green},#2aaa72)`,color:"#071a0e",fontSize:13,fontWeight:800,cursor:"pointer"}},vsaving?"Saving...":editingVendor!==null?"Save Changes":"Add Vendor"),
+          React.createElement("button",{onClick:()=>{setAddingVendor(false);setEditingVendor(null);setVForm(VBLANK);},style:{padding:"10px 16px",borderRadius:8,border:`1px solid ${T.border}`,background:"transparent",color:T.muted,fontSize:13,fontWeight:700,cursor:"pointer"}},"Cancel")))),
     React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none",paddingBottom:4}},
       React.createElement("button",{onClick:()=>setFilter("all"),style:{flexShrink:0,padding:"6px 14px",borderRadius:20,border:`1px solid ${filter==="all"?T.green:T.border}`,background:filter==="all"?T.greenDim:"transparent",color:filter==="all"?T.green:T.muted,fontSize:11,fontWeight:700,cursor:"pointer"}},"All (",vendors.length,")"),
       Object.entries(TRADES).map(([k,v])=>{const count=vendors.filter(vv=>vv.trade===k).length;if(!count)return null;return React.createElement("button",{key:k,onClick:()=>setFilter(k),style:{flexShrink:0,padding:"6px 14px",borderRadius:20,border:`1px solid ${filter===k?v.color:T.border}`,background:filter===k?v.color+"22":"transparent",color:filter===k?v.color:T.muted,fontSize:11,fontWeight:700,cursor:"pointer"}},v.icon," ",v.label," (",count,")");})),
@@ -923,7 +1008,11 @@ function MgrVendors(){
               invs.length>0&&React.createElement("div",{style:{display:"flex",gap:14,marginTop:8}},
                 totalOwed>0&&React.createElement("span",{style:{fontSize:12,color:T.red,fontWeight:700}},"Owed: $"+totalOwed.toLocaleString()),
                 totalPaid>0&&React.createElement("span",{style:{fontSize:12,color:T.green,fontWeight:700}},"Paid: $"+totalPaid.toLocaleString()))),
-            React.createElement("div",{style:{fontSize:16,color:T.muted,marginTop:2}},isOpen?"\u25B2":"\u25BC"))),
+            React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:4,alignItems:"flex-end"}},
+              React.createElement("div",{style:{fontSize:16,color:T.muted}}),
+              React.createElement("button",{onClick:(e)=>{e.stopPropagation();startEditVendor(v,filtered.indexOf(v));},style:{padding:"3px 10px",borderRadius:6,border:`1px solid ${T.border}`,background:"transparent",color:T.muted,fontSize:10,fontWeight:600,cursor:"pointer"}},"✏️"),
+              React.createElement("button",{onClick:(e)=>{e.stopPropagation();deleteVendor(filtered.indexOf(v));},style:{padding:"3px 10px",borderRadius:6,border:"none",background:"transparent",color:T.red,fontSize:10,fontWeight:600,cursor:"pointer"}},"🗑"),
+              React.createElement("div",{style:{fontSize:14,color:T.muted,marginTop:2}},isOpen?"▲":"▼"))),
         isOpen&&React.createElement("div",{style:{background:T.surface,border:`1px solid ${T.border}`,borderTop:"none",borderRadius:"0 0 16px 16px",padding:16,marginTop:-2}},
           React.createElement("div",{style:{fontSize:10,color:T.muted,fontWeight:700,letterSpacing:".1em",marginBottom:10}},"INVOICES / BILLS"),
           invs.length===0&&React.createElement("div",{style:{fontSize:13,color:T.muted,textAlign:"center",padding:"12px 0"}},"No invoices yet"),
@@ -946,6 +1035,122 @@ function MgrVendors(){
               React.createElement("button",{onClick:()=>saveInvoice(v.id),disabled:saving,style:{flex:1,padding:"9px",borderRadius:8,border:"none",background:`linear-gradient(135deg,${T.green},#2aaa72)`,color:"#071a0e",fontSize:13,fontWeight:800,cursor:"pointer"}},saving?"Saving...":"Save Invoice"),
               React.createElement("button",{onClick:()=>setAddingFor(null),style:{padding:"9px 14px",borderRadius:8,border:`1px solid ${T.border}`,background:"transparent",color:T.muted,fontSize:13,fontWeight:700,cursor:"pointer"}},"Cancel")))
           :React.createElement("button",{onClick:()=>openAdd(v.id),style:{width:"100%",marginTop:12,padding:"9px",borderRadius:8,border:`1px dashed ${T.green}55`,background:T.greenDim,color:T.green,fontSize:12,fontWeight:700,cursor:"pointer"}},"\u002B Add Invoice / Bill")));
+    }));
+}
+
+// ---- PayeePicker (inline mini payee selector for ledger) ----
+function PayeePicker({onSelect}){
+  const[payees,setPayees]=useState([]);
+  const[open,setOpen]=useState(false);
+  useEffect(()=>{fbRead("cg_payee_directory").then(v=>{if(v&&Array.isArray(v)&&v.length>0)setPayees(v);else setPayees(INITIAL_PAYEES);});},[]);
+  if(payees.length===0)return null;
+  return React.createElement("div",{style:{position:"relative",marginBottom:4}},
+    React.createElement("button",{onClick:()=>setOpen(p=>!p),style:{width:"100%",padding:"8px 12px",borderRadius:8,border:`1px dashed ${T.green}55`,background:T.greenDim,color:T.green,fontSize:12,fontWeight:700,cursor:"pointer",textAlign:"left"}},
+      "📋 Pick from Payee Directory"),
+    open&&React.createElement("div",{style:{position:"absolute",zIndex:100,top:"100%",left:0,right:0,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,marginTop:4,boxShadow:"0 8px 24px rgba(0,0,0,.5)",maxHeight:200,overflowY:"auto"}},
+      payees.map((p,i)=>React.createElement("div",{key:i,onClick:()=>{onSelect(p);setOpen(false);},style:{padding:"10px 14px",borderBottom:`1px solid ${T.border}`,cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}},
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontSize:13,fontWeight:700,color:T.text}},p.name),
+          React.createElement("div",{style:{fontSize:11,color:T.muted}},p.type," · ",p.paymentMethod)),
+        React.createElement("div",{style:{fontSize:11,color:T.green,fontWeight:700}},"Select")))));
+}
+
+// ---- MgrPayeeDirectory ----
+const PAYEE_TYPES=["Mortgage","Insurance","Utility","Contractor","Landscaping","Management","Tax Authority","Supplier","Other"];
+const INITIAL_PAYEES=[
+  {id:"payee-1",name:"CVC Cottages",type:"Other",accountNum:"",paymentMethod:"Check",website:"",phone:"",notes:"Property-related payments"},
+  {id:"payee-2",name:"99MTM LLC",type:"Other",accountNum:"",paymentMethod:"Check",website:"",phone:"",notes:""},
+  {id:"payee-3",name:"East Coast Rubbish",type:"Supplier",accountNum:"",paymentMethod:"ACH",website:"",phone:"",notes:"Trash removal"},
+  {id:"payee-4",name:"Xfinity",type:"Utility",accountNum:"",paymentMethod:"Auto-Pay",website:"xfinity.com",phone:"",notes:"Internet / cable"},
+  {id:"payee-5",name:"City of Rutland",type:"Tax Authority",accountNum:"",paymentMethod:"Check",website:"",phone:"",notes:"Municipal taxes / fees"},
+  {id:"payee-6",name:"Rutland Water Dept",type:"Utility",accountNum:"",paymentMethod:"ACH",website:"",phone:"",notes:"Water & sewer"},
+  {id:"payee-7",name:"Green Mountain Power",type:"Utility",accountNum:"",paymentMethod:"Auto-Pay",website:"greenmountainpower.com",phone:"",notes:"Electric"},
+  {id:"payee-8",name:"Concord Ins Group",type:"Insurance",accountNum:"",paymentMethod:"ACH",website:"",phone:"",notes:"Property insurance"},
+  {id:"payee-9",name:"Harrington Prop Mngmt",type:"Management",accountNum:"",paymentMethod:"ACH",website:"",phone:"",notes:"Property management fees"}
+];
+const PAYEE_METHODS=["ACH","Check","Online Portal","Credit Card","Cash","Wire","Auto-Pay"];
+function MgrPayeeDirectory({onSelectPayee}){
+  const[payees,setPayees]=useState([]);
+  const[adding,setAdding]=useState(false);
+  const[editing,setEditing]=useState(null);
+  const BLANK={name:"",type:"Mortgage",accountNum:"",paymentMethod:"ACH",website:"",phone:"",notes:""};
+  const[form,setForm]=useState(BLANK);
+  const[saving,setSaving]=useState(false);
+
+  useEffect(()=>{fbRead("cg_payee_directory").then(v=>{if(v&&Array.isArray(v)&&v.length>0)setPayees(v);else setPayees(INITIAL_PAYEES);});},[]);
+
+  const save=async()=>{
+    if(!form.name.trim()){alert("Payee name is required.");return;}
+    setSaving(true);
+    let updated;
+    if(editing!==null){
+      updated=payees.map((p,i)=>i===editing?{...p,...form}:p);
+    } else {
+      updated=[...payees,{...form,id:"payee-"+Date.now()}];
+    }
+    setPayees(updated);
+    await fbWrite("cg_payee_directory",updated);
+    setAdding(false);setEditing(null);setForm(BLANK);setSaving(false);
+  };
+
+  const del=async(i)=>{
+    if(!confirm("Delete this payee?"))return;
+    const updated=payees.filter((_,idx)=>idx!==i);
+    setPayees(updated);
+    await fbWrite("cg_payee_directory",updated);
+  };
+
+  const startEdit=(p,i)=>{setForm({name:p.name,type:p.type,accountNum:p.accountNum||"",paymentMethod:p.paymentMethod||"ACH",website:p.website||"",phone:p.phone||"",notes:p.notes||""});setEditing(i);setAdding(true);};
+
+  const typeColor={"Mortgage":T.blue,"Insurance":T.purple,"Utility":T.gold,"Contractor":T.green,"Landscaping":"#7BCFB8","Management":T.muted,"Tax Authority":T.red,"Supplier":"#F5A442","Other":T.muted};
+
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
+    React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
+      React.createElement("div",null,
+        React.createElement("div",{style:{fontFamily:T.serif,fontSize:20,fontWeight:900,color:T.text}},"Payee Directory"),
+        React.createElement("div",{style:{fontSize:11,color:T.muted,marginTop:2}},"Save vendors & billers once, use everywhere")),
+      !adding&&React.createElement("button",{onClick:()=>{setForm(BLANK);setEditing(null);setAdding(true);},style:{padding:"8px 16px",borderRadius:10,border:"none",background:`linear-gradient(135deg,${T.green},#2aaa72)`,color:"#071a0e",fontSize:12,fontWeight:800,cursor:"pointer"}},"+ Add Payee")),
+    adding&&React.createElement(Card,{style:{border:`1px solid ${T.green}44`}},
+      React.createElement("div",{style:{fontSize:10,color:T.green,fontWeight:700,letterSpacing:".1em",marginBottom:12}},editing!==null?"EDIT PAYEE":"NEW PAYEE"),
+      React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},
+        React.createElement("input",{value:form.name,onChange:e=>setForm(p=>({...p,name:e.target.value})),placeholder:"Payee name (e.g. Green Mountain Power, TD Bank Mortgage)",style:{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 12px",color:T.text,fontSize:13,outline:"none",boxSizing:"border-box"}}),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
+          React.createElement("select",{value:form.type,onChange:e=>setForm(p=>({...p,type:e.target.value})),style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none"}},
+            PAYEE_TYPES.map(t=>React.createElement("option",{key:t,value:t},t))),
+          React.createElement("select",{value:form.paymentMethod,onChange:e=>setForm(p=>({...p,paymentMethod:e.target.value})),style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none"}},
+            PAYEE_METHODS.map(m=>React.createElement("option",{key:m,value:m},m)))),
+        React.createElement("input",{value:form.accountNum,onChange:e=>setForm(p=>({...p,accountNum:e.target.value})),placeholder:"Account / Loan number (optional)",style:{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 12px",color:T.text,fontSize:13,outline:"none",boxSizing:"border-box"}}),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
+          React.createElement("input",{value:form.website,onChange:e=>setForm(p=>({...p,website:e.target.value})),placeholder:"Portal URL (optional)",style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none",boxSizing:"border-box"}}),
+          React.createElement("input",{value:form.phone,onChange:e=>setForm(p=>({...p,phone:e.target.value})),placeholder:"Phone (optional)",style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none",boxSizing:"border-box"}})),
+        React.createElement("textarea",{value:form.notes,onChange:e=>setForm(p=>({...p,notes:e.target.value})),placeholder:"Notes (e.g. monthly amount, due date, login info hint...)",rows:2,style:{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 12px",color:T.text,fontSize:12,resize:"none",outline:"none",boxSizing:"border-box",fontFamily:"'DM Sans',sans-serif"}}),
+        React.createElement("div",{style:{display:"flex",gap:8}},
+          React.createElement("button",{onClick:save,disabled:saving,style:{flex:1,padding:"10px",borderRadius:8,border:"none",background:`linear-gradient(135deg,${T.green},#2aaa72)`,color:"#071a0e",fontSize:13,fontWeight:800,cursor:"pointer"}},saving?"Saving...":editing!==null?"Save Changes":"Add Payee"),
+          React.createElement("button",{onClick:()=>{setAdding(false);setEditing(null);setForm(BLANK);},style:{padding:"10px 16px",borderRadius:8,border:`1px solid ${T.border}`,background:"transparent",color:T.muted,fontSize:13,fontWeight:700,cursor:"pointer"}},"Cancel")))),
+    payees.length===0&&!adding&&React.createElement("div",{style:{textAlign:"center",padding:"40px 20px",color:T.muted,background:T.card,border:`1px dashed ${T.border}`,borderRadius:16}},
+      React.createElement("div",{style:{fontSize:32,marginBottom:8}},"🏢"),
+      React.createElement("div",{style:{fontWeight:700,color:T.text,marginBottom:4}},"No payees yet"),
+      React.createElement("div",{style:{fontSize:12,lineHeight:1.6}},"Add your mortgage lender, insurance company, utility providers, and recurring vendors here.")),
+    payees.map((p,i)=>{
+      const color=typeColor[p.type]||T.muted;
+      return React.createElement(Card,{key:p.id||i,style:{border:`1px solid ${color}33`}},
+        React.createElement("div",{style:{display:"flex",alignItems:"flex-start",gap:12}},
+          React.createElement("div",{style:{width:44,height:44,borderRadius:12,background:color+"18",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}},
+            p.type==="Mortgage"?"🏦":p.type==="Insurance"?"🛡️":p.type==="Utility"?"⚡":p.type==="Contractor"?"🔧":p.type==="Landscaping"?"🌿":p.type==="Tax Authority"?"🏛️":p.type==="Management"?"📋":"💼"),
+          React.createElement("div",{style:{flex:1,minWidth:0}},
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:4}},
+              React.createElement("div",{style:{fontFamily:T.serif,fontSize:16,fontWeight:800,color:T.text}},p.name),
+              React.createElement("span",{style:{padding:"2px 8px",borderRadius:10,background:color+"22",color,fontSize:10,fontWeight:700}},p.type)),
+            React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginBottom:6}},
+              React.createElement("span",{style:{padding:"2px 8px",borderRadius:10,background:T.faint,color:T.muted,fontSize:10,fontWeight:600}},p.paymentMethod),
+              p.accountNum&&React.createElement("span",{style:{padding:"2px 8px",borderRadius:10,background:T.faint,color:T.muted,fontSize:10,fontWeight:600}},"Acct: ",p.accountNum)),
+            p.phone&&React.createElement("div",{style:{fontSize:12,color:T.blue,fontWeight:600,marginBottom:2}},p.phone),
+            p.website&&React.createElement("a",{href:p.website.startsWith("http")?p.website:"https://"+p.website,target:"_blank",style:{fontSize:11,color:T.blue,display:"block",marginBottom:2,textDecoration:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},p.website),
+            p.notes&&React.createElement("div",{style:{fontSize:11,color:T.muted,fontStyle:"italic",marginTop:2}},p.notes)),
+          React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:6}},
+            onSelectPayee&&React.createElement("button",{onClick:()=>onSelectPayee(p),style:{padding:"5px 12px",borderRadius:8,border:`1px solid ${T.green}44`,background:T.greenDim,color:T.green,fontSize:11,fontWeight:700,cursor:"pointer"}},"Use"),
+            React.createElement("button",{onClick:()=>startEdit(p,i),style:{padding:"5px 12px",borderRadius:8,border:`1px solid ${T.border}`,background:"transparent",color:T.muted,fontSize:11,fontWeight:600,cursor:"pointer"}},"Edit"),
+            React.createElement("button",{onClick:()=>del(i),style:{padding:"5px 12px",borderRadius:8,border:"none",background:"transparent",color:T.red,fontSize:11,fontWeight:600,cursor:"pointer"}},"Del"))));
     }));
 }
 
@@ -1238,7 +1443,7 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
           React.createElement(Input,{value:expDesc,onChange:setExpDesc,placeholder:"Description"}),
           React.createElement("select",{value:expCat,onChange:e=>setExpCat(e.target.value),style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 14px",color:T.text,fontSize:14,outline:"none"}},
             EXPENSE_CATS.map(c=>React.createElement("option",{key:c,value:c},c))),
-          React.createElement(Input,{value:expVendor,onChange:setExpVendor,placeholder:"Vendor / Payee"}),
+          React.createElement(PayeePicker,{onSelect:(p)=>{setExpVendor(p.name);if(p.type==="Mortgage")setExpCat("Mortgage");else if(p.type==="Insurance")setExpCat("Insurance");else if(p.type==="Utility")setExpCat("Utilities");else if(p.type==="Landscaping")setExpCat("Landscaping");}}),React.createElement(Input,{value:expVendor,onChange:setExpVendor,placeholder:"Vendor / Payee"}),
           React.createElement(Input,{value:expAmt,onChange:setExpAmt,placeholder:"Amount ($)",type:"number"}),
           React.createElement("div",{
             onDragOver:function(e){e.preventDefault();setExpDragOver(true);},
@@ -1283,7 +1488,7 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
             React.createElement(Input,{value:expDesc,onChange:setExpDesc,placeholder:"Description"}),
             React.createElement("select",{value:expCat,onChange:ev=>setExpCat(ev.target.value),style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 14px",color:T.text,fontSize:14,outline:"none"}},
               EXPENSE_CATS.map(cat=>React.createElement("option",{key:cat,value:cat},cat))),
-            React.createElement(Input,{value:expVendor,onChange:setExpVendor,placeholder:"Vendor / Payee"}),
+            React.createElement(PayeePicker,{onSelect:(p)=>{setExpVendor(p.name);if(p.type==="Mortgage")setExpCat("Mortgage");else if(p.type==="Insurance")setExpCat("Insurance");else if(p.type==="Utility")setExpCat("Utilities");else if(p.type==="Landscaping")setExpCat("Landscaping");}}),React.createElement(Input,{value:expVendor,onChange:setExpVendor,placeholder:"Vendor / Payee"}),
             React.createElement(Input,{value:expAmt,onChange:setExpAmt,placeholder:"Amount ($)",type:"number"}),
             React.createElement("div",{style:{display:"flex",gap:8}},
               React.createElement(Btn,{onClick:saveEditExpense,disabled:!expDesc.trim()||expAmt==="",full:true},"Save Changes"),
@@ -1574,7 +1779,7 @@ function MgrW9(){
 // ---- MgrFinance ----
 function MgrFinance({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses,updUnit}){
   const[sub,setSub]=useState("ledger");
-  const tabs=[{id:"ledger",label:"\uD83D\uDCCA Ledger"},{id:"k1",label:"\uD83D\uDCCB K-1 / 1031"},{id:"w9",label:"\uD83D\uDCC4 W-9s & 1099s"},{id:"tax",label:"\uD83D\uDCC5 Tax Summary"}];
+  const tabs=[{id:"ledger",label:"\uD83D\uDCCA Ledger"},{id:"payees",label:"\uD83C\uDFE2 Payees"},{id:"k1",label:"\uD83D\uDCCB K-1 / 1031"},{id:"w9",label:"\uD83D\uDCC4 W-9s & 1099s"},{id:"tax",label:"\uD83D\uDCC5 Tax Summary"}];
   return React.createElement(React.Fragment,null,
     React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
       React.createElement("div",null,
@@ -1583,6 +1788,7 @@ function MgrFinance({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExp
     React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
       tabs.map(t=>React.createElement("button",{key:t.id,onClick:()=>setSub(t.id),style:{padding:"10px 8px",borderRadius:12,border:`1.5px solid ${sub===t.id?prop.color:T.border}`,background:sub===t.id?prop.color+"18":"transparent",color:sub===t.id?prop.color:T.muted,fontSize:12,fontWeight:700,cursor:"pointer"}},t.label))),
     sub==="ledger"&&React.createElement(MgrLedger,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses,updUnit,onGoToK1:()=>setSub("k1")}),
+    sub==="payees"&&React.createElement(MgrPayeeDirectory,null),
     sub==="k1"&&React.createElement(MgrExchange,{prop,units,unitCfg}),
     sub==="w9"&&React.createElement(MgrW9,null),
     sub==="tax"&&React.createElement(MgrLedger,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses,updUnit,initView:"tax"}));
