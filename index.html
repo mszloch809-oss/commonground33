@@ -1110,7 +1110,7 @@ function MgrPayeeDirectory({onSelectPayee,prop,globalExpenses,setGlobalExpenses}
       const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:mediaType,data:base64}},{type:"text",text:"This is an invoice or bill from "+payee.name+". Extract and respond ONLY with valid JSON, no markdown:\n{\"amount\":0.00,\"date\":\"...\",\"description\":\"...\",\"category\":\"...\"}\nFor category pick best from: "+CATS.join(", ")+". Amount is a number only. Date format: Apr 15, 2025."}]}]})});
       const data=await res.json();
       const text=data.content?.[0]?.text||"{}";
-      const clean2=text.split("```json").join("").split("```").join("").trim();const parsed=JSON.parse(clean2||"{}");
+      const clean2=text.split("\u0060\u0060\u0060json").join("").split("\u0060\u0060\u0060").join("").trim();const parsed=JSON.parse(clean2||"{}");
       const propId=prop?.id||"cottage";
       const year=new Date().getFullYear();
       const key=propId+"-"+year;
@@ -1355,7 +1355,7 @@ function MgrLedger({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpe
       const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:mediaType,data:base64}},{type:"text",text:"This is an invoice or receipt. Extract the following and respond ONLY with valid JSON, no markdown:\n{\"vendor\":\"...\",\"amount\":0.00,\"date\":\"...\",\"description\":\"...\",\"category\":\"...\"}\nFor category, pick the best match from: "+EXPENSE_CATS_LIST.join(", ")+". For amount, return a number only. For date, use format like Apr 15, 2025. If unsure about any field, make a reasonable guess."}]}]})});
       const data=await res.json();
       const text=data.content?.[0]?.text||"{}";
-      const clean=text.replace(/```json|```/g,"").trim();
+      const clean=text.split("\u0060\u0060\u0060json").join("").split("\u0060\u0060\u0060").join("").trim();
       const parsed=JSON.parse(clean);
       if(parsed.vendor)setExpVendor(parsed.vendor);
       if(parsed.amount&&parsed.amount>0)setExpAmt(String(parsed.amount));
