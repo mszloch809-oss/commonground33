@@ -1066,24 +1066,24 @@ const INITIAL_PAYEES=[
 ];
 const PAYEE_METHODS=["ACH","Check","Online Portal","Credit Card","Cash","Wire","Auto-Pay"];
 function MgrPayeeDirectory({onSelectPayee}){
+function MgrPayeeDirectory({onSelectPayee,prop,globalExpenses,setGlobalExpenses}){
   const[payees,setPayees]=useState([]);
   const[adding,setAdding]=useState(false);
   const[editing,setEditing]=useState(null);
   const BLANK={name:"",type:"Mortgage",accountNum:"",paymentMethod:"ACH",website:"",phone:"",notes:""};
   const[form,setForm]=useState(BLANK);
   const[saving,setSaving]=useState(false);
+  const[uploadingFor,setUploadingFor]=useState(null);
+  const[analyzing,setAnalyzing]=useState(false);
+  const[dragOver,setDragOver]=useState(null);
+  const[lastLogged,setLastLogged]=useState({});
 
   useEffect(()=>{fbRead("cg_payee_directory").then(v=>{if(v&&Array.isArray(v)&&v.length>0)setPayees(v);else setPayees(INITIAL_PAYEES);});},[]);
 
   const save=async()=>{
     if(!form.name.trim()){alert("Payee name is required.");return;}
     setSaving(true);
-    let updated;
-    if(editing!==null){
-      updated=payees.map((p,i)=>i===editing?{...p,...form}:p);
-    } else {
-      updated=[...payees,{...form,id:"payee-"+Date.now()}];
-    }
+    const updated=editing!==null?payees.map((p,i)=>i===editing?{...p,...form}:p):[...payees,{...form,id:"payee-"+Date.now()}];
     setPayees(updated);
     await fbWrite("cg_payee_directory",updated);
     setAdding(false);setEditing(null);setForm(BLANK);setSaving(false);
@@ -1098,18 +1098,69 @@ function MgrPayeeDirectory({onSelectPayee}){
 
   const startEdit=(p,i)=>{setForm({name:p.name,type:p.type,accountNum:p.accountNum||"",paymentMethod:p.paymentMethod||"ACH",website:p.website||"",phone:p.phone||"",notes:p.notes||""});setEditing(i);setAdding(true);};
 
+  const analyzeAndLog=async(dataUrl,fileName,payee)=>{
+    setAnalyzing(true);
+    setUploadingFor(payee.id||payee.name);
+    const CATS=["Repairs","Insurance","Taxes","Utilities","Landscaping","Management","Mortgage","Supplies","Other"];
+    const typeToCategory={Mortgage:"Mortgage",Insurance:"Insurance",Utility:"Utilities",Contractor:"Repairs",Landscaping:"Landscaping",Management:"Management","Tax Authority":"Taxes",Supplier:"Supplies",Other:"Other"};
+    const defaultCat=typeToCategory[payee.type]||"Other";
+    try{
+      const base64=dataUrl.split(",")[1];
+      const mediaType=dataUrl.split(";")[0].split(":")[1]||"image/jpeg";
+      const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:mediaType,data:base64}},{type:"text",text:"This is an invoice or bill from "+payee.name+". Extract and respond ONLY with valid JSON, no markdown:\n{\"amount\":0.00,\"date\":\"...\",\"description\":\"...\",\"category\":\"...\"}\nFor category pick best from: "+CATS.join(", ")+". Amount is a number only. Date format: Apr 15, 2025."}]}]})});
+      const data=await res.json();
+      const text=data.content?.[0]?.text||"{}";
+      const parsed=JSON.parse(text.replace(/```json|```/g,"").trim());
+      const propId=prop?.id||"cottage";
+      const year=new Date().getFullYear();
+      const key=propId+"-"+year;
+      const newExp={
+        id:"exp-"+Date.now(),
+        propId,
+        year,
+        date:parsed.date||new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),
+        desc:parsed.description||(payee.name+" invoice"),
+        cat:CATS.includes(parsed.category)?parsed.category:defaultCat,
+        amount:parseFloat(parsed.amount)||0,
+        vendor:payee.name,
+        recurring:false,
+        photo:dataUrl,
+        photoName:fileName
+      };
+      if(setGlobalExpenses){
+        setGlobalExpenses(prev=>{
+          const next={...prev};
+          next[key]=[...(prev[key]||[]),newExp];
+          fbWriteExpenses(key,next[key]);
+          return next;
+        });
+      }
+      setLastLogged(prev=>({...prev,[payee.id||payee.name]:{...newExp,_ts:Date.now()}}));
+    }catch(err){console.error("Invoice AI error:",err);alert("Could not read invoice. Try a clearer image.");}
+    setAnalyzing(false);
+    setUploadingFor(null);
+  };
+
+  const handleFile=(file,payee)=>{
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>analyzeAndLog(ev.target.result,file.name,payee);
+    reader.readAsDataURL(file);
+  };
+
   const typeColor={"Mortgage":T.blue,"Insurance":T.purple,"Utility":T.gold,"Contractor":T.green,"Landscaping":"#7BCFB8","Management":T.muted,"Tax Authority":T.red,"Supplier":"#F5A442","Other":T.muted};
+  const typeIcon={"Mortgage":"🏦","Insurance":"🛡️","Utility":"⚡","Contractor":"🔧","Landscaping":"🌿","Tax Authority":"🏛️","Management":"📋","Supplier":"📦","Other":"💼"};
 
   return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
     React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
       React.createElement("div",null,
         React.createElement("div",{style:{fontFamily:T.serif,fontSize:20,fontWeight:900,color:T.text}},"Payee Directory"),
-        React.createElement("div",{style:{fontSize:11,color:T.muted,marginTop:2}},"Save vendors & billers once, use everywhere")),
-      !adding&&React.createElement("button",{onClick:()=>{setForm(BLANK);setEditing(null);setAdding(true);},style:{padding:"8px 16px",borderRadius:10,border:"none",background:`linear-gradient(135deg,${T.green},#2aaa72)`,color:"#071a0e",fontSize:12,fontWeight:800,cursor:"pointer"}},"+ Add Payee")),
+        React.createElement("div",{style:{fontSize:11,color:T.muted,marginTop:2}},"Upload invoices directly from each payee card")),
+      !adding&&React.createElement("button",{onClick:()=>{setForm(BLANK);setEditing(null);setAdding(true);},style:{padding:"8px 16px",borderRadius:10,border:"none",background:`linear-gradient(135deg,${T.green},#2aaa72)`,color:"#071a0e",fontSize:12,fontWeight:800,cursor:"pointer"}},"\u002B Add Payee")),
     adding&&React.createElement(Card,{style:{border:`1px solid ${T.green}44`}},
       React.createElement("div",{style:{fontSize:10,color:T.green,fontWeight:700,letterSpacing:".1em",marginBottom:12}},editing!==null?"EDIT PAYEE":"NEW PAYEE"),
       React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},
-        React.createElement("input",{value:form.name,onChange:e=>setForm(p=>({...p,name:e.target.value})),placeholder:"Payee name (e.g. Green Mountain Power, TD Bank Mortgage)",style:{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 12px",color:T.text,fontSize:13,outline:"none",boxSizing:"border-box"}}),
+        React.createElement("input",{value:form.name,onChange:e=>setForm(p=>({...p,name:e.target.value})),placeholder:"Payee name (e.g. Green Mountain Power)",style:{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 12px",color:T.text,fontSize:13,outline:"none",boxSizing:"border-box"}}),
         React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
           React.createElement("select",{value:form.type,onChange:e=>setForm(p=>({...p,type:e.target.value})),style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none"}},
             PAYEE_TYPES.map(t=>React.createElement("option",{key:t,value:t},t))),
@@ -1117,22 +1168,24 @@ function MgrPayeeDirectory({onSelectPayee}){
             PAYEE_METHODS.map(m=>React.createElement("option",{key:m,value:m},m)))),
         React.createElement("input",{value:form.accountNum,onChange:e=>setForm(p=>({...p,accountNum:e.target.value})),placeholder:"Account / Loan number (optional)",style:{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 12px",color:T.text,fontSize:13,outline:"none",boxSizing:"border-box"}}),
         React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
-          React.createElement("input",{value:form.website,onChange:e=>setForm(p=>({...p,website:e.target.value})),placeholder:"Portal URL (optional)",style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none",boxSizing:"border-box"}}),
-          React.createElement("input",{value:form.phone,onChange:e=>setForm(p=>({...p,phone:e.target.value})),placeholder:"Phone (optional)",style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none",boxSizing:"border-box"}})),
-        React.createElement("textarea",{value:form.notes,onChange:e=>setForm(p=>({...p,notes:e.target.value})),placeholder:"Notes (e.g. monthly amount, due date, login info hint...)",rows:2,style:{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 12px",color:T.text,fontSize:12,resize:"none",outline:"none",boxSizing:"border-box",fontFamily:"'DM Sans',sans-serif"}}),
+          React.createElement("input",{value:form.website,onChange:e=>setForm(p=>({...p,website:e.target.value})),placeholder:"Portal URL",style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none",boxSizing:"border-box"}}),
+          React.createElement("input",{value:form.phone,onChange:e=>setForm(p=>({...p,phone:e.target.value})),placeholder:"Phone",style:{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 10px",color:T.text,fontSize:12,outline:"none",boxSizing:"border-box"}})),
+        React.createElement("textarea",{value:form.notes,onChange:e=>setForm(p=>({...p,notes:e.target.value})),placeholder:"Notes (monthly amount, due date...)",rows:2,style:{width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"9px 12px",color:T.text,fontSize:12,resize:"none",outline:"none",boxSizing:"border-box",fontFamily:"'DM Sans',sans-serif"}}),
         React.createElement("div",{style:{display:"flex",gap:8}},
           React.createElement("button",{onClick:save,disabled:saving,style:{flex:1,padding:"10px",borderRadius:8,border:"none",background:`linear-gradient(135deg,${T.green},#2aaa72)`,color:"#071a0e",fontSize:13,fontWeight:800,cursor:"pointer"}},saving?"Saving...":editing!==null?"Save Changes":"Add Payee"),
           React.createElement("button",{onClick:()=>{setAdding(false);setEditing(null);setForm(BLANK);},style:{padding:"10px 16px",borderRadius:8,border:`1px solid ${T.border}`,background:"transparent",color:T.muted,fontSize:13,fontWeight:700,cursor:"pointer"}},"Cancel")))),
     payees.length===0&&!adding&&React.createElement("div",{style:{textAlign:"center",padding:"40px 20px",color:T.muted,background:T.card,border:`1px dashed ${T.border}`,borderRadius:16}},
       React.createElement("div",{style:{fontSize:32,marginBottom:8}},"🏢"),
-      React.createElement("div",{style:{fontWeight:700,color:T.text,marginBottom:4}},"No payees yet"),
-      React.createElement("div",{style:{fontSize:12,lineHeight:1.6}},"Add your mortgage lender, insurance company, utility providers, and recurring vendors here.")),
+      React.createElement("div",{style:{fontWeight:700,color:T.text,marginBottom:4}},"No payees yet")),
     payees.map((p,i)=>{
       const color=typeColor[p.type]||T.muted;
+      const icon=typeIcon[p.type]||"💼";
+      const isUploading=uploadingFor===(p.id||p.name)&&analyzing;
+      const logged=lastLogged[p.id||p.name];
+      const isDragging=dragOver===(p.id||p.name);
       return React.createElement(Card,{key:p.id||i,style:{border:`1px solid ${color}33`}},
         React.createElement("div",{style:{display:"flex",alignItems:"flex-start",gap:12}},
-          React.createElement("div",{style:{width:44,height:44,borderRadius:12,background:color+"18",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}},
-            p.type==="Mortgage"?"🏦":p.type==="Insurance"?"🛡️":p.type==="Utility"?"⚡":p.type==="Contractor"?"🔧":p.type==="Landscaping"?"🌿":p.type==="Tax Authority"?"🏛️":p.type==="Management"?"📋":"💼"),
+          React.createElement("div",{style:{width:44,height:44,borderRadius:12,background:color+"18",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}},icon),
           React.createElement("div",{style:{flex:1,minWidth:0}},
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:4}},
               React.createElement("div",{style:{fontFamily:T.serif,fontSize:16,fontWeight:800,color:T.text}},p.name),
@@ -1141,12 +1194,25 @@ function MgrPayeeDirectory({onSelectPayee}){
               React.createElement("span",{style:{padding:"2px 8px",borderRadius:10,background:T.faint,color:T.muted,fontSize:10,fontWeight:600}},p.paymentMethod),
               p.accountNum&&React.createElement("span",{style:{padding:"2px 8px",borderRadius:10,background:T.faint,color:T.muted,fontSize:10,fontWeight:600}},"Acct: ",p.accountNum)),
             p.phone&&React.createElement("div",{style:{fontSize:12,color:T.blue,fontWeight:600,marginBottom:2}},p.phone),
-            p.website&&React.createElement("a",{href:p.website.startsWith("http")?p.website:"https://"+p.website,target:"_blank",style:{fontSize:11,color:T.blue,display:"block",marginBottom:2,textDecoration:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},p.website),
-            p.notes&&React.createElement("div",{style:{fontSize:11,color:T.muted,fontStyle:"italic",marginTop:2}},p.notes)),
-          React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:6}},
-            onSelectPayee&&React.createElement("button",{onClick:()=>onSelectPayee(p),style:{padding:"5px 12px",borderRadius:8,border:`1px solid ${T.green}44`,background:T.greenDim,color:T.green,fontSize:11,fontWeight:700,cursor:"pointer"}},"Use"),
-            React.createElement("button",{onClick:()=>startEdit(p,i),style:{padding:"5px 12px",borderRadius:8,border:`1px solid ${T.border}`,background:"transparent",color:T.muted,fontSize:11,fontWeight:600,cursor:"pointer"}},"Edit"),
-            React.createElement("button",{onClick:()=>del(i),style:{padding:"5px 12px",borderRadius:8,border:"none",background:"transparent",color:T.red,fontSize:11,fontWeight:600,cursor:"pointer"}},"Del"))));
+            p.notes&&React.createElement("div",{style:{fontSize:11,color:T.muted,fontStyle:"italic",marginBottom:8}},p.notes),
+            logged&&React.createElement("div",{style:{fontSize:11,color:T.green,background:T.greenDim,borderRadius:8,padding:"6px 10px",marginBottom:8}},
+              "\u2713 Last logged: ",logged.desc," \u00B7 $",logged.amount.toLocaleString()," \u00B7 ",logged.cat),
+            React.createElement("div",{
+              onDragOver:e=>{e.preventDefault();setDragOver(p.id||p.name);},
+              onDragLeave:()=>setDragOver(null),
+              onDrop:e=>{e.preventDefault();setDragOver(null);const file=e.dataTransfer.files[0];if(file)handleFile(file,p);},
+              style:{border:`2px dashed ${isDragging?T.green:color+"55"}`,borderRadius:10,padding:"14px 10px",textAlign:"center",background:isDragging?T.greenDim:"transparent",transition:"all .15s",cursor:"pointer"},
+              onClick:()=>document.getElementById("payee-upload-"+i).click()},
+              isUploading?React.createElement("div",{style:{color:T.green,fontSize:12,fontWeight:700}},"\u2728 AI reading invoice...")
+              :React.createElement("div",null,
+                React.createElement("div",{style:{fontSize:20,marginBottom:4}},"\uD83D\uDCCE"),
+                React.createElement("div",{style:{fontSize:12,fontWeight:700,color:T.text}},"Drop invoice or tap to upload"),
+                React.createElement("div",{style:{fontSize:11,color:T.muted,marginTop:2}},"AI auto-fills amount, date & category \u2192 logs to Ledger")),
+              React.createElement("input",{id:"payee-upload-"+i,type:"file",accept:"image/*,application/pdf",capture:"environment",style:{display:"none"},onChange:e=>{const file=e.target.files[0];if(file)handleFile(file,p);}})),
+            React.createElement("div",{style:{display:"flex",gap:6,marginTop:8}},
+              onSelectPayee&&React.createElement("button",{onClick:()=>onSelectPayee(p),style:{padding:"5px 12px",borderRadius:8,border:`1px solid ${T.green}44`,background:T.greenDim,color:T.green,fontSize:11,fontWeight:700,cursor:"pointer"}},"Use"),
+              React.createElement("button",{onClick:()=>startEdit(p,i),style:{padding:"5px 12px",borderRadius:8,border:`1px solid ${T.border}`,background:"transparent",color:T.muted,fontSize:11,fontWeight:600,cursor:"pointer"}},"Edit"),
+              React.createElement("button",{onClick:()=>del(i),style:{padding:"5px 12px",borderRadius:8,border:"none",background:"transparent",color:T.red,fontSize:11,fontWeight:600,cursor:"pointer"}},"Delete")))));
     }));
 }
 
@@ -1784,7 +1850,7 @@ function MgrFinance({prop,units,unitCfg,profiles,rentStatus,workOrders,globalExp
     React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
       tabs.map(t=>React.createElement("button",{key:t.id,onClick:()=>setSub(t.id),style:{padding:"10px 8px",borderRadius:12,border:`1.5px solid ${sub===t.id?prop.color:T.border}`,background:sub===t.id?prop.color+"18":"transparent",color:sub===t.id?prop.color:T.muted,fontSize:12,fontWeight:700,cursor:"pointer"}},t.label))),
     sub==="ledger"&&React.createElement(MgrLedger,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses,updUnit,onGoToK1:()=>setSub("k1")}),
-    sub==="payees"&&React.createElement(MgrPayeeDirectory,null),
+    sub==="payees"&&React.createElement(MgrPayeeDirectory,{prop,globalExpenses,setGlobalExpenses}),
     sub==="k1"&&React.createElement(MgrExchange,{prop,units,unitCfg}),
     sub==="w9"&&React.createElement(MgrW9,null),
     sub==="tax"&&React.createElement(MgrLedger,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses,updUnit,initView:"tax"}));
