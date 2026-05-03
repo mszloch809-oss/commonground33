@@ -1681,7 +1681,7 @@ function MgrDocs({sharedDocs,setSharedDocs,units,profiles,prop,unitCfg}){
     {id:"other",label:"Other",icon:"\uD83D\uDCC2",color:"#37474f"}
   ];
 
-  const MOCK_DOCS={lease:[],inspection:[],rules:[],violations:[],notices:[],other:[]};
+  const MOCK_DOCS={};
 
   // Document viewer
   if(viewingDoc){
@@ -1792,7 +1792,7 @@ function MgrDocs({sharedDocs,setSharedDocs,units,profiles,prop,unitCfg}){
   // Unit document view
   const p=profiles[selUnit];
   const cfg=unitCfg[selUnit];
-  const tabDocs=[...(MOCK_DOCS[docTab]||[]),...propDocs.filter(d=>(d.unit===selUnit||d.unit==="all")&&(d.docType===docTab||(!d.docType&&docTab==="other")))];
+  const tabDocs=[...propDocs.filter(d=>(d.unit===selUnit||d.unit==="all")&&(d.docType===docTab||(!d.docType&&docTab==="other")))];
 
   return React.createElement(React.Fragment,null,
     React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:4}},
@@ -2512,19 +2512,12 @@ function DocsTab({unit,prop,sharedDocs,setSharedDocs,onTenantSign,propId}){
   const profile=profiles[unit];
   const unitCfg=PROPERTY_UNIT_CONFIG[prop.id||"cottage"]||PROPERTY_UNIT_CONFIG["cottage"];
   const cfg=unitCfg[unit];
-  const DOCS=[
-    {id:"lease",name:"Lease Agreement 2024-2025.pdf",cat:"Lease",color:"#2e7d32",date:"Sep 1, 2024",size:"412 KB",requiresSig:true},
-    {id:"inspection",name:"Move-In Inspection Report.pdf",cat:"Inspection",color:"#1565c0",date:"Sep 1, 2024",size:"1.2 MB",requiresSig:true},
-    {id:"rules",name:"Building Rules & Regulations.pdf",cat:"Rules",color:"#6a1b9a",date:"Jan 15, 2024",size:"88 KB",requiresSig:false}
-  ];
+  const DOCS=[];
   const uploadedDocs=(sharedDocs||[]).filter(d=>d.unit===unit||d.unit==="all");
-  const allDocs=[...DOCS,...uploadedDocs];
+  const allDocs=[...uploadedDocs];
   const getContent=(id)=>{
-    if(id==="lease")return getLeaseContent(unit,prop,profile,cfg);
-    if(id==="inspection")return getInspectionContent(unit,prop,profile);
-    if(id==="rules")return getRulesContent();
-    const ud=uploadedDocs.find(d=>d.id===id);
-    return ud?[{heading:ud.name,body:ud.description||"Document uploaded by property manager."}]:[];
+    const ud=allDocs.find(d=>d.id===id);
+    return ud?[{heading:ud.name,body:ud.description||"Document shared by your property manager."}]:[];
   };
   const doc=allDocs.find(d=>d.id===viewing);
   const isSigned=signed[viewing];
@@ -2606,11 +2599,21 @@ function DocsTab({unit,prop,sharedDocs,setSharedDocs,onTenantSign,propId}){
             React.createElement("div",{style:{fontSize:9,color:"#9e9e9e"}},"CONFIDENTIAL"),
             React.createElement("div",{style:{fontSize:9,color:"#9e9e9e"}},new Date().getFullYear()))),
         React.createElement("div",{style:{background:"#ffffff",padding:"8px 24px 24px"}},
-          sections.map((s,i)=>React.createElement("div",{key:i,style:{borderBottom:i<sections.length-1?"1px solid #f0f0f0":"none",paddingTop:16,paddingBottom:16}},
-            React.createElement("div",{style:{fontSize:9,color:doc.color,fontWeight:900,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8,display:"flex",alignItems:"center",gap:6}},
-              React.createElement("div",{style:{width:3,height:12,background:doc.color,borderRadius:2}}),s.heading),
-            React.createElement("div",{style:{fontSize:12.5,color:"#212121",lineHeight:2,whiteSpace:"pre-line",fontFamily:"Georgia,serif"}},s.body))),
-          sigData?React.createElement("div",{style:{marginTop:20,paddingTop:16,borderTop:`2px solid ${doc.color}`,background:"#f9fbe7",borderRadius:8,padding:16}},
+          doc.fileData?React.createElement("div",{style:{marginBottom:16}},
+          React.createElement("div",{style:{fontSize:10,color:doc.color,fontWeight:900,letterSpacing:".1em",marginBottom:10}},"DOCUMENT"),
+          doc.fileName&&doc.fileName.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+            ?React.createElement("img",{src:doc.fileData,alt:doc.name,style:{width:"100%",borderRadius:8,border:"1px solid #e0e0e0"}})
+            :React.createElement("div",{style:{textAlign:"center",padding:"30px 20px",background:"#f3f4ff",borderRadius:8,border:"1px solid #c5cae9"}},
+              React.createElement("div",{style:{fontSize:48,marginBottom:12}},"📄"),
+              React.createElement("div",{style:{fontSize:14,fontWeight:700,color:"#1a237e",marginBottom:8}},doc.name),
+              React.createElement("a",{href:doc.fileData,download:doc.fileName,style:{display:"inline-block",padding:"10px 20px",borderRadius:8,background:"#1a237e",color:"#fff",fontWeight:700,fontSize:13,textDecoration:"none"}},"Download File"),
+              React.createElement("div",{style:{fontSize:11,color:"#9e9e9e",marginTop:8}},doc.size||"")
+            )
+        ):React.createElement("div",{style:{padding:"30px 20px",textAlign:"center",background:"#f5f5f5",borderRadius:8,marginBottom:16}},
+          React.createElement("div",{style:{fontSize:48,marginBottom:12}},"📄"),
+          React.createElement("div",{style:{fontSize:13,color:"#757575"}},"Document preview not available")
+        ),
+sigData?React.createElement("div",{style:{marginTop:20,paddingTop:16,borderTop:`2px solid ${doc.color}`,background:"#f9fbe7",borderRadius:8,padding:16}},
             React.createElement("div",{style:{fontSize:9,color:doc.color,fontWeight:900,letterSpacing:".1em",marginBottom:12}},"ELECTRONIC SIGNATURE — LEGALLY BINDING"),
             React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}},
               React.createElement("div",null,
