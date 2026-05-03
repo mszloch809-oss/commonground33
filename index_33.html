@@ -3054,13 +3054,7 @@ function MgrZRentAnalytics({prop,units,unitCfg,profiles,rentStatus,workOrders}){
     {label:"Avg Monthly Collected",value:"$"+avgCollection.toLocaleString(),sub:"Last 10 months via ZRent",color:T.blue},
     {label:"Est. Monthly NOI",value:"$"+Math.round(noi).toLocaleString(),sub:"After avg maintenance costs",color:T.gold},
   ];
-  const paymentHistory=[
-    {tenant:"Sarah M.",unit:"101",amount:1850,date:"Apr 1",status:"paid",method:"ZRent ACH"},
-    {tenant:"James T.",unit:"102",amount:2100,date:"Apr 1",status:"paid",method:"ZRent ACH"},
-    {tenant:"Maria L.",unit:"201",amount:1950,date:"Apr 3",status:"paid",method:"ZRent ACH"},
-    {tenant:"Robert K.",unit:"202",amount:2200,date:"Mar 28",status:"overdue",method:"Pending"},
-    {tenant:"—",unit:"301",amount:2400,date:"—",status:"vacant",method:"—"},
-  ];
+  const paymentHistory=Object.keys(unitCfg).map(u=>{const p=profiles[u];const st=rentStatus[u]||"vacant";return{tenant:p?p.firstName+" "+p.lastName:"—",unit:u,amount:unitCfg[u].rent,date:st==="paid"?"Apr 1":st==="overdue"?"Mar 28":"—",status:p?st:"vacant",method:st==="paid"?"ACH":st==="overdue"?"Pending":"—"};});
   return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:14}},
     React.createElement("div",null,
       React.createElement("div",{style:{fontFamily:T.serif,fontSize:20,fontWeight:900,color:T.text}},"ZRent Payment Analytics"),
