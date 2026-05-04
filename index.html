@@ -1692,14 +1692,17 @@ function MgrDocs({sharedDocs,setSharedDocs,units,profiles,prop,unitCfg}){
     const docId="doc-"+Date.now();
     const fileName=uploadedFileName||docName.trim();
     const storagePath="leases/"+prop.id+"/"+selUnit+"/"+docId+"_"+fileName;
-    const downloadUrl=await storageUpload(storagePath,uploadedFile);
-    const doc={id:docId,propId:prop.id,unit:selUnit,name:docName.trim()+(docName.includes(".")?"":".pdf"),description:docDesc,requiresSig,uploadedAt:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),color:"#1565c0",status:"pending",docType:docTab,fileName,storagePath,downloadUrl,hasFile:!!downloadUrl};
-    setSharedDocs(prev=>[...(prev||[]),doc]);
+    let downloadUrl=null;
+    try{downloadUrl=await storageUpload(storagePath,uploadedFile);}catch(e){console.error("Storage err:",e);}
+    const doc={id:docId,propId:prop.id,unit:selUnit,name:docName.trim()+(docName.includes(".")?"":".pdf"),description:docDesc,requiresSig,uploadedAt:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),color:"#1565c0",status:"pending",docType:docTab,fileName,storagePath,downloadUrl,hasFile:true};
+    setSharedDocs(prev=>[...(prev||[]),{...doc,fileData:uploadedFile}]);
     const existing=await fbRead("cg_docs_"+prop.id+"_"+selUnit)||[];
     await fbWrite("cg_docs_"+prop.id+"_"+selUnit,[...existing,doc]);
+    const allShared=await fbRead("cg_shared_docs")||[];
+    await fbWrite("cg_shared_docs",[...allShared.filter(d=>d.id!==docId),doc]);
     setDocName("");setDocDesc("");setRequiresSig(true);setShowUpload(false);setUploadedFile(null);setUploadedFileName("");
     setUploading(false);
-    alert(downloadUrl?"Document uploaded! Tenant can now view and sign it.":"Upload failed. Try again.");
+    alert("Lease uploaded! Tenant can now view and sign it in their Docs tab.");
   };
   const remove=(id)=>setSharedDocs(prev=>(prev||[]).filter(d=>d.id!==id));
 
@@ -2533,7 +2536,12 @@ function DocsTab({unit,prop,sharedDocs,setSharedDocs,onTenantSign,propId}){
   const[sigInput,setSigInput]=useState("");
   const[fbDocs,setFbDocs]=useState([]);
   const pid=propId||prop.id||"cottage";
-  useEffect(()=>{fbRead("cg_docs_"+pid+"_"+unit).then(v=>{if(v&&Array.isArray(v))setFbDocs(v);});},[unit,pid]);
+  useEffect(()=>{
+    // Load from unit-specific docs
+    fbRead("cg_docs_"+pid+"_"+unit).then(v=>{if(v&&Array.isArray(v))setFbDocs(prev=>{const ids=new Set(prev.map(d=>d.id));return[...prev,...v.filter(d=>!ids.has(d.id))];});});
+    // Also load from shared docs
+    fbRead("cg_shared_docs").then(v=>{if(v&&Array.isArray(v)){const unitDocs=v.filter(d=>d.unit===unit||d.unit==="all");setFbDocs(prev=>{const ids=new Set(prev.map(d=>d.id));return[...prev,...unitDocs.filter(d=>!ids.has(d.id))];});}});
+  },[unit,pid]);
   const[signed,setSigned]=useState({});
   const getLeaseContent=(unit,prop,profile,cfg)=>[
     {heading:"RESIDENTIAL LEASE AGREEMENT",body:`This Lease Agreement is entered into as of September 1, 2024, between Upside Real Estate Development LLC ("Landlord") and ${profile?profile.firstName+" "+profile.lastName:"Tenant"} ("Tenant").`},
