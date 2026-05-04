@@ -1695,24 +1695,37 @@ function MgrDocs({sharedDocs,setSharedDocs,units,profiles,prop,unitCfg}){
     setUploading(true);
     const docId="doc-"+Date.now();
     const fileName=uploadedFileName||docName.trim();
-    // Save full file as base64 directly in Firebase
+    const storagePath="leases/"+prop.id+"/"+selUnit+"/"+docId+"_"+encodeURIComponent(fileName);
+    // Upload to Firebase Storage
+    let downloadUrl=null;
+    try{
+      const res=await fetch(uploadedFile);
+      const blob=await res.blob();
+      const uploadUrl="https://firebasestorage.googleapis.com/v0/b/"+STORAGE_BUCKET+"/o/"+encodeURIComponent(storagePath)+"?uploadType=media";
+      const r=await fetch(uploadUrl,{method:"POST",headers:{"Content-Type":blob.type||"application/pdf"},body:blob});
+      if(r.ok){
+        const data=await r.json();
+        const token=data.downloadTokens||"";
+        downloadUrl="https://firebasestorage.googleapis.com/v0/b/"+STORAGE_BUCKET+"/o/"+encodeURIComponent(storagePath)+"?alt=media"+(token?"&token="+token:"");
+        console.log("Storage URL:",downloadUrl);
+      }else{
+        const err=await r.text();
+        console.error("Storage upload failed:",r.status,err);
+      }
+    }catch(e){console.error("Upload error:",e);}
+    if(!downloadUrl){setUploading(false);alert("Upload failed. Check console for details.");return;}
+    // Save ONLY the URL to Firebase (not the base64)
     const doc={
       id:docId,propId:prop.id,unit:selUnit,
       name:docName.trim()+(docName.includes(".")?"":".pdf"),
       description:docDesc,requiresSig,
       uploadedAt:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),
       color:"#1565c0",status:"pending",docType:docTab,
-      fileName,fileData:uploadedFile,hasFile:true
+      fileName,storagePath,downloadUrl,hasFile:true
     };
-    // Save to state for current session
     setSharedDocs(prev=>[...(prev||[]),doc]);
-    // Save to Firebase with file data
     const existing=await fbRead("cg_docs_"+prop.id+"_"+selUnit)||[];
     await fbWrite("cg_docs_"+prop.id+"_"+selUnit,[...existing,doc]);
-    // Also save to shared docs index (without fileData to save space)
-    const {fileData,...docMeta}=doc;
-    const allShared=await fbRead("cg_shared_docs")||[];
-    await fbWrite("cg_shared_docs",[...allShared.filter(d=>d.id!==docId),docMeta]);
     setDocName("");setDocDesc("");setRequiresSig(true);
     setShowUpload(false);setUploadedFile(null);setUploadedFileName("");
     setUploading(false);
@@ -2566,153 +2579,64 @@ function MgrApplications({applications,setApplications,prop,units,unitCfg}){
             React.createElement("div",{style:{fontSize:11,color:T.muted}},"\uD83D\uDCBC ",app.employer," \u00B7 Income: ",app.form.annualIncome)))))));
 }
 function PDFSignViewer({doc,unit,prop,profile,onSigned,onClose,isManager}){
-  const canvasRefs=React.useRef({});
-  const[pages,setPages]=useState([]);
-  const[loading,setLoading]=useState(true);
-  const[error,setError]=useState(null);
-  const[sigMode,setSigMode]=useState(null); // null | 'tenant' | 'manager'
-  const[sigPage,setSigPage]=useState(1);
-  const[tenantSig,setTenantSig]=useState(null);
-  const[managerSig,setManagerSig]=useState(null);
-  const[tenantInitials,setTenantInitials]=useState({});
+  const[signed,setSigned]=useState(false);
   const[sigInput,setSigInput]=useState("");
-  const[sigFields,setSigFields]=useState([]); // [{page,x,y,type,id,signed,signedBy}]
-  const[submitted,setSubmitted]=useState(false);
-  const canvasRef=React.useRef(null);
-  const isDrawing=React.useRef(false);
-  const lastPos=React.useRef(null);
-
-  // Load PDF from downloadUrl or fileData
-  useEffect(()=>{
-    if(!doc)return;
-    const src=doc.downloadUrl||doc.fileData;
-    if(!src){setError("No file available");setLoading(false);return;}
-    if(!window.pdfjsLib){setError("PDF viewer not loaded");setLoading(false);return;}
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-    window.pdfjsLib.getDocument(src).promise.then(pdf=>{
-      const ps=[];
-      const renders=[];
-      for(let i=1;i<=pdf.numPages;i++){renders.push(pdf.getPage(i));}
-      Promise.all(renders).then(pgs=>{
-        setPages(pgs);
-        setLoading(false);
-        // Default sig fields: last page signature + initials on each page
-        const fields=[];
-        for(let p=1;p<=pgs.length;p++){
-          fields.push({id:"init_"+p,page:p,x:50,y:92,type:"initial",signed:false});
-        }
-        fields.push({id:"sig_1",page:pgs.length,x:50,y:80,type:"signature",signed:false});
-        fields.push({id:"date_1",page:pgs.length,x:50,y:88,type:"date",signed:false,value:new Date().toLocaleDateString()});
-        setSigFields(fields);
-      });
-    }).catch(e=>{setError("Could not load PDF: "+e.message);setLoading(false);});
-  },[doc]);
-
-  // Render a page to canvas
-  const renderPage=(page,canvas)=>{
-    if(!canvas||!page)return;
-    const vp=page.getViewport({scale:window.innerWidth<600?0.9:1.4});
-    canvas.width=vp.width;
-    canvas.height=vp.height;
-    page.render({canvasContext:canvas.getContext("2d"),viewport:vp});
-  };
-
-  const sign=()=>{
-    if(!sigInput.trim())return;
-    const name=sigInput.trim();
-    const ts=Date.now();
-    if(isManager){
-      setManagerSig({name,ts,type:"manager"});
-      setSigFields(prev=>prev.map(f=>f.type==="signature"||f.type==="date"?{...f,signed:true,signedBy:"manager",value:f.type==="date"?new Date().toLocaleDateString():name}:f));
-    }else{
-      setTenantSig({name,ts,type:"tenant"});
-      setSigFields(prev=>prev.map(f=>({...f,signed:true,signedBy:"tenant",value:f.type==="date"?new Date().toLocaleDateString():f.type==="initial"?name.split(" ").map(w=>w[0]).join(".").toUpperCase():name})));
-    }
-    setSigMode(null);
-    setSigInput("");
-  };
+  const[showSigBox,setShowSigBox]=useState(false);
+  const[submitting,setSubmitting]=useState(false);
+  const src=doc.fileData||doc.downloadUrl;
 
   const submit=async()=>{
-    if(!tenantSig&&!isManager){alert("Please sign the document first.");return;}
-    if(!managerSig&&isManager){alert("Please add your signature first.");return;}
-    const sigData={
-      docId:doc.id,unit,propId:prop.id,
-      tenantSig:tenantSig||null,
-      managerSig:managerSig||null,
-      signedAt:new Date().toISOString(),
-      fields:sigFields,
-    };
+    if(!sigInput.trim())return;
+    setSubmitting(true);
+    const sigData={docId:doc.id,unit,propId:prop.id,
+      [isManager?"managerSig":"tenantSig"]:{name:sigInput.trim(),signedAt:new Date().toISOString()}};
     await fbWrite("cg_signatures_"+doc.id,sigData);
-    // Update doc status
     const docs=await fbRead("cg_docs_"+prop.id+"_"+unit)||[];
-    const updated=docs.map(d=>d.id===doc.id?{...d,signStatus:tenantSig&&managerSig?"completed":isManager?"manager_signed":"tenant_signed"}:d);
-    await fbWrite("cg_docs_"+prop.id+"_"+unit,updated);
-    setSubmitted(true);
+    await fbWrite("cg_docs_"+prop.id+"_"+unit,
+      docs.map(d=>d.id===doc.id?{...d,signStatus:isManager?"manager_signed":"tenant_signed"}:d));
+    setSigned(true);setSubmitting(false);
     if(onSigned)onSigned(sigData);
   };
 
-  const allSigned=sigFields.length>0&&sigFields.every(f=>f.signed||f.type==="date");
-  const tenantFieldsDone=sigFields.filter(f=>f.type!=="date").every(f=>f.signed);
-
-  if(submitted)return React.createElement("div",{style:{padding:40,textAlign:"center"}},
-    React.createElement("div",{style:{fontSize:64,marginBottom:16}},"\u2705"),
-    React.createElement("div",{style:{fontSize:22,fontWeight:900,color:T.green,marginBottom:8}},"Document Signed!"),
-    React.createElement("div",{style:{fontSize:14,color:T.muted,marginBottom:24}},"Your signature has been recorded and saved."),
-    React.createElement("button",{onClick:onClose,style:{padding:"12px 28px",borderRadius:10,border:"none",background:prop.color,color:"#071a0e",fontWeight:800,fontSize:14,cursor:"pointer"}},"Done")
-  );
-
-  return React.createElement("div",{style:{position:"fixed",inset:0,background:"#000",zIndex:1000,display:"flex",flexDirection:"column",overflow:"hidden"}},
+  return React.createElement("div",{style:{position:"fixed",inset:0,background:"#111",zIndex:1000,display:"flex",flexDirection:"column"}},
     // Header
-    React.createElement("div",{style:{background:"#1a1a1a",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,borderBottom:"1px solid #333"}},
-      React.createElement("div",null,
-        React.createElement("div",{style:{fontSize:13,fontWeight:800,color:"#fff"}},doc.name),
-        React.createElement("div",{style:{fontSize:11,color:"#888"}},"Tap signature fields to sign")
-      ),
-      React.createElement("button",{onClick:onClose,style:{background:"#333",border:"none",borderRadius:8,padding:"6px 14px",color:"#fff",fontSize:13,cursor:"pointer"}},"Close")
+    React.createElement("div",{style:{background:"#1a1a1a",padding:"10px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid #333",flexShrink:0}},
+      React.createElement("div",{style:{fontSize:12,fontWeight:700,color:"#fff",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},doc.name),
+      React.createElement("button",{onClick:onClose,style:{background:"#333",border:"none",borderRadius:6,padding:"5px 12px",color:"#fff",fontSize:12,cursor:"pointer",flexShrink:0,marginLeft:8}},"Close")
     ),
-    // PDF pages
-    loading?React.createElement("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:16}},"Loading PDF..."):
-    error?React.createElement("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#f44",fontSize:14,padding:20,textAlign:"center"}},error):
-    React.createElement("div",{style:{flex:1,overflowY:"auto",padding:"16px 8px",display:"flex",flexDirection:"column",gap:16,alignItems:"center"}},
-      ...pages.map((page,pi)=>React.createElement("div",{key:pi,style:{position:"relative",boxShadow:"0 4px 20px rgba(0,0,0,.5)"}},
-        React.createElement("canvas",{ref:el=>{if(el&&page){canvasRefs.current[pi]=el;renderPage(page,el);}},style:{display:"block",maxWidth:"100%"}}),
-        // Signature field overlays
-        ...sigFields.filter(f=>f.page===pi+1).map(field=>
-          React.createElement("div",{key:field.id,onClick:()=>{if(!field.signed){setSigMode(isManager?"manager":"tenant");setSigPage(pi+1);}},
-            style:{position:"absolute",
-              left:field.x+"%",top:field.y+"%",
-              minWidth:field.type==="initial"?60:160,height:field.type==="initial"?28:36,
-              background:field.signed?"rgba(62,201,142,0.15)":"rgba(255,200,0,0.2)",
-              border:"2px solid "+(field.signed?T.green:"#FFC800"),
-              borderRadius:6,cursor:field.signed?"default":"pointer",
-              display:"flex",alignItems:"center",justifyContent:"center",
-              padding:"0 8px",boxSizing:"border-box"}},
-            field.signed
-              ?React.createElement("div",{style:{fontSize:field.type==="initial"?11:13,color:T.green,fontWeight:700,fontFamily:"Georgia,serif",fontStyle:"italic"}},field.value||"\u2713")
-              :React.createElement("div",{style:{fontSize:10,color:"#FFC800",fontWeight:700,textAlign:"center"}},field.type==="initial"?"INITIAL":field.type==="date"?"DATE":"SIGN HERE")
-          )
+    // PDF viewer - use Google Docs viewer for cross-browser PDF display
+    src?React.createElement("iframe",{
+      src:doc.downloadUrl
+        ?"https://docs.google.com/gview?embedded=true&url="+encodeURIComponent(doc.downloadUrl)
+        :src,
+      style:{flex:1,border:"none",width:"100%"},
+      title:doc.name
+    }):React.createElement("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#f44",fontSize:14,padding:20,textAlign:"center"}},"No file available. Please re-upload the document."),
+    // Signature bar at bottom
+    signed
+      ?React.createElement("div",{style:{background:"#1a3a20",padding:"16px",textAlign:"center",borderTop:"1px solid #2aaa72"}},
+          React.createElement("div",{style:{fontSize:15,fontWeight:800,color:"#2aaa72"}},"\u2705 Document Signed!"),
+          React.createElement("button",{onClick:onClose,style:{marginTop:10,padding:"10px 24px",borderRadius:8,border:"none",background:"#2aaa72",color:"#071a0e",fontWeight:800,cursor:"pointer"}},"Done")
         )
-      )),
-      // Sign button
-      React.createElement("div",{style:{padding:"20px 16px",width:"100%",maxWidth:600,boxSizing:"border-box"}},
-        !tenantFieldsDone&&!isManager?React.createElement("button",{onClick:()=>setSigMode("tenant"),style:{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,"+prop.color+",#2aaa72)",color:"#071a0e",fontWeight:900,fontSize:15,cursor:"pointer"}},"Sign Document"):
-        tenantFieldsDone&&!isManager?React.createElement("button",{onClick:submit,style:{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,"+prop.color+",#2aaa72)",color:"#071a0e",fontWeight:900,fontSize:15,cursor:"pointer"}},"Submit Signed Document"):
-        isManager&&!managerSig?React.createElement("button",{onClick:()=>setSigMode("manager"),style:{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#1565c0,#0d47a1)",color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer"}},"Add Manager Signature"):
-        isManager&&managerSig?React.createElement("button",{onClick:submit,style:{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,"+prop.color+",#2aaa72)",color:"#071a0e",fontWeight:900,fontSize:15,cursor:"pointer"}},"Submit Countersignature"):null
-      )
-    ),
-    // Signature input modal
-    sigMode&&React.createElement("div",{style:{position:"absolute",inset:0,background:"rgba(0,0,0,.85)",display:"flex",alignItems:"flex-end",justifyContent:"center",zIndex:10}},
-      React.createElement("div",{style:{background:T.card,borderRadius:"20px 20px 0 0",padding:28,width:"100%",maxWidth:500,boxSizing:"border-box"}},
-        React.createElement("div",{style:{fontSize:16,fontWeight:800,color:T.text,marginBottom:6}},"Type your full name to sign"),
-        React.createElement("div",{style:{fontSize:12,color:T.muted,marginBottom:16}},"By signing you agree this is your legal electronic signature"),
-        React.createElement("input",{value:sigInput,onChange:e=>setSigInput(e.target.value),placeholder:"Full legal name",style:{width:"100%",padding:"14px",borderRadius:10,border:"2px solid "+prop.color,background:T.surface,color:T.text,fontSize:16,outline:"none",boxSizing:"border-box",fontFamily:"Georgia,serif",fontStyle:"italic",marginBottom:12}}),
-        React.createElement("div",{style:{display:"flex",gap:10}},
-          React.createElement("button",{onClick:()=>{setSigMode(null);setSigInput("");},style:{flex:1,padding:"12px",borderRadius:10,border:"1px solid "+T.border,background:"transparent",color:T.muted,fontWeight:700,cursor:"pointer"}},"Cancel"),
-          React.createElement("button",{onClick:sign,disabled:!sigInput.trim(),style:{flex:2,padding:"12px",borderRadius:10,border:"none",background:sigInput.trim()?"linear-gradient(135deg,"+prop.color+",#2aaa72)":"#1a2e20",color:sigInput.trim()?"#071a0e":T.muted,fontWeight:800,fontSize:14,cursor:sigInput.trim()?"pointer":"default"}},"Sign")
+      :React.createElement("div",{style:{background:"#1a1a1a",borderTop:"1px solid #333",padding:"12px 14px",flexShrink:0}},
+          showSigBox
+            ?React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},
+                React.createElement("div",{style:{fontSize:11,color:"#aaa"}},"Type your full legal name to sign:"),
+                React.createElement("input",{value:sigInput,onChange:e=>setSigInput(e.target.value),placeholder:"Full legal name",autoFocus:true,
+                  style:{padding:"10px 12px",borderRadius:8,border:"1px solid "+prop.color,background:"#222",color:"#fff",fontSize:14,outline:"none"}}),
+                React.createElement("div",{style:{display:"flex",gap:8}},
+                  React.createElement("button",{onClick:()=>{setShowSigBox(false);setSigInput("");},style:{flex:1,padding:"10px",borderRadius:8,border:"1px solid #444",background:"transparent",color:"#aaa",cursor:"pointer"}},"Cancel"),
+                  React.createElement("button",{onClick:submit,disabled:!sigInput.trim()||submitting,
+                    style:{flex:2,padding:"10px",borderRadius:8,border:"none",background:sigInput.trim()?prop.color:"#333",color:sigInput.trim()?"#071a0e":"#666",fontWeight:800,cursor:"pointer"}},
+                    submitting?"Saving...":"Sign Document")
+                )
+              )
+            :React.createElement("button",{onClick:()=>setShowSigBox(true),
+                style:{width:"100%",padding:"13px",borderRadius:10,border:"none",
+                  background:"linear-gradient(135deg,"+prop.color+",#2aaa72)",
+                  color:"#071a0e",fontWeight:900,fontSize:15,cursor:"pointer"}},
+                isManager?"\u270F\uFE0F Sign as Manager":"\u270F\uFE0F Sign Document")
         )
-      )
-    )
   );
 }
 
