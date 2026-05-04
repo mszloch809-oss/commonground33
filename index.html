@@ -65,17 +65,20 @@ async function compressImage(dataUrl,maxW=800,quality=0.6){return new Promise(re
 const STORAGE_BUCKET="commonground-71e64.firebasestorage.app";
 async function storageUpload(path,dataUrl){
   try{
-    // Convert base64 dataUrl to blob
     const res=await fetch(dataUrl);
     const blob=await res.blob();
-    const uploadUrl="https://firebasestorage.googleapis.com/v0/b/"+STORAGE_BUCKET+"/o/"+encodeURIComponent(path);
-    const r=await fetch(uploadUrl,{method:"POST",headers:{"Content-Type":blob.type||"application/octet-stream","X-Goog-Upload-Protocol":"multipart"},body:blob});
-    if(!r.ok)throw new Error("Upload failed: "+r.status);
+    const mimeType=blob.type||"application/pdf";
+    const uploadUrl="https://firebasestorage.googleapis.com/v0/b/"+STORAGE_BUCKET+"/o/"+encodeURIComponent(path)+"?uploadType=media";
+    const r=await fetch(uploadUrl,{method:"POST",headers:{"Content-Type":mimeType},body:blob});
+    if(!r.ok){const err=await r.text();throw new Error("Upload failed "+r.status+": "+err);}
     const data=await r.json();
-    // Return public download URL
-    return "https://firebasestorage.googleapis.com/v0/b/"+STORAGE_BUCKET+"/o/"+encodeURIComponent(path)+"?alt=media&token="+data.downloadTokens;
+    const token=data.downloadTokens||"";
+    const url="https://firebasestorage.googleapis.com/v0/b/"+STORAGE_BUCKET+"/o/"+encodeURIComponent(path)+"?alt=media"+(token?"&token="+token:"");
+    console.log("Uploaded to Storage:",url);
+    return url;
   }catch(e){console.error("Storage upload error:",e);return null;}
 }
+
 async function storageDelete(path){
   try{
     await fetch("https://firebasestorage.googleapis.com/v0/b/"+STORAGE_BUCKET+"/o/"+encodeURIComponent(path),{method:"DELETE"});
@@ -1692,20 +1695,30 @@ function MgrDocs({sharedDocs,setSharedDocs,units,profiles,prop,unitCfg}){
     setUploading(true);
     const docId="doc-"+Date.now();
     const fileName=uploadedFileName||docName.trim();
-    const storagePath="leases/"+prop.id+"/"+selUnit+"/"+docId+"_"+fileName;
-    let downloadUrl=null;
-    try{downloadUrl=await storageUpload(storagePath,uploadedFile);}catch(e){console.error("Storage err:",e);}
-    const doc={id:docId,propId:prop.id,unit:selUnit,name:docName.trim()+(docName.includes(".")?"":".pdf"),description:docDesc,requiresSig,uploadedAt:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),color:"#1565c0",status:"pending",docType:docTab,fileName,storagePath,downloadUrl,hasFile:true};
-    setSharedDocs(prev=>[...(prev||[]),{...doc,fileData:uploadedFile}]);
+    // Save full file as base64 directly in Firebase
+    const doc={
+      id:docId,propId:prop.id,unit:selUnit,
+      name:docName.trim()+(docName.includes(".")?"":".pdf"),
+      description:docDesc,requiresSig,
+      uploadedAt:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),
+      color:"#1565c0",status:"pending",docType:docTab,
+      fileName,fileData:uploadedFile,hasFile:true
+    };
+    // Save to state for current session
+    setSharedDocs(prev=>[...(prev||[]),doc]);
+    // Save to Firebase with file data
     const existing=await fbRead("cg_docs_"+prop.id+"_"+selUnit)||[];
     await fbWrite("cg_docs_"+prop.id+"_"+selUnit,[...existing,doc]);
+    // Also save to shared docs index (without fileData to save space)
+    const {fileData,...docMeta}=doc;
     const allShared=await fbRead("cg_shared_docs")||[];
-    await fbWrite("cg_shared_docs",[...allShared.filter(d=>d.id!==docId),doc]);
-    setDocName("");setDocDesc("");setRequiresSig(true);setShowUpload(false);setUploadedFile(null);setUploadedFileName("");
+    await fbWrite("cg_shared_docs",[...allShared.filter(d=>d.id!==docId),docMeta]);
+    setDocName("");setDocDesc("");setRequiresSig(true);
+    setShowUpload(false);setUploadedFile(null);setUploadedFileName("");
     setUploading(false);
-    alert("Lease uploaded! Tenant can now view and sign it in their Docs tab.");
+    alert("Lease uploaded! Tenant can now view and sign it.");
   };
-  const remove=async(id)=>{
+    const remove=async(id)=>{
     setSharedDocs(prev=>(prev||[]).filter(d=>d.id!==id));
     // Remove from Firebase unit docs
     const existing=await fbRead("cg_docs_"+prop.id+"_"+selUnit)||[];
@@ -2711,10 +2724,12 @@ function DocsTab({unit,prop,sharedDocs,setSharedDocs,onTenantSign,propId}){
   const[fbDocs,setFbDocs]=useState([]);
   const pid=propId||prop.id||"cottage";
   useEffect(()=>{
-    // Load from unit-specific docs
-    fbRead("cg_docs_"+pid+"_"+unit).then(v=>{if(v&&Array.isArray(v))setFbDocs(prev=>{const ids=new Set(prev.map(d=>d.id));return[...prev,...v.filter(d=>!ids.has(d.id))];});});
-    // Also load from shared docs
-    fbRead("cg_shared_docs").then(v=>{if(v&&Array.isArray(v)){const unitDocs=v.filter(d=>d.unit===unit||d.unit==="all");setFbDocs(prev=>{const ids=new Set(prev.map(d=>d.id));return[...prev,...unitDocs.filter(d=>!ids.has(d.id))];});}});
+    // Load docs with full fileData from Firebase
+    fbRead("cg_docs_"+pid+"_"+unit).then(v=>{
+      if(v&&Array.isArray(v)&&v.length>0){
+        setFbDocs(v);
+      }
+    });
   },[unit,pid]);
   const[signed,setSigned]=useState({});
   const getLeaseContent=(unit,prop,profile,cfg)=>[
