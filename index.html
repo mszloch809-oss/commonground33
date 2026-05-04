@@ -1705,7 +1705,15 @@ function MgrDocs({sharedDocs,setSharedDocs,units,profiles,prop,unitCfg}){
     setUploading(false);
     alert("Lease uploaded! Tenant can now view and sign it in their Docs tab.");
   };
-  const remove=(id)=>setSharedDocs(prev=>(prev||[]).filter(d=>d.id!==id));
+  const remove=async(id)=>{
+    setSharedDocs(prev=>(prev||[]).filter(d=>d.id!==id));
+    // Remove from Firebase unit docs
+    const existing=await fbRead("cg_docs_"+prop.id+"_"+selUnit)||[];
+    await fbWrite("cg_docs_"+prop.id+"_"+selUnit,existing.filter(d=>d.id!==id));
+    // Remove from shared docs
+    const shared=await fbRead("cg_shared_docs")||[];
+    await fbWrite("cg_shared_docs",shared.filter(d=>d.id!==id));
+  };
 
   const DOC_TABS=[
     {id:"lease",label:"Lease",icon:"\uD83D\uDCCB",color:"#2e7d32"},
