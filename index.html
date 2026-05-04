@@ -92,8 +92,8 @@ const DEFAULT_FEES={parking:75,pet:50,violation:100,late:50};
 
 const PROPERTIES={cottage:{id:"cottage",name:"33 Cottage St",city:"Rutland, VT 05701",type:"Residential \u00B7 7 Units",color:T.green,emoji:"\uD83C\uDFE0"}};
 const PROPERTY_UNIT_CONFIG={cottage:{"101":{type:"3 Bedroom",rent:1590,floor:1},"102":{type:"3 Bedroom",rent:1590,floor:1},"201":{type:"3 Bedroom",rent:1590,floor:2},"202":{type:"3 Bedroom",rent:1590,floor:2},"301":{type:"1 Bedroom",rent:1100,floor:3},"302":{type:"1 Bedroom",rent:1100,floor:3},"303":{type:"1 Bedroom",rent:1100,floor:3}},main:{"1A":{type:"2 Bedroom",rent:1450,floor:1},"1B":{type:"Studio",rent:875,floor:1},"2A":{type:"2 Bedroom",rent:1450,floor:2},"2B":{type:"1 Bedroom",rent:1100,floor:2}},elm:{"1":{type:"3 Bedroom",rent:1800,floor:1},"2":{type:"2 Bedroom",rent:1400,floor:2},"3":{type:"2 Bedroom",rent:1400,floor:3}}};
-const PROPERTY_PROFILES={cottage:{"101":{firstName:"Kassie",lastName:"Bashaw",phone:"9784172831",email:"kassieb109@icloud.com",moveIn:"05/10/2025",leaseEnd:""},"102":{firstName:"Krystal",lastName:"Gardner",phone:"8028550496",email:"krystalspaulding69@gmail.com",moveIn:"06/06/2025",leaseEnd:"05/31/2026"},"201":{firstName:"Shelby",lastName:"White",phone:"",email:"",moveIn:"",leaseEnd:""},"202":{firstName:"Mike",lastName:"Szloch",phone:"7817062034",email:"mszloch809@gmail.com",moveIn:"04/01/2025",leaseEnd:"04/01/2026"},"301":null,"302":{firstName:"Abigail",lastName:"Blanchard",phone:"8024877162",email:"Crabigail12345@gmail.com",moveIn:"05/12/2025",leaseEnd:"05/12/2026",notRenewing:true},"303":{firstName:"Brandon",lastName:"Woodward",phone:"",email:"",moveIn:"",leaseEnd:""}},main:{"1A":{firstName:"Marcus",lastName:"Thompson",phone:"(555) 020-1001",email:"marcus@email.com",moveIn:"Feb 1, 2024",leaseEnd:"Jan 31, 2026"},"2A":{firstName:"Priya",lastName:"Nair",phone:"(555) 020-2001",email:"priya@email.com",moveIn:"May 1, 2024",leaseEnd:"Apr 30, 2026"},"2B":{firstName:"Devon",lastName:"Walsh",phone:"(555) 020-2002",email:"devon@email.com",moveIn:"Aug 1, 2023",leaseEnd:"Jul 31, 2025"}},elm:{"1":{firstName:"Tatiana",lastName:"Brooks",phone:"(555) 030-0001",email:"tatiana@email.com",moveIn:"Oct 1, 2023",leaseEnd:"Sep 30, 2025"},"2":{firstName:"Omar",lastName:"Hassan",phone:"(555) 030-0002",email:"omar@email.com",moveIn:"Jan 1, 2025",leaseEnd:"Dec 31, 2025"}}};
-const PROPERTY_RENT_STATUS={cottage:{"101":"paid","102":"paid","201":"paid","202":"paid","301":"vacant","302":"paid","303":"paid"},main:{"1A":"paid","1B":"vacant","2A":"paid","2B":"overdue"},elm:{"1":"paid","2":"due","3":"vacant"}};
+const PROPERTY_PROFILES={cottage:{"101":{firstName:"Kassie",lastName:"Bashaw",phone:"9784172831",email:"kassieb109@icloud.com",moveIn:"05/10/2025",leaseEnd:""},"102":{firstName:"Krystal",lastName:"Gardner",phone:"8028550496",email:"krystalspaulding69@gmail.com",moveIn:"06/06/2025",leaseEnd:"05/31/2026"},"201":{firstName:"Shelby",lastName:"White",phone:"",email:"",moveIn:"",leaseEnd:""},"202":null,"301":null,"302":{firstName:"Abigail",lastName:"Blanchard",phone:"8024877162",email:"Crabigail12345@gmail.com",moveIn:"05/12/2025",leaseEnd:"05/12/2026",notRenewing:true},"303":{firstName:"Brandon",lastName:"Woodward",phone:"",email:"",moveIn:"",leaseEnd:""}},main:{"1A":{firstName:"Marcus",lastName:"Thompson",phone:"(555) 020-1001",email:"marcus@email.com",moveIn:"Feb 1, 2024",leaseEnd:"Jan 31, 2026"},"2A":{firstName:"Priya",lastName:"Nair",phone:"(555) 020-2001",email:"priya@email.com",moveIn:"May 1, 2024",leaseEnd:"Apr 30, 2026"},"2B":{firstName:"Devon",lastName:"Walsh",phone:"(555) 020-2002",email:"devon@email.com",moveIn:"Aug 1, 2023",leaseEnd:"Jul 31, 2025"}},elm:{"1":{firstName:"Tatiana",lastName:"Brooks",phone:"(555) 030-0001",email:"tatiana@email.com",moveIn:"Oct 1, 2023",leaseEnd:"Sep 30, 2025"},"2":{firstName:"Omar",lastName:"Hassan",phone:"(555) 030-0002",email:"omar@email.com",moveIn:"Jan 1, 2025",leaseEnd:"Dec 31, 2025"}}};
+const PROPERTY_RENT_STATUS={cottage:{"101":"paid","102":"paid","201":"paid","202":"vacant","301":"vacant","302":"paid","303":"paid"},main:{"1A":"paid","1B":"vacant","2A":"paid","2B":"overdue"},elm:{"1":"paid","2":"due","3":"vacant"}};
 const PROPERTY_DEMO_PAYMENTS={cottage:[{date:"Apr 1, 2025",desc:"Rent \u2013 April 2025",total:1590,method:"ZRent ACH"},{date:"Mar 1, 2025",desc:"Rent \u2013 March 2025",total:1590,method:"ACH"},{date:"Feb 1, 2025",desc:"Rent \u2013 February 2025",total:1590,method:"ACH"}],main:[{date:"Apr 1, 2025",desc:"Rent \u2013 April 2025",total:1450,method:"ZRent ACH"},{date:"Mar 1, 2025",desc:"Rent \u2013 March 2025",total:1450,method:"ACH"}],elm:[{date:"Apr 1, 2025",desc:"Rent \u2013 April 2025",total:1800,method:"ZRent ACH"},{date:"Mar 1, 2025",desc:"Rent \u2013 March 2025",total:1800,method:"ACH"}]};
 const PROPERTY_DEMO_FORUM={cottage:[{id:1,author:"Alex M.",unit:"101",time:"2h ago",title:"Laundry room schedule \uD83E\uDDFA",body:"Hey neighbors! Can we coordinate laundry times? I suggest floors 1 & 2 mornings, floor 3 evenings.",replies:[{author:"Sam R.",unit:"201",text:"Works for me!",time:"1h ago"}],likes:6},{id:2,author:"Jordan L.",unit:"102",time:"1d ago",title:"Package room code updated",body:"The package room code was updated. Check with the property manager for the new one.",replies:[],likes:3}],main:[{id:1,author:"Marcus T.",unit:"1A",time:"3h ago",title:"Parking space swap",body:"Has spot #3, looking to trade for spot #6. Anyone interested?",replies:[{author:"Priya N.",unit:"2A",text:"I have spot #6! Let's talk.",time:"2h ago"}],likes:4}],elm:[{id:1,author:"Tatiana B.",unit:"1",time:"1h ago",title:"Trash pickup reminder \uD83D\uDDD1",body:"Trash goes out Tuesday nights, not Wednesday!",replies:[{author:"Omar H.",unit:"2",text:"Thanks for the reminder!",time:"30m ago"}],likes:3}]};
 const INITIAL_WORK_ORDERS=[];
@@ -1837,17 +1837,42 @@ function MgrDocs({sharedDocs,setSharedDocs,units,profiles,prop,unitCfg}){
       p&&React.createElement("div",{style:{textAlign:"right"}},
         React.createElement("div",{style:{fontSize:11,color:T.muted}},"Lease ends"),
         React.createElement("div",{style:{fontSize:12,fontWeight:700,color:prop.color}},p.leaseEnd))),
-    showUpload&&React.createElement(Card,{style:{border:`1px solid ${T.green}44`}},
+    showUpload&&React.createElement(Card,{style:{border:"1px solid "+T.green+"44"}},
       React.createElement("div",{style:{fontSize:11,color:T.green,fontWeight:700,letterSpacing:".1em",marginBottom:12}},"UPLOAD DOCUMENT \u2014 Unit ",selUnit),
       React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10}},
-        React.createElement(Input,{value:docName,onChange:setDocName,placeholder:"Document name (e.g. Lease Renewal 2025-2026)"}),
-        React.createElement(Input,{value:docDesc,onChange:setDocDesc,placeholder:"Notes for tenant",multiline:true}),React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},uploadedFile?React.createElement("div",{style:{padding:"12px 14px",background:T.greenDim,border:"1px solid "+T.green+"44",borderRadius:10,display:"flex",alignItems:"center",gap:10}},React.createElement("div",{style:{fontSize:24}},"📄"),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontSize:13,fontWeight:700,color:T.green}},uploadedFileName),React.createElement("div",{style:{fontSize:11,color:T.muted}},"File ready — tap button below to change"))):null,React.createElement("div",{style:{background:"#1a3a20",border:"2px solid "+T.green,borderRadius:12,overflow:"hidden"}},React.createElement("label",{style:{display:"flex",alignItems:"center",justifyContent:"center",gap:12,padding:"18px",cursor:"pointer"}},React.createElement("span",{style:{fontSize:28}},"📂"),React.createElement("span",{style:{fontSize:15,fontWeight:800,color:T.green}},uploadedFile?"Choose different file":"Choose file from phone"),React.createElement("input",{type:"file",accept:"*/*",style:{position:"fixed",top:"-100px",left:"-100px",width:"1px",height:"1px"},onChange:e=>{const file=e.target.files[0];if(file)handleDocFile(file);}})))),
-        React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:T.surface,borderRadius:10,border:`1px solid ${T.border}`,cursor:"pointer"},onClick:()=>setRequiresSig(!requiresSig)},
-          React.createElement("div",{style:{width:20,height:20,borderRadius:4,border:`2px solid ${requiresSig?T.green:T.border}`,background:requiresSig?T.green:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}},requiresSig&&React.createElement(Icon,{d:IC.check,size:12,color:"#071a0e",stroke:3})),
-          React.createElement("div",{style:{fontSize:13,color:T.text}},"Requires tenant signature")),
+        React.createElement(Input,{value:docName,onChange:setDocName,placeholder:"Document name (e.g. Lease 2025-2026)"}),
+        React.createElement(Input,{value:docDesc,onChange:setDocDesc,placeholder:"Notes for tenant",multiline:true}),
+        React.createElement("div",{
+          onDragOver:e=>{e.preventDefault();e.stopPropagation();setUploadDragOver(true);},
+          onDragLeave:e=>{e.preventDefault();setUploadDragOver(false);},
+          onDrop:e=>{
+            e.preventDefault();e.stopPropagation();setUploadDragOver(false);
+            const file=e.dataTransfer.files[0];if(file)handleDocFile(file);
+          },
+          style:{border:"2px dashed "+(uploadDragOver?T.green:uploadedFile?T.green:T.border),borderRadius:12,background:uploadDragOver?T.greenDim:uploadedFile?T.greenDim:T.surface,transition:"all .2s",overflow:"hidden"}
+        },
+          uploadedFile
+            ?React.createElement("div",{style:{padding:"16px",display:"flex",alignItems:"center",gap:12}},
+                React.createElement("div",{style:{fontSize:32}},"📄"),
+                React.createElement("div",{style:{flex:1}},
+                  React.createElement("div",{style:{fontSize:13,fontWeight:700,color:T.green}},uploadedFileName),
+                  React.createElement("div",{style:{fontSize:11,color:T.muted}},"Ready to upload \u2014 drag a different file to replace")
+                )
+              )
+            :React.createElement("label",{style:{display:"flex",flexDirection:"column",alignItems:"center",gap:10,padding:"28px 20px",cursor:"pointer",width:"100%",boxSizing:"border-box"}},
+                React.createElement("div",{style:{fontSize:40}},"📂"),
+                React.createElement("div",{style:{fontSize:15,fontWeight:800,color:T.text}},"Drag & drop or tap to choose file"),
+                React.createElement("div",{style:{fontSize:12,color:T.muted}},"Lease PDF, Word doc, image \u2014 any file"),
+                React.createElement("input",{type:"file",accept:"*/*",style:{position:"fixed",opacity:0,top:0,left:0,width:"1px",height:"1px"},onChange:e=>{const f=e.target.files[0];if(f)handleDocFile(f);}})
+              )
+        ),
+        React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:T.surface,borderRadius:10,border:"1px solid "+T.border,cursor:"pointer"},onClick:()=>setRequiresSig(!requiresSig)},
+          React.createElement("div",{style:{width:20,height:20,borderRadius:4,border:"2px solid "+(requiresSig?T.green:T.border),background:requiresSig?T.green:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}},requiresSig&&React.createElement(Icon,{d:IC.check,size:12,color:"#071a0e",stroke:3})),
+          React.createElement("div",{style:{fontSize:13,color:T.text}},"Requires tenant signature")
+        ),
         React.createElement("div",{style:{display:"flex",gap:8}},
           React.createElement(Btn,{onClick:upload,disabled:!docName.trim()||uploading,full:true},uploading?"Uploading...":"Upload & Send to Tenant"),
-          React.createElement(Btn,{onClick:()=>setShowUpload(false),variant:"ghost"},"Cancel")))),
+          React.createElement(Btn,{onClick:()=>{setShowUpload(false);setUploadedFile(null);setUploadedFileName("");},variant:"ghost"},"Cancel")))),
     React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none",paddingBottom:4}},
       DOC_TABS.map(t=>{
         const count=(MOCK_DOCS[t.id]||[]).length+(propDocs.filter(d=>(d.unit===selUnit||d.unit==="all")&&(d.docType===t.id||(!d.docType&&t.id==="other"))).length);
@@ -2963,6 +2988,46 @@ function MgrTenantsHub({prop,units,unitCfg,profiles,rentStatus,applications,setA
 // ---- MgrMaintenanceHub ----
 
 
+function PinManager({unit,propId,prop}){
+  const TEMP_PIN="1234";
+  const[currentPin,setCurrentPin]=useState(null);
+  const[newPin,setNewPin]=useState("");
+  const[saving,setSaving]=useState(false);
+  const[saved,setSaved]=useState(false);
+  useEffect(()=>{fbRead("cg_tenant_pin_"+unit).then(v=>{setCurrentPin(v&&v.pin?v.pin:null);});},[unit]);
+  const save=async()=>{
+    if(!/^\d{4}$/.test(newPin)){alert("PIN must be exactly 4 digits.");return;}
+    setSaving(true);
+    await fbWrite("cg_tenant_pin_"+unit,{pin:newPin,unit,setByManager:true,updatedAt:new Date().toISOString()});
+    setCurrentPin(newPin);
+    setNewPin("");
+    setSaving(false);
+    setSaved(true);
+    setTimeout(()=>setSaved(false),3000);
+  };
+  const reset=async()=>{
+    if(!confirm("Reset Unit "+unit+" PIN to temp PIN (1234)?"))return;
+    await fbWrite("cg_tenant_pin_"+unit,null);
+    setCurrentPin(null);
+    setSaved(true);
+    setTimeout(()=>setSaved(false),3000);
+  };
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
+    React.createElement("div",{style:{padding:"12px 14px",background:T.surface,borderRadius:10,border:"1px solid "+T.border}},
+      React.createElement("div",{style:{fontSize:11,color:T.muted,fontWeight:700,marginBottom:4}},"CURRENT STATUS"),
+      React.createElement("div",{style:{fontSize:14,fontWeight:700,color:currentPin?T.green:T.gold}},
+        currentPin?"\uD83D\uDD10 Personal PIN set by tenant":"\uD83D\uDD13 Using temp PIN (1234) \u2014 not yet personalized")
+    ),
+    React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},
+      React.createElement("div",{style:{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:".06em"}},"SET NEW PIN FOR TENANT"),
+      React.createElement("input",{value:newPin,onChange:e=>setNewPin(e.target.value.replace(/\D/g,"").slice(0,4)),placeholder:"Enter 4-digit PIN",maxLength:4,style:{background:T.surface,border:"1px solid "+prop.color+"55",borderRadius:10,padding:"12px 14px",color:T.text,fontSize:20,letterSpacing:"0.3em",outline:"none",width:"100%",boxSizing:"border-box",textAlign:"center",fontFamily:"monospace"}}),
+      React.createElement("button",{onClick:save,disabled:saving||newPin.length!==4,style:{padding:"12px",borderRadius:10,border:"none",background:newPin.length===4?"linear-gradient(135deg,"+prop.color+",#2aaa72)":"#1a2e20",color:newPin.length===4?"#071a0e":T.muted,fontWeight:800,fontSize:13,cursor:newPin.length===4?"pointer":"default"}},saving?"Saving...":"Set PIN for Tenant")
+    ),
+    React.createElement("button",{onClick:reset,style:{padding:"10px",borderRadius:10,border:"1px solid "+T.red+"44",background:T.red+"12",color:T.red,fontWeight:700,fontSize:12,cursor:"pointer"}},"Reset to Temp PIN (1234)"),
+    saved&&React.createElement("div",{style:{padding:"10px 14px",background:T.greenDim,border:"1px solid "+T.green+"44",borderRadius:10,fontSize:13,fontWeight:700,color:T.green,textAlign:"center"}},"\u2713 Saved!")
+  );
+}
+
 function MgrUnits({prop,unitCfg,profiles,rentStatus,units,setRentStatusOverrides,updProfile,updUnit}){
   const[selUnit,setSelUnit]=useState(null);
   const[profileTab,setProfileTab]=useState("info");
@@ -2995,7 +3060,7 @@ function MgrUnits({prop,unitCfg,profiles,rentStatus,units,setRentStatusOverrides
     const sc=status==="paid"?T.green:status==="overdue"?T.red:status==="due"?T.gold:T.muted;
     const colorIdx=units.indexOf(selUnit)%colors.length;
     const vehicle=TENANT_VEHICLES[selUnit];const notes=TENANT_NOTES[selUnit];const violations=TENANT_VIOLATIONS[selUnit]||[];
-    const PTABS=[{id:"info",label:"Info",icon:"\uD83D\uDC64"},{id:"lease",label:"Lease",icon:"\uD83D\uDCCB"},{id:"vehicle",label:"Vehicle",icon:"\uD83D\uDE97"},{id:"violations",label:"Violations",icon:"\u26A0\uFE0F",badge:violations.filter(v=>v.status==="open").length||null},{id:"notes",label:"Notes",icon:"\uD83D\uDCDD"}];
+    const PTABS=[{id:"info",label:"Info",icon:"\uD83D\uDC64"},{id:"lease",label:"Lease",icon:"\uD83D\uDCCB"},{id:"vehicle",label:"Vehicle",icon:"\uD83D\uDE97"},{id:"violations",label:"Violations",icon:"\u26A0\uFE0F",badge:violations.filter(v=>v.status==="open").length||null},{id:"notes",label:"Notes",icon:"\uD83D\uDCDD"},{id:"pin",label:"PIN",icon:"\uD83D\uDD10"}];
     return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
       React.createElement("button",{onClick:()=>{setSelUnit(null);setProfileTab("info");},style:{display:"flex",alignItems:"center",gap:6,background:"none",border:"none",color:T.green,cursor:"pointer",fontSize:13,fontWeight:700,padding:0}},React.createElement(Icon,{d:IC.back,size:16,color:T.green})," All Units"),
       React.createElement("div",{style:{display:"flex",alignItems:"center",gap:14,padding:"14px 16px",background:T.card,borderRadius:14,border:`1px solid ${T.border}`}},
@@ -3042,7 +3107,7 @@ function MgrUnits({prop,unitCfg,profiles,rentStatus,units,setRentStatusOverrides
       profileTab==="notes"&&React.createElement(Card,null,
         React.createElement("div",{style:{fontSize:10,color:prop.color,fontWeight:900,letterSpacing:".1em",marginBottom:12}},"PROPERTY MANAGER NOTES"),
         React.createElement("div",{style:{fontSize:13,color:T.text,lineHeight:1.8,fontFamily:"Georgia,serif",fontStyle:"italic"}},notes||"No notes for this unit."),
-        React.createElement("div",{style:{marginTop:12,paddingTop:12,borderTop:`1px solid ${T.border}`,fontSize:10,color:T.muted}},"Last updated Apr 15, 2025 \u00B7 Property Manager")));
+        React.createElement("div",{style:{marginTop:12,paddingTop:12,borderTop:`1px solid ${T.border}`,fontSize:10,color:T.muted}},"Last updated Apr 15, 2025 \u00B7 Property Manager")));profileTab==="pin"&&React.createElement(Card,null,React.createElement("div",{style:{fontSize:10,color:prop.color,fontWeight:900,letterSpacing:".1em",marginBottom:12}},"TENANT PIN MANAGEMENT"),React.createElement(PinManager,{unit:selUnit,propId:prop.id,prop}))
   }
   return React.createElement(React.Fragment,null,
     React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},"Units \u2014 ",prop.name),
@@ -3167,7 +3232,7 @@ function App(){
   const[managerPin,setManagerPin]=useState(()=>{try{return localStorage.getItem("cg_mgr_pin")||"2580";}catch(e){return "2580";}});
   const saveManagerPin=(pin)=>{setManagerPin(pin);try{localStorage.setItem("cg_mgr_pin",pin);}catch(e){}fbWrite("mgr_pin",pin);};;
   const[fees,setFees]=useState(DEFAULT_FEES);
-  useEffect(()=>{fbRead("cg_fees").then(v=>{if(v)setFees({...DEFAULT_FEES,...v});});},[]);useEffect(()=>{fbWrite("cg_tenant_profiles",{__migrated__:true});},[]); useEffect(()=>{const propIds=["cottage"];propIds.forEach(pid=>{const units=Object.keys(PROPERTY_UNIT_CONFIG[pid]||{});units.forEach(u=>{fbRead("cg_profiles_"+pid+"_"+u).then(v=>{if(v!==undefined&&v!==null)setMProfiles(prev=>{const n=JSON.parse(JSON.stringify(prev));if(n[pid])n[pid][u]=v;return n;});else if(v===null)setMProfiles(prev=>{const n=JSON.parse(JSON.stringify(prev));if(n[pid])n[pid][u]=null;return n;});});});});},[]);
+  useEffect(()=>{fbRead("cg_fees").then(v=>{if(v)setFees({...DEFAULT_FEES,...v});});},[]);useEffect(()=>{fbWrite("cg_tenant_profiles",{__migrated__:true});},[]); useEffect(()=>{const propIds=["cottage"];propIds.forEach(pid=>{const units=Object.keys(PROPERTY_UNIT_CONFIG[pid]||{});units.forEach(u=>{fbRead("cg_profiles_"+pid+"_"+u).then(v=>{if(v&&v.firstName&&!v.__cleared__)setMProfiles(prev=>{const n=JSON.parse(JSON.stringify(prev));if(n[pid])n[pid][u]={...(PROPERTY_PROFILES[pid]?.[u]||{}),...v};return n;});});});});},[]);
   const updateFees=async(nf)=>{const m={...fees,...nf};setFees(m);await fbWrite("cg_fees",m);};
   const[selectedUnit,setSelectedUnit]=useState(null);
   const[selectedPropId,setSelectedPropId]=useState("cottage");
@@ -3228,7 +3293,7 @@ function App(){
 
   const sharedProps={workOrders,setWorkOrders,tenantInboxes,setTenantInboxes,sharedDocs,setSharedDocs,refreshState};
   const[mUnitCfg,setMUnitCfg]=useState(()=>JSON.parse(JSON.stringify(PROPERTY_UNIT_CONFIG)));
-  const[mProfiles,setMProfiles]=useState(()=>JSON.parse(JSON.stringify(PROPERTY_PROFILES)));useEffect(()=>{const pids=["cottage"];pids.forEach(pid=>{const units=Object.keys(PROPERTY_UNIT_CONFIG[pid]||{});units.forEach(unit=>{fbRead("cg_profiles_"+pid+"_"+unit).then(v=>{if(v!==null)setMProfiles(p=>{const n=JSON.parse(JSON.stringify(p));n[pid][unit]=v;return n;});});});});},[]);
+  const[mProfiles,setMProfiles]=useState(()=>JSON.parse(JSON.stringify(PROPERTY_PROFILES)));useEffect(()=>{const pids=["cottage"];pids.forEach(pid=>{const units=Object.keys(PROPERTY_UNIT_CONFIG[pid]||{});units.forEach(unit=>{fbRead("cg_profiles_"+pid+"_"+unit).then(v=>{if(v&&v.firstName&&!v.__cleared__)setMProfiles(p=>{const n=JSON.parse(JSON.stringify(p));n[pid][unit]={...(PROPERTY_PROFILES[pid]?.[unit]||{}),...v};return n;});});});});},[]);
   useEffect(()=>{fbRead("cg_rent_overrides").then(v=>{if(v)setMUnitCfg(prev=>{const n=JSON.parse(JSON.stringify(prev));Object.entries(v).forEach(([pid,units])=>{Object.entries(units).forEach(([u,rent])=>{if(n[pid]&&n[pid][u])n[pid][u].rent=rent;});});return n;});});},[]);
   const updUnit=(pid,unit,f,v)=>{setMUnitCfg(p=>{const n=JSON.parse(JSON.stringify(p));n[pid][unit][f]=v;if(f==="rent"){fbRead("cg_rent_overrides").then(existing=>{const overrides=existing||{};if(!overrides[pid])overrides[pid]={};overrides[pid][unit]=v;fbWrite("cg_rent_overrides",overrides);});}return n;});};
   const updProfile=(pid,unit,f,v)=>setMProfiles(p=>{const n=JSON.parse(JSON.stringify(p));if(f==="__clear__"){n[pid][unit]=null;fbWrite("cg_profiles_"+pid+"_"+unit,{__cleared__:true});return n;}if(!n[pid][unit])n[pid][unit]={};n[pid][unit][f]=v;fbWrite("cg_profiles_"+pid+"_"+unit,n[pid][unit]);return n;});
