@@ -25,6 +25,7 @@ input,textarea,button{font-family:'DM Sans',sans-serif!important}
 .cg-logo span{color:#3EC98E}
 .cg-sub{font-size:12px;color:#3a5a40;font-weight:600;letter-spacing:.1em}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
 <div id="cg-loader">
@@ -92,8 +93,8 @@ const DEFAULT_FEES={parking:75,pet:50,violation:100,late:50};
 
 const PROPERTIES={cottage:{id:"cottage",name:"33 Cottage St",city:"Rutland, VT 05701",type:"Residential \u00B7 7 Units",color:T.green,emoji:"\uD83C\uDFE0"}};
 const PROPERTY_UNIT_CONFIG={cottage:{"101":{type:"3 Bedroom",rent:1590,floor:1},"102":{type:"3 Bedroom",rent:1590,floor:1},"201":{type:"3 Bedroom",rent:1590,floor:2},"202":{type:"3 Bedroom",rent:1590,floor:2},"301":{type:"1 Bedroom",rent:1100,floor:3},"302":{type:"1 Bedroom",rent:1100,floor:3},"303":{type:"1 Bedroom",rent:1100,floor:3}},main:{"1A":{type:"2 Bedroom",rent:1450,floor:1},"1B":{type:"Studio",rent:875,floor:1},"2A":{type:"2 Bedroom",rent:1450,floor:2},"2B":{type:"1 Bedroom",rent:1100,floor:2}},elm:{"1":{type:"3 Bedroom",rent:1800,floor:1},"2":{type:"2 Bedroom",rent:1400,floor:2},"3":{type:"2 Bedroom",rent:1400,floor:3}}};
-const PROPERTY_PROFILES={cottage:{"101":{firstName:"Kassie",lastName:"Bashaw",phone:"9784172831",email:"kassieb109@icloud.com",moveIn:"05/10/2025",leaseEnd:""},"102":{firstName:"Krystal",lastName:"Gardner",phone:"8028550496",email:"krystalspaulding69@gmail.com",moveIn:"06/06/2025",leaseEnd:"05/31/2026"},"201":{firstName:"Shelby",lastName:"White",phone:"",email:"",moveIn:"",leaseEnd:""},"202":null,"301":null,"302":{firstName:"Abigail",lastName:"Blanchard",phone:"8024877162",email:"Crabigail12345@gmail.com",moveIn:"05/12/2025",leaseEnd:"05/12/2026",notRenewing:true},"303":{firstName:"Brandon",lastName:"Woodward",phone:"",email:"",moveIn:"",leaseEnd:""}},main:{"1A":{firstName:"Marcus",lastName:"Thompson",phone:"(555) 020-1001",email:"marcus@email.com",moveIn:"Feb 1, 2024",leaseEnd:"Jan 31, 2026"},"2A":{firstName:"Priya",lastName:"Nair",phone:"(555) 020-2001",email:"priya@email.com",moveIn:"May 1, 2024",leaseEnd:"Apr 30, 2026"},"2B":{firstName:"Devon",lastName:"Walsh",phone:"(555) 020-2002",email:"devon@email.com",moveIn:"Aug 1, 2023",leaseEnd:"Jul 31, 2025"}},elm:{"1":{firstName:"Tatiana",lastName:"Brooks",phone:"(555) 030-0001",email:"tatiana@email.com",moveIn:"Oct 1, 2023",leaseEnd:"Sep 30, 2025"},"2":{firstName:"Omar",lastName:"Hassan",phone:"(555) 030-0002",email:"omar@email.com",moveIn:"Jan 1, 2025",leaseEnd:"Dec 31, 2025"}}};
-const PROPERTY_RENT_STATUS={cottage:{"101":"paid","102":"paid","201":"paid","202":"vacant","301":"vacant","302":"paid","303":"paid"},main:{"1A":"paid","1B":"vacant","2A":"paid","2B":"overdue"},elm:{"1":"paid","2":"due","3":"vacant"}};
+const PROPERTY_PROFILES={cottage:{"101":{firstName:"Kassie",lastName:"Bashaw",phone:"9784172831",email:"kassieb109@icloud.com",moveIn:"05/10/2025",leaseEnd:""},"102":{firstName:"Krystal",lastName:"Gardner",phone:"8028550496",email:"krystalspaulding69@gmail.com",moveIn:"06/06/2025",leaseEnd:"05/31/2026"},"201":{firstName:"Shelby",lastName:"White",phone:"",email:"",moveIn:"",leaseEnd:""},"202":{firstName:"Maria",lastName:"Carranza",phone:"",email:"mvaquiz1224@gmail.com",moveIn:"",leaseEnd:""},"301":null,"302":{firstName:"Abigail",lastName:"Blanchard",phone:"8024877162",email:"Crabigail12345@gmail.com",moveIn:"05/12/2025",leaseEnd:"05/12/2026",notRenewing:true},"303":{firstName:"Brandon",lastName:"Woodward",phone:"",email:"",moveIn:"",leaseEnd:""}},main:{"1A":{firstName:"Marcus",lastName:"Thompson",phone:"(555) 020-1001",email:"marcus@email.com",moveIn:"Feb 1, 2024",leaseEnd:"Jan 31, 2026"},"2A":{firstName:"Priya",lastName:"Nair",phone:"(555) 020-2001",email:"priya@email.com",moveIn:"May 1, 2024",leaseEnd:"Apr 30, 2026"},"2B":{firstName:"Devon",lastName:"Walsh",phone:"(555) 020-2002",email:"devon@email.com",moveIn:"Aug 1, 2023",leaseEnd:"Jul 31, 2025"}},elm:{"1":{firstName:"Tatiana",lastName:"Brooks",phone:"(555) 030-0001",email:"tatiana@email.com",moveIn:"Oct 1, 2023",leaseEnd:"Sep 30, 2025"},"2":{firstName:"Omar",lastName:"Hassan",phone:"(555) 030-0002",email:"omar@email.com",moveIn:"Jan 1, 2025",leaseEnd:"Dec 31, 2025"}}};
+const PROPERTY_RENT_STATUS={cottage:{"101":"paid","102":"paid","201":"paid","202":"due","301":"vacant","302":"paid","303":"paid"},main:{"1A":"paid","1B":"vacant","2A":"paid","2B":"overdue"},elm:{"1":"paid","2":"due","3":"vacant"}};
 const PROPERTY_DEMO_PAYMENTS={cottage:[{date:"Apr 1, 2025",desc:"Rent \u2013 April 2025",total:1590,method:"ZRent ACH"},{date:"Mar 1, 2025",desc:"Rent \u2013 March 2025",total:1590,method:"ACH"},{date:"Feb 1, 2025",desc:"Rent \u2013 February 2025",total:1590,method:"ACH"}],main:[{date:"Apr 1, 2025",desc:"Rent \u2013 April 2025",total:1450,method:"ZRent ACH"},{date:"Mar 1, 2025",desc:"Rent \u2013 March 2025",total:1450,method:"ACH"}],elm:[{date:"Apr 1, 2025",desc:"Rent \u2013 April 2025",total:1800,method:"ZRent ACH"},{date:"Mar 1, 2025",desc:"Rent \u2013 March 2025",total:1800,method:"ACH"}]};
 const PROPERTY_DEMO_FORUM={cottage:[{id:1,author:"Alex M.",unit:"101",time:"2h ago",title:"Laundry room schedule \uD83E\uDDFA",body:"Hey neighbors! Can we coordinate laundry times? I suggest floors 1 & 2 mornings, floor 3 evenings.",replies:[{author:"Sam R.",unit:"201",text:"Works for me!",time:"1h ago"}],likes:6},{id:2,author:"Jordan L.",unit:"102",time:"1d ago",title:"Package room code updated",body:"The package room code was updated. Check with the property manager for the new one.",replies:[],likes:3}],main:[{id:1,author:"Marcus T.",unit:"1A",time:"3h ago",title:"Parking space swap",body:"Has spot #3, looking to trade for spot #6. Anyone interested?",replies:[{author:"Priya N.",unit:"2A",text:"I have spot #6! Let's talk.",time:"2h ago"}],likes:4}],elm:[{id:1,author:"Tatiana B.",unit:"1",time:"1h ago",title:"Trash pickup reminder \uD83D\uDDD1",body:"Trash goes out Tuesday nights, not Wednesday!",replies:[{author:"Omar H.",unit:"2",text:"Thanks for the reminder!",time:"30m ago"}],likes:3}]};
 const INITIAL_WORK_ORDERS=[];
@@ -1907,7 +1908,21 @@ function MgrDocs({sharedDocs,setSharedDocs,units,profiles,prop,unitCfg}){
                   doc.notes&&React.createElement("div",{style:{fontSize:11,color:T.muted,lineHeight:1.5,marginTop:4}},doc.notes)),
                 React.createElement("div",{style:{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6,flexShrink:0,marginLeft:10}},
                   React.createElement("span",{style:{fontSize:10,fontWeight:700,color:isSigned?T.green:T.gold,background:(isSigned?T.green:T.gold)+"22",padding:"2px 8px",borderRadius:10}},isSigned?"\u2713 Signed":"Awaiting Sig"),
-                  doc.id&&React.createElement("button",{onClick:()=>remove(doc.id),style:{background:"none",border:"none",cursor:"pointer",color:T.red,fontSize:12,padding:"1px"}},"\u00D7"))))));
+                  doc.id&&React.createElement("div",{style:{display:"flex",gap:4}},
+doc.downloadUrl&&!doc.signStatus&&React.createElement("button",{onClick:async()=>{
+  const p=profiles[selUnit];
+  if(!p||!p.email){alert("Tenant has no email on file. Add their email in the Units tab first.");return;}
+  if(!confirm("Send \""+doc.name+"\" to "+p.firstName+" "+p.lastName+" ("+p.email+") for signature?"))return;
+  try{
+    const res=await fetch("/.netlify/functions/docusign-send",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({docId:doc.id,docName:doc.name,fileName:doc.fileName,tenantName:p.firstName+" "+p.lastName,tenantEmail:p.email,unit:selUnit,propId:prop.id,fileDataBase64:doc.downloadUrl})});
+    const data=await res.json();
+    if(data.ok){alert("Sent! "+p.firstName+" will receive an email from DocuSign to sign the lease.");}
+    else{alert("Error: "+(data.error||"Could not send"));}
+  }catch(e){alert("Error: "+e.message);}
+},style:{background:"#4C00B0",border:"none",borderRadius:6,padding:"3px 10px",color:"#fff",fontSize:10,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}},"Send to Sign"),
+doc.signStatus==="sent"&&React.createElement("span",{style:{fontSize:10,color:"#F5C542",fontWeight:700,padding:"3px 8px",background:"#F5C54222",borderRadius:6}},"Sent \u2713"),
+doc.signStatus==="completed"&&React.createElement("span",{style:{fontSize:10,color:T.green,fontWeight:700,padding:"3px 8px",background:T.greenDim,borderRadius:6}},"Signed \u2713"),
+React.createElement("button",{onClick:()=>remove(doc.id),style:{background:"none",border:"none",cursor:"pointer",color:T.red,fontSize:12,padding:"1px"}},"\u00D7")))))));
       })));
 }
 // ---- MgrAgent ----
@@ -2529,6 +2544,157 @@ function MgrApplications({applications,setApplications,prop,units,unitCfg}){
               React.createElement("span",{style:{fontSize:10,fontWeight:700,color:statusColor[app.status]||T.muted,background:(statusColor[app.status]||T.muted)+"22",padding:"2px 8px",borderRadius:10,flexShrink:0,marginLeft:8}},statusLabel[app.status]||app.status)),
             React.createElement("div",{style:{fontSize:11,color:T.muted}},"\uD83D\uDCBC ",app.employer," \u00B7 Income: ",app.form.annualIncome)))))));
 }
+function PDFSignViewer({doc,unit,prop,profile,onSigned,onClose,isManager}){
+  const canvasRefs=React.useRef({});
+  const[pages,setPages]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[error,setError]=useState(null);
+  const[sigMode,setSigMode]=useState(null); // null | 'tenant' | 'manager'
+  const[sigPage,setSigPage]=useState(1);
+  const[tenantSig,setTenantSig]=useState(null);
+  const[managerSig,setManagerSig]=useState(null);
+  const[tenantInitials,setTenantInitials]=useState({});
+  const[sigInput,setSigInput]=useState("");
+  const[sigFields,setSigFields]=useState([]); // [{page,x,y,type,id,signed,signedBy}]
+  const[submitted,setSubmitted]=useState(false);
+  const canvasRef=React.useRef(null);
+  const isDrawing=React.useRef(false);
+  const lastPos=React.useRef(null);
+
+  // Load PDF from downloadUrl or fileData
+  useEffect(()=>{
+    if(!doc)return;
+    const src=doc.downloadUrl||doc.fileData;
+    if(!src){setError("No file available");setLoading(false);return;}
+    if(!window.pdfjsLib){setError("PDF viewer not loaded");setLoading(false);return;}
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    window.pdfjsLib.getDocument(src).promise.then(pdf=>{
+      const ps=[];
+      const renders=[];
+      for(let i=1;i<=pdf.numPages;i++){renders.push(pdf.getPage(i));}
+      Promise.all(renders).then(pgs=>{
+        setPages(pgs);
+        setLoading(false);
+        // Default sig fields: last page signature + initials on each page
+        const fields=[];
+        for(let p=1;p<=pgs.length;p++){
+          fields.push({id:"init_"+p,page:p,x:50,y:92,type:"initial",signed:false});
+        }
+        fields.push({id:"sig_1",page:pgs.length,x:50,y:80,type:"signature",signed:false});
+        fields.push({id:"date_1",page:pgs.length,x:50,y:88,type:"date",signed:false,value:new Date().toLocaleDateString()});
+        setSigFields(fields);
+      });
+    }).catch(e=>{setError("Could not load PDF: "+e.message);setLoading(false);});
+  },[doc]);
+
+  // Render a page to canvas
+  const renderPage=(page,canvas)=>{
+    if(!canvas||!page)return;
+    const vp=page.getViewport({scale:window.innerWidth<600?0.9:1.4});
+    canvas.width=vp.width;
+    canvas.height=vp.height;
+    page.render({canvasContext:canvas.getContext("2d"),viewport:vp});
+  };
+
+  const sign=()=>{
+    if(!sigInput.trim())return;
+    const name=sigInput.trim();
+    const ts=Date.now();
+    if(isManager){
+      setManagerSig({name,ts,type:"manager"});
+      setSigFields(prev=>prev.map(f=>f.type==="signature"||f.type==="date"?{...f,signed:true,signedBy:"manager",value:f.type==="date"?new Date().toLocaleDateString():name}:f));
+    }else{
+      setTenantSig({name,ts,type:"tenant"});
+      setSigFields(prev=>prev.map(f=>({...f,signed:true,signedBy:"tenant",value:f.type==="date"?new Date().toLocaleDateString():f.type==="initial"?name.split(" ").map(w=>w[0]).join(".").toUpperCase():name})));
+    }
+    setSigMode(null);
+    setSigInput("");
+  };
+
+  const submit=async()=>{
+    if(!tenantSig&&!isManager){alert("Please sign the document first.");return;}
+    if(!managerSig&&isManager){alert("Please add your signature first.");return;}
+    const sigData={
+      docId:doc.id,unit,propId:prop.id,
+      tenantSig:tenantSig||null,
+      managerSig:managerSig||null,
+      signedAt:new Date().toISOString(),
+      fields:sigFields,
+    };
+    await fbWrite("cg_signatures_"+doc.id,sigData);
+    // Update doc status
+    const docs=await fbRead("cg_docs_"+prop.id+"_"+unit)||[];
+    const updated=docs.map(d=>d.id===doc.id?{...d,signStatus:tenantSig&&managerSig?"completed":isManager?"manager_signed":"tenant_signed"}:d);
+    await fbWrite("cg_docs_"+prop.id+"_"+unit,updated);
+    setSubmitted(true);
+    if(onSigned)onSigned(sigData);
+  };
+
+  const allSigned=sigFields.length>0&&sigFields.every(f=>f.signed||f.type==="date");
+  const tenantFieldsDone=sigFields.filter(f=>f.type!=="date").every(f=>f.signed);
+
+  if(submitted)return React.createElement("div",{style:{padding:40,textAlign:"center"}},
+    React.createElement("div",{style:{fontSize:64,marginBottom:16}},"\u2705"),
+    React.createElement("div",{style:{fontSize:22,fontWeight:900,color:T.green,marginBottom:8}},"Document Signed!"),
+    React.createElement("div",{style:{fontSize:14,color:T.muted,marginBottom:24}},"Your signature has been recorded and saved."),
+    React.createElement("button",{onClick:onClose,style:{padding:"12px 28px",borderRadius:10,border:"none",background:prop.color,color:"#071a0e",fontWeight:800,fontSize:14,cursor:"pointer"}},"Done")
+  );
+
+  return React.createElement("div",{style:{position:"fixed",inset:0,background:"#000",zIndex:1000,display:"flex",flexDirection:"column",overflow:"hidden"}},
+    // Header
+    React.createElement("div",{style:{background:"#1a1a1a",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,borderBottom:"1px solid #333"}},
+      React.createElement("div",null,
+        React.createElement("div",{style:{fontSize:13,fontWeight:800,color:"#fff"}},doc.name),
+        React.createElement("div",{style:{fontSize:11,color:"#888"}},"Tap signature fields to sign")
+      ),
+      React.createElement("button",{onClick:onClose,style:{background:"#333",border:"none",borderRadius:8,padding:"6px 14px",color:"#fff",fontSize:13,cursor:"pointer"}},"Close")
+    ),
+    // PDF pages
+    loading?React.createElement("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:16}},"Loading PDF..."):
+    error?React.createElement("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#f44",fontSize:14,padding:20,textAlign:"center"}},error):
+    React.createElement("div",{style:{flex:1,overflowY:"auto",padding:"16px 8px",display:"flex",flexDirection:"column",gap:16,alignItems:"center"}},
+      ...pages.map((page,pi)=>React.createElement("div",{key:pi,style:{position:"relative",boxShadow:"0 4px 20px rgba(0,0,0,.5)"}},
+        React.createElement("canvas",{ref:el=>{if(el&&page){canvasRefs.current[pi]=el;renderPage(page,el);}},style:{display:"block",maxWidth:"100%"}}),
+        // Signature field overlays
+        ...sigFields.filter(f=>f.page===pi+1).map(field=>
+          React.createElement("div",{key:field.id,onClick:()=>{if(!field.signed){setSigMode(isManager?"manager":"tenant");setSigPage(pi+1);}},
+            style:{position:"absolute",
+              left:field.x+"%",top:field.y+"%",
+              minWidth:field.type==="initial"?60:160,height:field.type==="initial"?28:36,
+              background:field.signed?"rgba(62,201,142,0.15)":"rgba(255,200,0,0.2)",
+              border:"2px solid "+(field.signed?T.green:"#FFC800"),
+              borderRadius:6,cursor:field.signed?"default":"pointer",
+              display:"flex",alignItems:"center",justifyContent:"center",
+              padding:"0 8px",boxSizing:"border-box"}},
+            field.signed
+              ?React.createElement("div",{style:{fontSize:field.type==="initial"?11:13,color:T.green,fontWeight:700,fontFamily:"Georgia,serif",fontStyle:"italic"}},field.value||"\u2713")
+              :React.createElement("div",{style:{fontSize:10,color:"#FFC800",fontWeight:700,textAlign:"center"}},field.type==="initial"?"INITIAL":field.type==="date"?"DATE":"SIGN HERE")
+          )
+        )
+      )),
+      // Sign button
+      React.createElement("div",{style:{padding:"20px 16px",width:"100%",maxWidth:600,boxSizing:"border-box"}},
+        !tenantFieldsDone&&!isManager?React.createElement("button",{onClick:()=>setSigMode("tenant"),style:{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,"+prop.color+",#2aaa72)",color:"#071a0e",fontWeight:900,fontSize:15,cursor:"pointer"}},"Sign Document"):
+        tenantFieldsDone&&!isManager?React.createElement("button",{onClick:submit,style:{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,"+prop.color+",#2aaa72)",color:"#071a0e",fontWeight:900,fontSize:15,cursor:"pointer"}},"Submit Signed Document"):
+        isManager&&!managerSig?React.createElement("button",{onClick:()=>setSigMode("manager"),style:{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#1565c0,#0d47a1)",color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer"}},"Add Manager Signature"):
+        isManager&&managerSig?React.createElement("button",{onClick:submit,style:{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,"+prop.color+",#2aaa72)",color:"#071a0e",fontWeight:900,fontSize:15,cursor:"pointer"}},"Submit Countersignature"):null
+      )
+    ),
+    // Signature input modal
+    sigMode&&React.createElement("div",{style:{position:"absolute",inset:0,background:"rgba(0,0,0,.85)",display:"flex",alignItems:"flex-end",justifyContent:"center",zIndex:10}},
+      React.createElement("div",{style:{background:T.card,borderRadius:"20px 20px 0 0",padding:28,width:"100%",maxWidth:500,boxSizing:"border-box"}},
+        React.createElement("div",{style:{fontSize:16,fontWeight:800,color:T.text,marginBottom:6}},"Type your full name to sign"),
+        React.createElement("div",{style:{fontSize:12,color:T.muted,marginBottom:16}},"By signing you agree this is your legal electronic signature"),
+        React.createElement("input",{value:sigInput,onChange:e=>setSigInput(e.target.value),placeholder:"Full legal name",style:{width:"100%",padding:"14px",borderRadius:10,border:"2px solid "+prop.color,background:T.surface,color:T.text,fontSize:16,outline:"none",boxSizing:"border-box",fontFamily:"Georgia,serif",fontStyle:"italic",marginBottom:12}}),
+        React.createElement("div",{style:{display:"flex",gap:10}},
+          React.createElement("button",{onClick:()=>{setSigMode(null);setSigInput("");},style:{flex:1,padding:"12px",borderRadius:10,border:"1px solid "+T.border,background:"transparent",color:T.muted,fontWeight:700,cursor:"pointer"}},"Cancel"),
+          React.createElement("button",{onClick:sign,disabled:!sigInput.trim(),style:{flex:2,padding:"12px",borderRadius:10,border:"none",background:sigInput.trim()?"linear-gradient(135deg,"+prop.color+",#2aaa72)":"#1a2e20",color:sigInput.trim()?"#071a0e":T.muted,fontWeight:800,fontSize:14,cursor:sigInput.trim()?"pointer":"default"}},"Sign")
+        )
+      )
+    )
+  );
+}
+
 function DocsTab({unit,prop,sharedDocs,setSharedDocs,onTenantSign,propId}){
   const[viewing,setViewing]=useState(null);
   const[signing,setSigning]=useState(false);
@@ -2643,7 +2809,8 @@ function DocsTab({unit,prop,sharedDocs,setSharedDocs,onTenantSign,propId}){
           React.createElement("button",{onClick:handleSign,disabled:!sigInput.trim(),style:{flex:2,padding:"14px",borderRadius:8,border:"none",background:sigInput.trim()?"#2e7d32":"#e0e0e0",color:sigInput.trim()?"#fff":"#9e9e9e",fontWeight:800,fontSize:14,cursor:sigInput.trim()?"pointer":"default"}},sigInput.trim()?"Adopt & Sign":"Type your name above to continue")),
         React.createElement("div",{style:{textAlign:"center",fontSize:10,color:"#9e9e9e",paddingBottom:8}},"\u26A1 CommonGround eSign \u00B7 Legally binding in all 50 states")));
 
-    return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:0,marginBottom:20}},
+    if(viewing&&viewing.showPDF)return React.createElement(PDFSignViewer,{doc:viewing,unit,prop,profile,isManager:false,onSigned:()=>{setViewing(null);alert("Document signed! Your manager will be notified.");},onClose:()=>setViewing(null)});
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:0,marginBottom:20}},
       React.createElement("div",{style:{position:"sticky",top:0,zIndex:5,background:T.bg+"f8",backdropFilter:"blur(12px)",borderBottom:`1px solid ${T.border}`,padding:"10px 0",marginBottom:16,display:"flex",alignItems:"center",gap:10}},
         React.createElement("button",{onClick:()=>{setViewing(null);setSigning(false);},style:{display:"flex",alignItems:"center",gap:6,background:"none",border:"none",color:T.green,cursor:"pointer",fontSize:13,fontWeight:700,padding:0}},React.createElement(Icon,{d:IC.back,size:16,color:T.green})," Docs"),
         React.createElement("div",{style:{flex:1,fontSize:11,color:T.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},doc.name),
@@ -2666,15 +2833,14 @@ function DocsTab({unit,prop,sharedDocs,setSharedDocs,onTenantSign,propId}){
             React.createElement("div",{style:{fontSize:9,color:"#9e9e9e"}},"CONFIDENTIAL"),
             React.createElement("div",{style:{fontSize:9,color:"#9e9e9e"}},new Date().getFullYear()))),
         React.createElement("div",{style:{background:"#ffffff",padding:"8px 24px 24px"}},
-          (doc.downloadUrl||doc.fileData)?React.createElement("div",{style:{textAlign:"center",padding:"24px 20px",background:"#f3f4ff",borderRadius:8,border:"1px solid #c5cae9",marginBottom:16}},
+          (doc.downloadUrl||doc.fileData)?React.createElement("div",{style:{marginBottom:16}},
+          React.createElement("div",{style:{display:"flex",gap:10,flexWrap:"wrap"}},
+            React.createElement("button",{onClick:()=>setViewing({...doc,showPDF:true}),style:{flex:1,padding:"14px",borderRadius:10,border:"none",background:"linear-gradient(135deg,"+prop.color+",#2aaa72)",color:"#071a0e",fontWeight:800,fontSize:14,cursor:"pointer"}},doc.requiresSig?"\u270F\uFE0F View & Sign Document":"\uD83D\uDCC4 View Document"),
+            doc.downloadUrl&&React.createElement("a",{href:doc.downloadUrl,target:"_blank",rel:"noopener noreferrer",style:{padding:"14px 16px",borderRadius:10,border:"1px solid "+T.border,background:T.surface,color:T.text,fontWeight:700,fontSize:13,textDecoration:"none",display:"flex",alignItems:"center"}},"\u2B73 Download")
+          )
+        ):React.createElement("div",{style:{padding:"30px 20px",textAlign:"center",background:T.surface,borderRadius:8,marginBottom:16,border:"1px solid "+T.border}},
           React.createElement("div",{style:{fontSize:48,marginBottom:12}},"📄"),
-          React.createElement("div",{style:{fontSize:14,fontWeight:700,color:"#1a237e",marginBottom:16}},doc.name),
-          doc.downloadUrl
-            ?React.createElement("a",{href:doc.downloadUrl,target:"_blank",rel:"noopener noreferrer",style:{display:"inline-block",padding:"12px 24px",borderRadius:10,background:"#1a237e",color:"#fff",fontWeight:700,fontSize:14,textDecoration:"none",marginBottom:8}},"View / Download File")
-            :React.createElement("a",{href:doc.fileData,download:doc.fileName||doc.name,style:{display:"inline-block",padding:"12px 24px",borderRadius:10,background:"#1a237e",color:"#fff",fontWeight:700,fontSize:14,textDecoration:"none"}},"Download File")
-        ):React.createElement("div",{style:{padding:"30px 20px",textAlign:"center",background:"#f5f5f5",borderRadius:8,marginBottom:16}},
-          React.createElement("div",{style:{fontSize:48,marginBottom:12}},"📄"),
-          React.createElement("div",{style:{fontSize:13,color:"#757575"}},"Document shared by your property manager")
+          React.createElement("div",{style:{fontSize:13,color:T.muted}},"Document shared by your property manager")
         ),
 sigData?React.createElement("div",{style:{marginTop:20,paddingTop:16,borderTop:`2px solid ${doc.color}`,background:"#f9fbe7",borderRadius:8,padding:16}},
             React.createElement("div",{style:{fontSize:9,color:doc.color,fontWeight:900,letterSpacing:".1em",marginBottom:12}},"ELECTRONIC SIGNATURE — LEGALLY BINDING"),
