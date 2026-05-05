@@ -3023,7 +3023,7 @@ function ManagerDemo({onBack,workOrders,setWorkOrders,tenantInboxes,setTenantInb
       tab==="maintenance"&&React.createElement(MgrMaintenanceHub,{workOrders,setWorkOrders,...propCtx}),
       tab==="finance"&&React.createElement(MgrFinanceHub,{prop,units,unitCfg,profiles,rentStatus,workOrders,globalExpenses,setGlobalExpenses}),
       tab==="docs"&&React.createElement(MgrDocsHub,{sharedDocs,setSharedDocs,units,profiles,prop,unitCfg,reminders,setReminders,rentStatus,workOrders}),
-      tab==="agent"&&React.createElement(MgrAgent,{prop,units,unitCfg,profiles,rentStatus,workOrders,setWorkOrders,tenantInboxes,setTenantInboxes,reminders,setReminders,setPropId,setTab,setRentStatusOverrides,globalExpenses,setGlobalExpenses})));}
+      tab==="fmr"&&React.createElement(MgrFMR,{prop,units,unitCfg,profiles,rentStatus}),tab==="agent"&&React.createElement(MgrAgent,{prop,units,unitCfg,profiles,rentStatus,workOrders,setWorkOrders,tenantInboxes,setTenantInboxes,reminders,setReminders,setPropId,setTab,setRentStatusOverrides,globalExpenses,setGlobalExpenses})));}
 
 
 
