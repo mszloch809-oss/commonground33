@@ -119,9 +119,75 @@ const API={reportIssue:"/api/report-issue",state:"/api/state",managerAgent:"/api
 function Splash({onDone}){const[p,setP]=useState(0);useEffect(()=>{const t1=setTimeout(()=>setP(1),300),t2=setTimeout(()=>setP(2),900),t3=setTimeout(()=>setP(3),1600),t4=setTimeout(()=>onDone(),2600);return()=>[t1,t2,t3,t4].forEach(clearTimeout);},[]);return React.createElement("div",{style:{position:"fixed",inset:0,zIndex:999,background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:20}},React.createElement("div",{style:{position:"absolute",width:320,height:320,borderRadius:"50%",background:T.greenGlow,filter:"blur(80px)",top:"25%",left:"50%",transform:"translate(-50%,-50%)",opacity:p>=1?1:0,transition:"opacity 1s"}}),React.createElement("div",{style:{opacity:p>=1?1:0,transform:p>=1?"scale(1)":"scale(.7)",transition:"all .6s cubic-bezier(.34,1.56,.64,1)"}},React.createElement(CGMark,{size:88})),React.createElement("div",{style:{opacity:p>=2?1:0,transform:p>=2?"translateY(0)":"translateY(12px)",transition:"all .5s ease",textAlign:"center"}},React.createElement(CGWordmark,{size:32}),React.createElement("div",{style:{fontSize:11,color:T.muted,letterSpacing:".18em",textTransform:"uppercase",marginTop:6}},"Connected Living"),React.createElement("div",{style:{marginTop:10,padding:"6px 18px",borderRadius:20,background:T.gold+"18",border:`1px solid ${T.gold}44`,display:"inline-block",fontSize:12,color:T.gold,fontWeight:700}},"\u2726 LIVE DEMO")),React.createElement("div",{style:{display:"flex",gap:6,marginTop:8,opacity:p>=3?1:0,transition:"opacity .4s"}},[0,1,2].map(i=>React.createElement("div",{key:i,style:{width:6,height:6,borderRadius:"50%",background:T.green,animation:"pulse 1s ease-in-out infinite",animationDelay:`${i*0.2}s`}}))));}
 
 // ---- Landing ----
-function Landing({onExplore,onManager,onApply,onMarket}){return React.createElement("div",{style:{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 20px",textAlign:"center"}},React.createElement(CGMark,{size:64}),React.createElement("div",{style:{marginTop:14,marginBottom:6}},React.createElement(CGWordmark,{size:36})),React.createElement("div",{style:{fontSize:12,color:T.muted,letterSpacing:".18em",textTransform:"uppercase",marginBottom:24}},"Connected Living"),React.createElement("h1",{style:{fontFamily:T.serif,fontSize:28,fontWeight:900,color:T.text,lineHeight:1.2,marginBottom:12}},"The Property Portal",React.createElement("br",null),"Independent Landlords",React.createElement("br",null),React.createElement("span",{style:{color:T.green}},"Actually Love")),React.createElement("p",{style:{fontSize:14,color:T.muted,lineHeight:1.7,marginBottom:28,maxWidth:340}},"Beautiful tenant portal with real rent collection, AI-powered maintenance dispatch, and automated vendor communication."),React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10,maxWidth:300,width:"100%"}},React.createElement("button",{onClick:onExplore,style:{padding:"14px 24px",borderRadius:12,border:"none",background:`linear-gradient(135deg,${T.green},#2aaa72)`,color:"#071a0e",fontSize:15,fontWeight:800,cursor:"pointer"}},"\uD83C\uDFE0 Explore Tenant View"),React.createElement("button",{onClick:onApply,style:{padding:"14px 24px",borderRadius:12,border:`1px solid ${T.blue}44`,background:T.blue+"15",color:T.blue,fontSize:15,fontWeight:800,cursor:"pointer"}},"\uD83D\uDCDD Apply for a Unit"),React.createElement("button",{onClick:onMarket,style:{padding:"14px 24px",borderRadius:12,border:`1px solid ${T.purple}44`,background:T.purple+"15",color:T.purple,fontSize:15,fontWeight:800,cursor:"pointer"}},"\uD83C\uDFD8 Landlord Marketplace"),React.createElement("button",{onClick:onManager,style:{padding:"14px 24px",borderRadius:12,border:`1px solid ${T.gold}44`,background:T.gold+"15",color:T.gold,fontSize:15,fontWeight:800,cursor:"pointer"}},"\u2699 See Manager Dashboard")));}
+function Landing({onExplore,onManager,onApply,onMarket}){
+  const Card=({icon,title,sub,onClick})=>React.createElement("button",{
+    onClick,
+    style:{width:"100%",background:"#0d1f16",border:"1px solid #1a3326",borderRadius:16,
+      padding:"20px 20px",display:"flex",alignItems:"center",gap:16,cursor:"pointer",
+      textAlign:"left",boxShadow:"inset 0 0 0 0 transparent"}
+  },
+    React.createElement("div",{style:{width:52,height:52,borderRadius:12,
+      background:"#0a1a10",border:"1px solid #1e3d28",
+      display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}},
+      React.createElement(Icon,{d:icon,size:24,color:"#2dd4a0"})
+    ),
+    React.createElement("div",{style:{flex:1}},
+      React.createElement("div",{style:{fontSize:18,fontWeight:700,color:"#ffffff",marginBottom:4,fontFamily:"system-ui,sans-serif"}},title),
+      React.createElement("div",{style:{fontSize:12,color:"#2dd4a0",opacity:0.55,fontFamily:"'Courier New',monospace",lineHeight:1.4}},sub)
+    ),
+    React.createElement("div",{style:{color:"#2dd4a0",opacity:0.5,fontSize:22,fontWeight:200,marginLeft:8}},"\u203a")
+  );
 
-// ---- UnitSelect ----
+  return React.createElement("div",{style:{minHeight:"100vh",background:"#0b1117",
+    display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+    padding:"40px 24px",textAlign:"center",fontFamily:"system-ui,-apple-system,sans-serif"}},
+
+    React.createElement("svg",{width:88,height:76,viewBox:"0 0 88 76",fill:"none",
+      xmlns:"http://www.w3.org/2000/svg",style:{marginBottom:22}},
+      React.createElement("rect",{x:1,y:32,width:24,height:40,rx:1,stroke:"#2dd4a0",strokeWidth:2,fill:"none"}),
+      React.createElement("rect",{x:25,y:16,width:28,height:56,rx:1,stroke:"#2dd4a0",strokeWidth:2,fill:"none"}),
+      React.createElement("rect",{x:53,y:24,width:22,height:48,rx:1,stroke:"#2dd4a0",strokeWidth:2,fill:"none"}),
+      React.createElement("rect",{x:76,y:38,width:12,height:34,rx:1,stroke:"#2dd4a0",strokeWidth:2,fill:"none"}),
+      React.createElement("line",{x1:0,y1:72,x2:88,y2:72,stroke:"#2dd4a0",strokeWidth:2,strokeLinecap:"round"}),
+      React.createElement("rect",{x:5,y:40,width:6,height:6,rx:0.5,fill:"#2dd4a0",opacity:0.5}),
+      React.createElement("rect",{x:14,y:40,width:6,height:6,rx:0.5,fill:"#2dd4a0",opacity:0.5}),
+      React.createElement("rect",{x:5,y:52,width:6,height:6,rx:0.5,fill:"#2dd4a0",opacity:0.5}),
+      React.createElement("rect",{x:14,y:52,width:6,height:6,rx:0.5,fill:"#2dd4a0",opacity:0.5}),
+      React.createElement("rect",{x:29,y:24,width:6,height:6,rx:0.5,fill:"#2dd4a0",opacity:0.5}),
+      React.createElement("rect",{x:39,y:24,width:6,height:6,rx:0.5,fill:"#2dd4a0",opacity:0.5}),
+      React.createElement("rect",{x:29,y:36,width:6,height:6,rx:0.5,fill:"#2dd4a0",opacity:0.5}),
+      React.createElement("rect",{x:39,y:36,width:6,height:6,rx:0.5,fill:"#2dd4a0",opacity:0.5}),
+      React.createElement("rect",{x:57,y:32,width:6,height:6,rx:0.5,fill:"#2dd4a0",opacity:0.5}),
+      React.createElement("rect",{x:66,y:32,width:6,height:6,rx:0.5,fill:"#2dd4a0",opacity:0.5}),
+      React.createElement("rect",{x:57,y:44,width:6,height:6,rx:0.5,fill:"#2dd4a0",opacity:0.5}),
+      React.createElement("rect",{x:66,y:44,width:6,height:6,rx:0.5,fill:"#2dd4a0",opacity:0.5})
+    ),
+
+    React.createElement("div",{style:{fontSize:40,fontWeight:900,color:"#ffffff",
+      letterSpacing:"-1px",marginBottom:10,lineHeight:1}},
+      "Common",React.createElement("span",{style:{color:"#2dd4a0"}},"Ground")
+    ),
+    React.createElement("div",{style:{fontSize:11,letterSpacing:"0.22em",color:"#3a6a50",
+      fontWeight:500,marginBottom:8}},"CONNECTED LIVING"),
+    React.createElement("div",{style:{fontSize:11,letterSpacing:"0.18em",color:"#243a2c",
+      fontWeight:400,marginBottom:44}},"MOBILE-FIRST PROPERTY MANAGEMENT"),
+
+    React.createElement("div",{style:{width:"100%",maxWidth:520,display:"flex",flexDirection:"column",gap:14}},
+      React.createElement(Card,{icon:IC.home,title:"Tenant Portal",
+        sub:"Pay rent · Submit issues · Connect",onClick:onExplore}),
+      React.createElement(Card,{icon:IC.doc,title:"Apply for a Unit",
+        sub:"Submit rental application · Get started",onClick:onApply}),
+      React.createElement(Card,{icon:IC.forum,title:"Landlord Marketplace",
+        sub:"Buy & sell · Connect with investors",onClick:onMarket}),
+      React.createElement(Card,{icon:IC.grid,title:"Manager Dashboard",
+        sub:"Track financials · Manage units · File taxes",onClick:onManager})
+    ),
+
+    React.createElement("div",{style:{marginTop:40,fontSize:11,
+      color:"#1a2e20",letterSpacing:"0.14em"}},"Demo · Built for small landlords · 2-100 units")
+  );
+}
+
 function UnitSelect({onSelect,onManagerDemo,unitCfgOverride,profilesOverride}){const activePropId="cottage";const colors=["#3EC98E","#5B9CF6","#A78BFA","#F5C542","#F76F6F","#7BCFB8","#F5A442"];const prop=PROPERTIES[activePropId];const unitCfg=(unitCfgOverride&&unitCfgOverride[activePropId])||PROPERTY_UNIT_CONFIG[activePropId];const profiles=(profilesOverride&&profilesOverride[activePropId])||PROPERTY_PROFILES[activePropId];const rentStatus=PROPERTY_RENT_STATUS[activePropId];const units=Object.keys(unitCfg);const floors=[...new Set(Object.values(unitCfg).map(u=>u.floor))].sort();const floorLabels={1:"1st Floor",2:"2nd Floor",3:"3rd Floor"};return React.createElement("div",{style:{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",padding:"36px 20px 60px"}},React.createElement("div",{style:{animation:"fadeUp .5s ease both",textAlign:"center",marginBottom:16}},React.createElement(CGMark,{size:52}),React.createElement("div",{style:{marginTop:10}},React.createElement(CGWordmark,{size:24})),React.createElement("div",{style:{fontSize:12,color:T.muted,marginTop:4}},"Tenant Portal \u2014 33 Cottage St, Rutland VT")),React.createElement("div",{style:{animation:"fadeUp .4s .1s ease both",width:"100%",maxWidth:420,marginBottom:16}},React.createElement(DemoBanner,null)),React.createElement("div",{key:activePropId,style:{width:"100%",maxWidth:420,marginBottom:20}},React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:16}},React.createElement("span",{style:{fontSize:22}},prop.emoji),React.createElement("div",null,React.createElement("div",{style:{fontSize:15,fontWeight:800,color:prop.color}},prop.name),React.createElement("div",{style:{fontSize:11,color:T.muted}},prop.city," \u00B7 ",prop.type))),React.createElement("div",{style:{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:".14em",textAlign:"center",marginBottom:16}},"TAP ANY UNIT TO EXPLORE THE TENANT EXPERIENCE"),floors.map(floor=>React.createElement("div",{key:floor,style:{marginBottom:20}},React.createElement("div",{style:{fontSize:11,color:prop.color,fontWeight:700,letterSpacing:".12em",marginBottom:8}},floorLabels[floor]||`Floor ${floor}`),React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}},units.filter(u=>unitCfg[u].floor===floor).map(unit=>{const p=profiles[unit];const status=rentStatus[unit];const color=colors[units.indexOf(unit)%colors.length];const sc=status==="paid"?T.green:status==="overdue"?T.red:status==="due"?T.gold:T.muted;return React.createElement("div",{key:unit,onClick:()=>onSelect(activePropId,unit),style:{background:p?prop.color+"18":T.card,border:`1.5px solid ${p?prop.color+"44":T.border}`,borderRadius:16,padding:"14px 12px",cursor:"pointer",transition:"all .18s"}},React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:8}},React.createElement("div",{style:{width:42,height:42,borderRadius:12,flexShrink:0,background:p?`linear-gradient(135deg,${color},${color}bb)`:"#2A3F30",display:"flex",alignItems:"center",justifyContent:"center",fontSize:p?13:16,fontWeight:900,color:p?"#071a0e":T.muted,fontFamily:T.serif}},p?initials(`${p.firstName} ${p.lastName}`):unit),React.createElement("div",null,React.createElement("div",{style:{fontSize:14,fontWeight:800,color:T.text,fontFamily:T.serif}},"Unit ",unit),React.createElement("div",{style:{fontSize:11,color:T.muted}},unitCfg[unit].type))),p?React.createElement("div",null,React.createElement("div",{style:{fontSize:12,fontWeight:600,color:T.text}},p.firstName," ",p.lastName),React.createElement("div",{style:{marginTop:4,display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("span",{style:{background:sc+"22",color:sc,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:12}},status==="paid"?"\u2713 Paid":status==="overdue"?"\u26A0 Overdue":status==="due"?"Due Soon":"Vacant"),React.createElement("span",{style:{fontSize:10,color:T.muted}},"$",unitCfg[unit].rent,"/mo"))):React.createElement("div",{style:{fontSize:11,color:T.muted}},"Vacant unit"));}))))),React.createElement("div",{style:{width:"100%",maxWidth:420,display:"flex",flexDirection:"column",gap:10}},React.createElement("div",{style:{textAlign:"center",fontSize:11,color:T.muted,fontWeight:700,letterSpacing:".12em",marginBottom:4}},"OR EXPLORE THE MANAGER VIEW"),React.createElement(Btn,{onClick:onManagerDemo,variant:"gold",full:true,icon:React.createElement(Icon,{d:IC.grid,size:15,color:T.gold})},"View Manager Dashboard Demo"),React.createElement("div",{style:{textAlign:"center",fontSize:11,color:T.muted,lineHeight:1.7,marginTop:4}},"CommonGround \u2014 Starter $29/mo \u00B7 Growth $59/mo \u00B7 Pro $99/mo")));}
 
 // ---- TenantApp ----
