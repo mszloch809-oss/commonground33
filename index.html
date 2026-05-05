@@ -2873,6 +2873,81 @@ function ForumTab({unit,propId,prop,profile,unitCfg}){const[forums,setForums]=us
 
 // ---- ManagerDemo ----
 
+function MgrFMR({prop,units,unitCfg,profiles,rentStatus}){
+  const FMR={0:992,1:998,2:1257,3:1551,4:1942};
+  const UA_ELEC={0:37,1:43,2:61,3:78,4:96}; // electric other + cooking combined
+  const calcMax=(br)=>FMR[Math.min(br,4)]-UA_ELEC[Math.min(br,4)];
+  const getBR=(type)=>{if(!type)return 1;if(type.includes("3"))return 3;if(type.includes("2"))return 2;if(type.includes("4"))return 4;return 1;};
+  const unitList=Object.keys(unitCfg||{}).sort();
+  const max3=calcMax(3),max1=calcMax(1);
+
+  return React.createElement("div",{style:{padding:"16px",display:"flex",flexDirection:"column",gap:16}},
+    React.createElement("div",null,
+      React.createElement("div",{style:{fontFamily:T.serif,fontSize:22,fontWeight:900,color:T.text}},"FMR Compliance"),
+      React.createElement("div",{style:{fontSize:12,color:T.muted,marginTop:2}},"VHIP Calculator — Rutland County, VT — FY2025")
+    ),
+    React.createElement(Card,{style:{background:"#1a0a0a",border:"1px solid #c62828"}},
+      React.createElement("div",{style:{fontSize:11,color:"#ef9a9a",fontWeight:700,letterSpacing:".1em",marginBottom:8}},"COMPLIANCE STATUS"),
+      React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between"}},
+          React.createElement("span",{style:{fontSize:13,color:T.text}},"3-Bedroom max"),
+          React.createElement("span",{style:{fontSize:15,fontWeight:900,color:T.gold}},"$"+max3+"/mo")),
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between"}},
+          React.createElement("span",{style:{fontSize:13,color:T.text}},"1-Bedroom max"),
+          React.createElement("span",{style:{fontSize:15,fontWeight:900,color:T.gold}},"$"+max1+"/mo")),
+        React.createElement("div",{style:{marginTop:4,padding:"8px",background:"#c6282822",borderRadius:8,fontSize:11,color:"#ef9a9a"}},"Current rents exceed limits. Call Erin Aguayo at ACCD: 802-461-6220")
+      )
+    ),
+    React.createElement(Card,null,
+      React.createElement("div",{style:{fontSize:11,color:prop.color,fontWeight:700,letterSpacing:".1em",marginBottom:10}},"UNIT BREAKDOWN"),
+      React.createElement("div",null,
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"0.5fr 1.5fr 0.8fr 0.8fr 0.9fr",gap:4,padding:"6px 0",borderBottom:"2px solid "+T.border}},
+          ["Unit","Tenant","Type","Rent","vs Max"].map(h=>React.createElement("div",{key:h,style:{fontSize:10,color:T.muted,fontWeight:700}},h))
+        ),
+        ...unitList.map(u=>{
+          const cfg=unitCfg[u]||{};const p=profiles[u];
+          const br=getBR(cfg.type);const max=calcMax(br);
+          const rent=cfg.rent||0;const diff=rent-max;
+          const vacant=!p||rentStatus[u]==="vacant";
+          const over=!vacant&&diff>0;
+          return React.createElement("div",{key:u,style:{display:"grid",gridTemplateColumns:"0.5fr 1.5fr 0.8fr 0.8fr 0.9fr",gap:4,padding:"10px 0",borderBottom:"1px solid "+T.border,alignItems:"center"}},
+            React.createElement("div",{style:{fontSize:13,fontWeight:900,color:prop.color}},"#"+u),
+            React.createElement("div",{style:{fontSize:11,color:vacant?T.muted:T.text}},vacant?"Vacant":(p?(p.firstName+" "+(p.lastName||"")).trim()||"—":"—")),
+            React.createElement("div",{style:{fontSize:10,color:T.muted}},cfg.type||"—"),
+            React.createElement("div",{style:{fontSize:13,fontWeight:700,color:vacant?T.muted:T.text}},vacant?"—":"$"+rent),
+            React.createElement("div",{style:{fontSize:11,fontWeight:800,color:vacant?T.muted:over?"#ef5350":T.green}},
+              vacant?"Vacant":over?"\u25b2 $"+diff+" over":"\u2713 $"+Math.abs(diff)+" ok")
+          );
+        })
+      )
+    ),
+    React.createElement(Card,null,
+      React.createElement("div",{style:{fontSize:11,color:prop.color,fontWeight:700,letterSpacing:".1em",marginBottom:10}},"HOW IT'S CALCULATED"),
+      [
+        ["FY2025 FMR (3-BR)","$1,551","HUD Rutland County"],
+        ["FY2025 FMR (1-BR)","$998","HUD Rutland County"],
+        ["Heat (propane)","Included","Landlord pays - no deduction"],
+        ["Hot water (propane)","Included","Landlord pays - no deduction"],
+        ["Trash / Snow","Included","Landlord pays - no deduction"],
+        ["Electric (tenant pays)","-$78 / -$43","Deducted from 3-BR / 1-BR FMR"],
+        ["Max rent (3-BR)","$"+max3,"FMR minus tenant electric"],
+        ["Max rent (1-BR)","$"+max1,"FMR minus tenant electric"],
+      ].map((r,i)=>React.createElement("div",{key:i,style:{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid "+T.border}},
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontSize:12,color:T.text,fontWeight:600}},r[0]),
+          React.createElement("div",{style:{fontSize:10,color:T.muted}},r[2])),
+        React.createElement("div",{style:{fontSize:13,fontWeight:800,color:T.gold}},r[1])
+      ))
+    ),
+    React.createElement(Card,null,
+      React.createElement("div",{style:{fontSize:11,color:prop.color,fontWeight:700,letterSpacing:".1em",marginBottom:6}},"ANNUAL RECERTIFICATION"),
+      React.createElement("div",{style:{fontSize:12,color:T.muted,lineHeight:1.6}},"FMR rates update each December. Submit yearly recertification to ACCD. Check accd.vermont.gov/vhip/fmr-calculator for updated rates."),
+      React.createElement("div",{style:{marginTop:8,padding:"8px",background:T.greenDim,border:"1px solid "+T.green+"44",borderRadius:8,fontSize:12,color:T.green}},
+        "Erin Caro Aguayo • erin.aguayo@vermont.gov • 802-461-6220")
+    )
+  );
+}
+
 function ManagerDemo({onBack,workOrders,setWorkOrders,tenantInboxes,setTenantInboxes,reminders,setReminders,sharedDocs,setSharedDocs,applications,setApplications,pendingSigAlert,setPendingSigAlert,refreshState,mUnitCfg:mUnitCfgProp,setMUnitCfg:setMUnitCfgProp,mProfiles:mProfilesProp,setMProfiles:setMProfilesProp,updUnit:updUnitProp,updProfile:updProfileProp,managerPin,saveManagerPin}){
   const[tab,setTab]=useState("overview");
   const[propId,setPropId]=useState("cottage");
@@ -2907,7 +2982,7 @@ function ManagerDemo({onBack,workOrders,setWorkOrders,tenantInboxes,setTenantInb
   const activeReminders=reminders.filter(r=>!r.dismissed).length;
   const propOrders=workOrders.filter(o=>o.propId===propId||(!o.propId&&propId==="cottage"));
   const openOrders=propOrders.filter(o=>o.status==="open"||o.status==="in_progress").length;
-  const mgTabs=[{id:"overview",label:"Overview",icon:IC.grid,color:"#3EC98E"},{id:"units",label:"Units",icon:IC.home,color:"#5B9CF6"},{id:"tenants",label:"Tenants",icon:IC.person,color:"#7BCFB8"},{id:"maintenance",label:"Ops",icon:IC.wrench,color:"#F5A442",badge:openOrders||null},{id:"finance",label:"Finance",icon:IC.ledger,color:"#F5C542"},{id:"docs",label:"Docs",icon:IC.doc,color:"#A78BFA"},{id:"agent",label:"AI Agent",icon:IC.spark,color:"#3EC98E"}];
+  const mgTabs=[{id:"overview",label:"Overview",icon:IC.grid,color:"#3EC98E"},{id:"units",label:"Units",icon:IC.home,color:"#5B9CF6"},{id:"tenants",label:"Tenants",icon:IC.person,color:"#7BCFB8"},{id:"maintenance",label:"Ops",icon:IC.wrench,color:"#F5A442",badge:openOrders||null},{id:"finance",label:"Finance",icon:IC.ledger,color:"#F5C542"},{id:"docs",label:"Docs",icon:IC.doc,color:"#A78BFA"},{id:"fmr",label:"FMR",icon:IC.ledger,color:"#D4A843"},{id:"agent",label:"AI Agent",icon:IC.spark,color:"#3EC98E"}];
   const propCtx={propId,prop,unitCfg,profiles,rentStatus,units,totalExpected,updProfile,updUnit,setRentStatusOverrides};
   return React.createElement("div",{style:{minHeight:"100vh",background:T.bg}},
     React.createElement("div",{style:{position:"sticky",top:0,zIndex:20,background:T.bg+"f8",backdropFilter:"blur(16px)",borderBottom:`1px solid ${T.border}`}},
